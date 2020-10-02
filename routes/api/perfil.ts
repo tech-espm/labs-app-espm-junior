@@ -19,8 +19,8 @@ router.get("/obter", wrap(async (req: express.Request, res: express.Response) =>
 	let u = await Usuario.cookie(req, res, true);
 	if (!u)
 		return;
-	let id = parseInt(req.query["id"] as string);
-	res.json(isNaN(id) ? null : await Perfil.obter(id));
+	let idperfil = parseInt(req.query["idperfil"] as string);
+	res.json(isNaN(idperfil) ? null : await Perfil.obter(idperfil));
 }));
 
 router.post("/criar", wrap(async (req: express.Request, res: express.Response) => {
@@ -37,16 +37,16 @@ router.post("/alterar", wrap(async (req: express.Request, res: express.Response)
 		return;
 	let p = req.body as Perfil;
 	if (p)
-		p.id = parseInt(req.body.id);
-	jsonRes(res, 400, (p && !isNaN(p.id)) ? await Perfil.alterar(p) : "Dados inválidos");
+		p.idperfil = parseInt(req.body.idperfil);
+	jsonRes(res, 400, (p && !isNaN(p.idperfil)) ? await Perfil.alterar(p) : "Dados inválidos");
 }));
 
 router.get("/excluir", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req, res, true);
 	if (!u)
 		return;
-	let id = parseInt(req.query["id"] as string);
-	jsonRes(res, 400, isNaN(id) ? "Dados inválidos" : await Perfil.excluir(id));
+	let idperfil = parseInt(req.query["idperfil"] as string);
+	jsonRes(res, 400, isNaN(idperfil) ? "Dados inválidos" : await Perfil.excluir(idperfil));
 }));
 
 export = router;

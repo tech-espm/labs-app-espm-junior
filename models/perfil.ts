@@ -1,7 +1,7 @@
 ﻿import Sql = require("../infra/sql");
 
 export = class Perfil {
-	public id: number;
+	public idperfil: number;
 	public nome: string;
 
 	private static validar(p: Perfil): string {
@@ -16,17 +16,17 @@ export = class Perfil {
 		let lista: Perfil[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = (await sql.query("select id, nome from perfil order by nome asc")) as Perfil[];
+			lista = (await sql.query("select idperfil, nome from perfil order by nome asc")) as Perfil[];
 		});
 
 		return lista || [];
 	}
 
-	public static async obter(id: number): Promise<Perfil> {
+	public static async obter(idperfil: number): Promise<Perfil> {
 		let lista: Perfil[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = (await sql.query("select id, nome from perfil where id = ?", [id])) as Perfil[];
+			lista = (await sql.query("select idperfil, nome from perfil where idperfil = ?", [idperfil])) as Perfil[];
 		});
 
 		return (lista && lista[0]) || null;
@@ -58,7 +58,7 @@ export = class Perfil {
 
 		await Sql.conectar(async (sql: Sql) => {
 			try {
-				await sql.query("update perfil set nome = ? where id = ?", [p.nome, p.id]);
+				await sql.query("update perfil set nome = ? where idperfil = ?", [p.nome, p.idperfil]);
 				res = sql.linhasAfetadas.toString();
 			} catch (e) {
 				if (e.code && e.code === "ER_DUP_ENTRY")
@@ -71,11 +71,11 @@ export = class Perfil {
 		return res;
 	}
 
-	public static async excluir(id: number): Promise<string> {
+	public static async excluir(idperfil: number): Promise<string> {
 		let res: string = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			await sql.query("delete from perfil where id = ?", [id]);
+			await sql.query("delete from perfil where idperfil = ?", [idperfil]);
 			res = sql.linhasAfetadas.toString();
 		});
 

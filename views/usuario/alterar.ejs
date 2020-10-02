@@ -4,7 +4,7 @@
 		<form id="form" class="panel panel-default" action="#">
 			<div class="panel-heading">Informações do Usuário</div>
 			<div class="panel-body no-bottom">
-				<input type="hidden" id="id" name="id" value="<%=(item ? item.id : 0) %>" />
+				<input type="hidden" id="idusuario" name="idusuario" value="<%=(item ? item.idusuario : 0) %>" />
 				<div class="form-group">
 					<label for="login">Login</label>
 					<input id="login" name="login" maxlength="100" class="form-control upper" type="text" spellcheck="false" value="<%=(item ? item.login : '') %>" <%=(item ? 'readonly="readonly"' : '') %> />
@@ -18,7 +18,7 @@
 					<select id="idperfil" name="idperfil" class="form-control" size="1">
 						<option value="">SELECIONE...</option>
 						<% for (let i = 0; i < perfis.length; i++) { %>
-						<option value="<%= perfis[i].id %>" <%-((item && item.idperfil === perfis[i].id) ? 'selected="selected"' : '') %>><%= perfis[i].nome %></option>
+						<option value="<%= perfis[i].idperfil %>" <%-((item && item.idperfil === perfis[i].idperfil) ? 'selected="selected"' : '') %>><%= perfis[i].nome %></option>
 						<% } %>
 					</select>
 				</div>

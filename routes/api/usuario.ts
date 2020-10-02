@@ -25,8 +25,8 @@ router.get("/obter", wrap(async (req: express.Request, res: express.Response) =>
 	let u = await Usuario.cookie(req, res, true);
 	if (!u)
 		return;
-	let id = parseInt(req.query["id"] as string);
-	res.json(isNaN(id) ? null : await Usuario.obter(id));
+	let idusuario = parseInt(req.query["idusuario"] as string);
+	res.json(isNaN(idusuario) ? null : await Usuario.obter(idusuario));
 }));
 
 router.post("/criar", wrap(async (req: express.Request, res: express.Response) => {
@@ -43,29 +43,29 @@ router.post("/alterar", wrap(async (req: express.Request, res: express.Response)
 	let u = await Usuario.cookie(req, res, true);
 	if (!u)
 		return;
-	let id = u.id;
+	let idusuario = u.idusuario;
 	u = req.body as Usuario;
 	if (u) {
-		u.id = parseInt(req.body.id);
+		u.idusuario = parseInt(req.body.idusuario);
 		u.idperfil = parseInt(req.body.idperfil);
 	}
-	jsonRes(res, 400, (u && !isNaN(u.id)) ? (id === u.id ? "Um usuário não pode alterar a si próprio" : await Usuario.alterar(u)) : "Dados inválidos");
+	jsonRes(res, 400, (u && !isNaN(u.idusuario)) ? (idusuario === u.idusuario ? "Um usuário não pode alterar a si próprio" : await Usuario.alterar(u)) : "Dados inválidos");
 }));
 
 router.get("/excluir", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req, res, true);
 	if (!u)
 		return;
-	let id = parseInt(req.query["id"] as string);
-	jsonRes(res, 400, isNaN(id) ? "Dados inválidos" : (id === u.id ? "Um usuário não pode excluir a si próprio" : await Usuario.excluir(id)));
+	let idusuario = parseInt(req.query["idusuario"] as string);
+	jsonRes(res, 400, isNaN(idusuario) ? "Dados inválidos" : (idusuario === u.idusuario ? "Um usuário não pode excluir a si próprio" : await Usuario.excluir(idusuario)));
 }));
 
 router.get("/redefinirSenha", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req, res, true);
 	if (!u)
 		return;
-	let id = parseInt(req.query["id"] as string);
-	jsonRes(res, 400, isNaN(id) ? "Dados inválidos" : (id === u.id ? "Um usuário não pode redefinir sua própria senha" : await Usuario.redefinirSenha(id)));
+	let idusuario = parseInt(req.query["idusuario"] as string);
+	jsonRes(res, 400, isNaN(idusuario) ? "Dados inválidos" : (idusuario === u.idusuario ? "Um usuário não pode redefinir sua própria senha" : await Usuario.redefinirSenha(idusuario)));
 }));
 
 export = router;

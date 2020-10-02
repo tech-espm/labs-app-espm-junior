@@ -12,11 +12,17 @@ export = class Usuario {
 	private static readonly IdAdmin = 1;
 	private static readonly IdPerfilAdmin = 1;
 
-	public id: number;
+	public idusuario: number;
 	public login: string;
 	public nome: string;
 	public idperfil: number;
 	public senha: string;
+	public idcargo: number;
+	public idcurso: number;
+	public semestre: number;
+	public endereco: string;
+	public telefone: string;
+	public nascimento: string;
 	public criacao: string;
 
 	// Utilizados apenas através do cookie
@@ -35,11 +41,11 @@ export = class Usuario {
 			}
 			return null;
 		} else {
-			let id = parseInt(cookieStr.substr(0, 8), 16) ^ appsettings.usuarioHashId;
+			let idusuario = parseInt(cookieStr.substr(0, 8), 16) ^ appsettings.usuarioHashId;
 			let usuario: Usuario = null;
 
 			await Sql.conectar(async (sql: Sql) => {
-				let rows = await sql.query("select id, login, nome, idperfil, token from usuario where id = ?", [id]);
+				let rows = await sql.query("select idusuario, login, nome, idperfil, token from usuario where idusuario = ?", [idusuario]);
 				let row;
 
 				if (!rows || !rows.length || !(row = rows[0]))
@@ -51,7 +57,7 @@ export = class Usuario {
 					return;
 
 				let u = new Usuario();
-				u.id = id;
+				u.idusuario = idusuario;
 				u.login = row.login as string;
 				u.nome = row.nome as string;
 				u.idperfil = row.idperfil as number;
@@ -70,8 +76,8 @@ export = class Usuario {
 		}
 	}
 
-	private static gerarTokenCookie(id: number): [string, string] {
-		let idStr = intToHex(id ^ appsettings.usuarioHashId);
+	private static gerarTokenCookie(idusuario: number): [string, string] {
+		let idStr = intToHex(idusuario ^ appsettings.usuarioHashId);
 		let idExtra = intToHex(0);
 		let token = randomBytes(16).toString("hex");
 		let cookieStr = idStr + idExtra + token;
@@ -88,7 +94,7 @@ export = class Usuario {
 		await Sql.conectar(async (sql: Sql) => {
 			login = login.normalize().trim().toUpperCase();
 
-			let rows = await sql.query("select id, nome, idperfil, senha from usuario where login = ?", [login]);
+			let rows = await sql.query("select idusuario, nome, idperfil, senha from usuario where login = ?", [login]);
 			let row;
 			let ok: boolean;
 
@@ -97,12 +103,12 @@ export = class Usuario {
 				return;
 			}
 
-			let [token, cookieStr] = Usuario.gerarTokenCookie(row.id);
+			let [token, cookieStr] = Usuario.gerarTokenCookie(row.idusuario);
 
-			await sql.query("update usuario set token = ? where id = ?", [token, row.id]);
+			await sql.query("update usuario set token = ? where idusuario = ?", [token, row.idusuario]);
 
 			u = new Usuario();
-			u.id = row.id;
+			u.idusuario = row.idusuario;
 			u.login = login;
 			u.nome = row.nome as string;
 			u.idperfil = row.idperfil as number;
@@ -116,7 +122,7 @@ export = class Usuario {
 
 	public async efetuarLogout(res: express.Response): Promise<void> {
 		await Sql.conectar(async (sql: Sql) => {
-			await sql.query("update usuario set token = null where id = ?", [this.id]);
+			await sql.query("update usuario set token = null where idusuario = ?", [this.idusuario]);
 
 			res.cookie(appsettings.cookie, "", { expires: new Date(0), httpOnly: true, path: "/", secure: appsettings.cookieSecure });
 		});
@@ -134,7 +140,7 @@ export = class Usuario {
 
 		await Sql.conectar(async (sql: Sql) => {
 			if (senhaAtual) {
-				let hash = await sql.scalar("select senha from usuario where id = ?", [this.id]) as string;
+				let hash = await sql.scalar("select senha from usuario where idusuario = ?", [this.idusuario]) as string;
 				if (!await GeradorHash.validarSenha(senhaAtual.normalize(), hash)) {
 					r = "Senha atual não confere";
 					return;
@@ -142,15 +148,15 @@ export = class Usuario {
 
 				hash = await GeradorHash.criarHash(novaSenha.normalize());
 
-				let [token, cookieStr] = Usuario.gerarTokenCookie(this.id);
+				let [token, cookieStr] = Usuario.gerarTokenCookie(this.idusuario);
 
-				await sql.query("update usuario set nome = ?, senha = ?, token = ? where id = ?", [nome, hash, token, this.id]);
+				await sql.query("update usuario set nome = ?, senha = ?, token = ? where idusuario = ?", [nome, hash, token, this.idusuario]);
 
 				this.nome = nome;
 
 				res.cookie(appsettings.cookie, cookieStr, { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true, path: "/", secure: appsettings.cookieSecure });
 			} else {
-				await sql.query("update usuario set nome = ? where id = ?", [nome, this.id]);
+				await sql.query("update usuario set nome = ? where idusuario = ?", [nome, this.idusuario]);
 
 				this.nome = nome;
 			}
@@ -164,6 +170,14 @@ export = class Usuario {
 		if (u.nome.length < 3 || u.nome.length > 100)
 			return "Nome inválido";
 
+		// @@@ validar os campos
+		// idcargo: number;
+		// idcurso: number;
+		// semestre: number;
+		// endereco: string;
+		// telefone: string;
+		// nascimento: string;
+
 		return null;
 	}
 
@@ -171,17 +185,17 @@ export = class Usuario {
 		let lista: Usuario[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select u.id, u.login, u.nome, p.nome perfil, date_format(u.criacao, '%d/%m/%Y') criacao from usuario u inner join perfil p on p.id = u.idperfil order by u.login asc") as Usuario[];
+			lista = await sql.query("select u.idusuario, u.login, u.nome, p.nome perfil, u.idcargo, c.nome cargo, u.idcurso, s.nome curso, u.semestre, u.telefone, date_format(u.nascimento, '%d/%m/%Y') nascimento, date_format(u.criacao, '%d/%m/%Y') criacao from usuario u inner join perfil p on p.idperfil = u.idperfil inner join cargo c on c.idcargo = u.idcargo inner join curso s on s.idcurso = u.idcurso order by u.login asc") as Usuario[];
 		});
 
 		return (lista || []);
 	}
 
-	public static async obter(id: number): Promise<Usuario> {
+	public static async obter(idusuario: number): Promise<Usuario> {
 		let lista: Usuario[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select id, login, nome, idperfil, date_format(criacao, '%d/%m/%Y') criacao from usuario where id = ?", [id]) as Usuario[];
+			lista = await sql.query("select idusuario, login, nome, idperfil, idcargo, idcurso, semestre, endereco, telefone, date_format(nascimento, '%d/%m/%Y') nascimento, date_format(criacao, '%d/%m/%Y') criacao from usuario where idusuario = ?", [idusuario]) as Usuario[];
 		});
 
 		return ((lista && lista[0]) || null);
@@ -198,7 +212,15 @@ export = class Usuario {
 
 		await Sql.conectar(async (sql: Sql) => {
 			try {
-				await sql.query("insert into usuario (login, nome, idperfil, senha, criacao) values (?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, appsettings.usuarioHashSenhaPadrao]);
+				await sql.beginTransaction();
+
+				await sql.query("insert into usuario (login, nome, idperfil, senha, idcargo, idcurso, semestre, endereco, telefone, nascimento, criacao) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, appsettings.usuarioHashSenhaPadrao, u.idcargo, u.idcurso, u.semestre, u.endereco, u.telefone, u.nascimento]);
+				u.idusuario = await sql.scalar("select last_insert_id()") as number;
+
+				// @@@ Ficha médica...
+				await sql.query("insert into ficha_medica (idusuario, tipo_sanguineo, alergia, plano_saude, contato_emergencia, hospital_preferencia) VALUES (?, '', '', '', '', '')", [u.idusuario]);
+
+				await sql.commit();
 			} catch (e) {
 				if (e.code) {
 					switch (e.code) {
@@ -226,40 +248,42 @@ export = class Usuario {
 		if ((res = Usuario.validar(u)))
 			return res;
 
-		if (u.id === Usuario.IdAdmin)
+		if (u.idusuario === Usuario.IdAdmin)
 			return "Não é possível editar o usuário administrador principal";
 
 		await Sql.conectar(async (sql: Sql) => {
-			await sql.query("update usuario set nome = ?, idperfil = ? where id = ?", [u.nome, u.idperfil, u.id]);
+			await sql.query("update usuario set nome = ?, idperfil = ?, idcargo = ?, idcurso = ?, semestre = ?, endereco = ?, telefone = ?, nascimento = ? where idusuario = ?", [u.nome, u.idperfil, u.idcargo, u.idcurso, u.semestre, u.endereco, u.telefone, u.nascimento, u.idusuario]);
 			res = sql.linhasAfetadas.toString();
+
+			// @@@ Ficha médica...
 		});
 
 		return res;
 	}
 
-	public static async excluir(id: number): Promise<string> {
-		if (id === Usuario.IdAdmin)
+	public static async excluir(idusuario: number): Promise<string> {
+		if (idusuario === Usuario.IdAdmin)
 			return "Não é possível excluir o usuário administrador principal";
 
 		let res: string = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			await sql.query("delete from usuario where id = ?", [id]);
+			await sql.query("delete from usuario where idusuario = ?", [idusuario]);
 			res = sql.linhasAfetadas.toString();
 		});
 
 		return res;
 	}
 
-	public static async redefinirSenha(id: number): Promise<string> {
+	public static async redefinirSenha(idusuario: number): Promise<string> {
 		let res: string = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			let login = await sql.scalar("select login from usuario where id = ?", [id]) as string;
+			let login = await sql.scalar("select login from usuario where idusuario = ?", [idusuario]) as string;
 			if (!login) {
 				res = "0";
 			} else {
-				await sql.query("update usuario set token = null, senha = ? where id = ?", [appsettings.usuarioHashSenhaPadrao, id]);
+				await sql.query("update usuario set token = null, senha = ? where idusuario = ?", [appsettings.usuarioHashSenhaPadrao, idusuario]);
 				res = sql.linhasAfetadas.toString();
 			}
 		});

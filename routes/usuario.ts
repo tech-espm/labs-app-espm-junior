@@ -19,9 +19,9 @@ router.all("/alterar", wrap(async (req: express.Request, res: express.Response) 
 	if (!u || !u.admin) {
 		res.redirect(appsettings.root + "/acesso");
 	} else {
-		let id = parseInt(req.query["id"] as string);
+		let idusuario = parseInt(req.query["idusuario"] as string);
 		let item: Usuario = null;
-		if (isNaN(id) || !(item = await Usuario.obter(id)))
+		if (isNaN(idusuario) || !(item = await Usuario.obter(idusuario)))
 			res.render("home/nao-encontrado", { usuario: u });
 		else
 			res.render("usuario/alterar", { titulo: "Editar Usuário", usuario: u, item: item, perfis: await Perfil.listar() });
