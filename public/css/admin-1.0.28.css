@@ -6,6 +6,10 @@
 	padding: 0 15px;
 }
 
+.navbar-default {
+	background-color: #001f33;
+}
+
 .navbar-right {
 	text-align: right;
 }
@@ -209,7 +213,7 @@
 
 /* workaround to avoid blurry fonts in Chrome, because they are rendered on top of a fixed element (sidebar-fake-bg) */
 .sidebar {
-	background: #333;
+	background: #001f33;
 	backface-visibility: hidden;
 }
 
@@ -236,7 +240,7 @@
 	}
 
 	.sidebar-safari {
-		background: #333;
+		background: #001f33;
 	}
 
 	.sidebar-fake-bg {
@@ -246,7 +250,7 @@
 		top: 0;
 		bottom: 0;
 		left: 0;
-		background: #333;
+		background: #001f33;
 	}
 }
 

@@ -11,7 +11,8 @@ export = class Curso {
 
 		return null; 
     }
-    public static async listar(): Promise<Curso[]> {
+
+	public static async listar(): Promise<Curso[]> {
 		let lista: Curso[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {

@@ -2,85 +2,61 @@ import Sql = require("../infra/sql");
 
 export = class Ponto {
 	public idponto: number;
-    public idusuario: number;
-    public entrada: string;
-    public saida: string;
+	public idusuario: number;
+	public entrada: string;
+	public saida: string;
 
-// Validação necessária ??
-// Arrumar/Excluir o Try Catch do INSERT e UPDATE 
+	public static async listarDeUsuarioMes(idusuario: number, mes: number, ano: number): Promise<Ponto[]> {
+		let lista: Ponto[] = null;
 
+		let proximo_ano = ano;
+		let proximo_mes = mes + 1;
+		if (proximo_mes > 12) {
+			proximo_mes = 1;
+			proximo_ano++;
+		}
+		let inicio = `${ano}-${mes}-01`;
+		let fim = `${proximo_ano}-${proximo_mes}-01`;
 
-public static async listar(): Promise<Ponto[]> {
-    let lista: Ponto[] = null;
+		await Sql.conectar(async (sql: Sql) => {
+			lista = (await sql.query("select idusuario, date_format(entrada, '%Y-%m-%d %H:%i') entrada, date_format(saida, '%Y-%m-%d %H:%i') saida from ponto where idusuario = ? and entrada >= ? and entrada < ?", [idusuario, inicio, fim])) as Ponto[];
+		});
 
-    await Sql.conectar(async (sql: Sql) => {
-        lista = (await sql.query("select idusuario, entrada, saida from ponto order by idusuario")) as Ponto[];
-    });
+		return lista || [];
+	}
 
-    return lista || [];
-}
+	public static async baterEntrada(idusuario: number): Promise<string> {  
+		let res: string = null;
 
-public static async obter(idponto: number): Promise<Ponto> {
-    let lista: Ponto[] = null;
+		await Sql.conectar(async (sql: Sql) => {
+			const idponto = await sql.scalar("select idponto from ponto where date(entrada) = curdate() and idusuario = ?", [idusuario]) as number;
+			if (idponto) {
+				res = "Já existe um ponto aberto para a data atual";
+				return;
+			}
 
-    await Sql.conectar(async (sql: Sql) => {
-        lista = (await sql.query("select idponto, idusuario, entrada, saida from ponto where idponto = ?", [idponto])) as Ponto[];
-    });
+			await sql.query("insert into ponto (idusuario, entrada) values (?, now())", [idusuario]);
+		});
 
-    return (lista && lista[0]) || null;
-}
+		return res;
+	}
 
-public static async criar(p: Ponto): Promise<string> {  
-    let res: string;
+	public static async baterSaida(idusuario: number): Promise<string> {  
+		let res: string = null;
 
-    // Se houver validação:
-    // if ((res = Ponto.validar(p)))
-    //     return res;
+		await Sql.conectar(async (sql: Sql) => {
+			const idponto = await sql.scalar("select idponto from ponto where date(entrada) = curdate() and idusuario = ?", [idusuario]) as number;
+			if (!idponto) {
+				res = "Não existe um ponto aberto para a data atual";
+				return;
+			}
 
-    await Sql.conectar(async (sql: Sql) => {
-        // try {
-            await sql.query("insert into Ponto (entrada, saida) values (?, ?)", [p.entrada, p.saida]);
-        // } catch (e) {
-        //     if (e.code && e.code === "ER_DUP_ENTRY")
-        //         res = `O ponto ${p.nome} já existe`;
-        //     else
-        //         throw e;
-        // }
-    });
+			await sql.query("update ponto set saida = now() where idponto = ? and saida is null", [idponto]);
+			if (sql.linhasAfetadas === 0) {
+				res = "Já foi marcada a saída para a data atual";
+			}
+		});
 
-    return res;
-}
-
-public static async alterar(p: Ponto): Promise<string> {
-    let res: string;
-    
-    // Se houver validação:
-    // if ((res = Ponto.validar(p)))
-    //     return res;
-
-    await Sql.conectar(async (sql: Sql) => {
-        // try {
-            await sql.query("update ponto set idusuario = ?, entrada = ?, saida = ? where idponto = ?", [p.idusuario, p.entrada, p.saida, p.idponto]);
-            res = sql.linhasAfetadas.toString();
-        // } catch (e) {
-        //     if (e.code && e.code === "ER_DUP_ENTRY")
-        //         res = `O ponto ${p.nome} já existe`;
-        //     else
-        //         throw e;
-        // }
-    });
-
-    return res;
-}
-
-public static async excluir(idponto: number): Promise<string> {
-    let res: string = null;
-
-    await Sql.conectar(async (sql: Sql) => {
-        await sql.query("delete from perfil where idponto = ?", [idponto]);
-        res = sql.linhasAfetadas.toString();
-    });
-
-    return res;
-}
+		return res;
+	}
 };

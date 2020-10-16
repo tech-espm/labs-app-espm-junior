@@ -6,8 +6,8 @@
 	"lang": "pt-BR",
 	"orientation": "portrait-primary",
 	"display": "standalone",
-	"background_color": "#222222",
-	"theme_color": "#222222",
+	"background_color": "#001f33",
+	"theme_color": "#001f33",
 	"description": "ESPM Júnior",
 	"icons": [
 		{
