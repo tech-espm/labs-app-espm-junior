@@ -166,6 +166,9 @@ export = class Usuario {
 	}
 
 	private static validar(u: Usuario): string {
+		if (!u)
+			return "Dados inválidos";
+
 		u.nome = (u.nome || "").normalize().trim().toUpperCase();
 		if (u.nome.length < 3 || u.nome.length > 100)
 			return "Nome inválido";

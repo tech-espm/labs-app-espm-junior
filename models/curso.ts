@@ -5,6 +5,9 @@ export = class Curso {
     public nome: string;
 
 	private static validar(c: Curso): string {
+		if (!c)
+			return "Dados inválidos";
+
 		c.nome = (c.nome || "").normalize().trim();
 		if (c.nome.length < 3 || c.nome.length > 50)
 			return "Nome do curso inválido";

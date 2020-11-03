@@ -5,6 +5,9 @@ export = class Perfil {
 	public nome: string;
 
 	private static validar(p: Perfil): string {
+		if (!p)
+			return "Dados inválidos";
+
 		p.nome = (p.nome || "").normalize().trim();
 		if (p.nome.length < 3 || p.nome.length > 50)
 			return "Nome inválido";
@@ -59,7 +62,8 @@ export = class Perfil {
 		await Sql.conectar(async (sql: Sql) => {
 			try {
 				await sql.query("update perfil set nome = ? where idperfil = ?", [p.nome, p.idperfil]);
-				res = sql.linhasAfetadas.toString();
+				if (!sql.linhasAfetadas)
+					res = "Perfil não encontrado";
 			} catch (e) {
 				if (e.code && e.code === "ER_DUP_ENTRY")
 					res = `O perfil ${p.nome} já existe`;
@@ -76,7 +80,8 @@ export = class Perfil {
 
 		await Sql.conectar(async (sql: Sql) => {
 			await sql.query("delete from perfil where idperfil = ?", [idperfil]);
-			res = sql.linhasAfetadas.toString();
+			if (!sql.linhasAfetadas)
+				res = "Perfil não encontrado";
 		});
 
 		return res;

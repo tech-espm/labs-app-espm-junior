@@ -6,6 +6,9 @@ export = class Assunto {
 	public criacao: string;
 
 	private static validar(a: Assunto): string {
+		if (!a)
+			return "Dados inválidos";
+
 		a.nome = (a.nome || "").normalize().trim();
 		if (a.nome.length < 3 || a.nome.length > 100)
 			return "Nome inválido";
@@ -42,10 +45,10 @@ export = class Assunto {
 			try {
 				await sql.query("insert into assunto (nome, criacao) values (?, now())", [a.nome]);
 			} catch (e) {
-			if (e.code && e.code === "ER_DUP_ENTRY")
-				res = `O assunto ${a.nome} já existe`;
-			else
-				throw e;
+				if (e.code && e.code === "ER_DUP_ENTRY")
+					res = `O assunto ${a.nome} já existe`;
+				else
+					throw e;
 			}
 		});
 
@@ -60,7 +63,8 @@ export = class Assunto {
 		await Sql.conectar(async (sql: Sql) => {
 			try {
 				await sql.query("update assunto set nome = ? where id = ?", [a.nome, a.id]);
-				res = sql.linhasAfetadas.toString();
+				if (!sql.linhasAfetadas)
+					res = "Assunto não encontrado";
 			} catch (e) {
 				if (e.code && e.code === "ER_DUP_ENTRY")
 					res = `O assunto ${a.nome} já existe`;
@@ -77,7 +81,8 @@ export = class Assunto {
 
 		await Sql.conectar(async (sql: Sql) => {
 			await sql.query("delete from assunto where id = ?", [id]);
-			res = sql.linhasAfetadas.toString();
+			if (!sql.linhasAfetadas)
+				res = "Assunto não encontrado";
 		});
 
 		return res;
