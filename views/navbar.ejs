@@ -58,6 +58,25 @@
 
 					</ul>
 				</li>
+				<% if (!usuario.admin) { %>
+
+					<li class="sidebar-spacer"></li>
+	
+					<li>
+						<a href="#"><i class="fa fa-id-card-o fa-fw"></i>Requerimentos<span class="fa arrow"></span></a>
+						<ul class="nav nav-second-level collapse">
+	
+							<li>
+								<a href="<%- root %>/requerimento/baterPonto"><i class="fa fa-vcard fa-fw"></i>Bater Ponto</a>
+							</li>
+	
+							<li>
+								<a href="<%- root %>/requerimento/dayoff"><i class="fa fa-calendar-times-o fa-fw"></i>Pedir Dayoff</a>
+							</li>
+	
+						</ul>
+					</li>
+				<% } %>
 
 				<% if (usuario.admin) { %>
 
