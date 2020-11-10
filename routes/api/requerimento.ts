@@ -2,6 +2,7 @@
 import wrap = require("express-async-error-wrapper");
 import Ponto = require("../../models/ponto");
 import Usuario = require("../../models/usuario");
+import jsonRes = require("../../utils/jsonRes");
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ router.get("/baterPonto", wrap(async (req: express.Request, res: express.Respons
 	if (!u)
 		return;
 	let id = parseInt(req.query["idusuario"] as string);
-	res.json(isNaN(id) ? null : await Ponto.baterEntrada(id));
+	jsonRes(res, 400, u ? await Ponto.baterEntrada(id) : "Dados inválidos");
 }));
 
 export = router;
