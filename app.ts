@@ -107,8 +107,8 @@ app.use("/usuario", require("./routes/usuario"));
 // API
 app.use("/api/assunto", require("./routes/api/assunto"));
 app.use("/api/cargo", require("./routes/api/cargo"));
-app.use("/curso", require("./routes/api/curso"));
-app.use("/requerimento", require("./routes/api/requerimento"));
+app.use("/api/curso", require("./routes/api/curso"));
+app.use("/api/requerimento", require("./routes/api/requerimento"));
 app.use("/api/usuario", require("./routes/api/usuario"));
 
 // Depois de registrados todos os caminhos das rotas e seus

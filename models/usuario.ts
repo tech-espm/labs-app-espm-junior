@@ -84,6 +84,30 @@ export = class Usuario {
 		return [token, cookieStr];
 	}
 
+	public static async gerarTokenQR(): Promise<string> {
+		let token = randomBytes(32).toString("hex");
+
+		await Sql.conectar(async (sql) => {
+			await sql.query("update tokenqr set token = ?", [token]);
+		});
+
+		return token;
+	}
+
+	public static async gerarProximoQR(token: string): Promise<string> {
+		let qr: string = null;
+
+		await Sql.conectar(async (sql) => {
+			const tokenAtual = await sql.scalar("select token from tokenqr") as string;
+			if (token && token === tokenAtual) {
+				qr = randomBytes(8).toString("hex");
+				await sql.query("update tokenqr set qr2 = qr1, qr1 = ?", [qr]);
+			}
+		});
+
+		return qr;
+	}
+
 	public static async efetuarLogin(login: string, senha: string, res: express.Response): Promise<[string, Usuario]> {
 		if (!login || !senha)
 			return ["Usuário ou senha inválidos", null];
@@ -118,6 +142,28 @@ export = class Usuario {
 		});
 
 		return [r, u];
+	}
+
+	public static async conferirSenhaAdmin(login: string, senha: string): Promise<boolean> {
+		if (!login || !senha)
+			return false;
+
+		let ok = false;
+
+		await Sql.conectar(async (sql: Sql) => {
+			login = login.normalize().trim().toUpperCase();
+
+			let rows = await sql.query("select idperfil, senha from usuario where login = ?", [login]);
+			let row: any;
+
+			if (!rows || !rows.length || !(row = rows[0]) || !await GeradorHash.validarSenha(senha.normalize(), row.senha)) {
+				return;
+			}
+
+			ok = (row.idperfil === Usuario.IdPerfilAdmin);
+		});
+
+		return ok;
 	}
 
 	public async efetuarLogout(res: express.Response): Promise<void> {

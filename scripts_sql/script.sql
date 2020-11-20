@@ -1,6 +1,15 @@
 CREATE DATABASE IF NOT EXISTS espmjunior;
 USE espmjunior;
 
+-- DROP TABLE IF EXISTS tokenqr;
+CREATE TABLE tokenqr (
+  token char(64) NOT NULL,
+  qr1 char(16) NOT NULL,
+  qr2 char(16) NOT NULL
+);
+
+INSERT INTO tokenqr (token, qr1, qr2) VALUES ('', '', '');
+
 -- DROP TABLE IF EXISTS perfil;
 CREATE TABLE perfil (
   idperfil int NOT NULL AUTO_INCREMENT,

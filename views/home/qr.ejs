@@ -1,0 +1,118 @@
+﻿<form id="form">
+	<div style="max-width: 400px; margin: 0 auto; padding: 5% 15px 50px;">
+		<div class="panel panel-default no-margin-bottom">
+			<div class="panel-body" id="panelBody">
+				<div class="col-xs-space-bottom">
+					<img alt="ESPM Júnior" src="<%- root %>/imagens/logo.png" style="max-width: 100%;" />
+				</div>
+				<hr />
+				<div class="form-group">
+					<label for="login">Usuário</label>
+					<input name="login" type="text" id="login" class="form-control text-uppercase" spellcheck="false" />
+				</div>
+				<div class="form-group">
+					<label for="senha">Senha</label>
+					<input name="senha" type="password" id="senha" class="form-control" />
+				</div>
+				<input type="submit" value="Liberar QR" class="btn btn-primary btn-block" />
+			</div>
+		</div>
+	</div>
+</form>
+
+<%- contentFor("styles") %>
+<style type="text/css">
+	#qrcode > img {
+		display: block;
+		margin: 30px auto 30px;
+		width: 250px;
+	}
+</style>
+
+<%- contentFor("scripts") %>
+<!--
+	qrcode.js
+	https://github.com/davidshimjs/qrcodejs
+-->
+<script type="text/javascript" src="<%- root %>/lib/qrcodejs/js/qrcode-1.0.0.min.js"></script>
+<script type="text/javascript">
+	//<![CDATA[
+	"use strict";
+
+	var token = null;
+
+	function gerarQR() {
+		if (JsonWebApi.active) {
+			setTimeout(gerarQR, 30000);
+			return;
+		}
+
+		Notification.wait();
+
+		JsonWebApi.get("<%- root %>/api/requerimento/gerarProximoQR", function (response) {
+			Notification.hide();
+
+			var erro = null;
+
+			if (response.success) {
+				var qr = response.value;
+				if (!qr) {
+					erro = "Token inválido para gerar o código QR";
+				} else {
+					$("#panelBody").html('<div id="qrcode"></div>');
+
+					new QRCode("qrcode", {
+						text: qr,
+						width: 500,
+						height: 500,
+						colorDark: "#000000",
+						colorLight: "#ffffff",
+						correctLevel: QRCode.CorrectLevel.H
+					});
+
+					$("#qrcode").attr("title", "");
+				}
+			} else {
+				erro = response.value;
+			}
+
+			if (erro) {
+				$("#panelBody").html('<h1 class="col-h no-margin-top no-margin-bottom">' + erro + '</h1>');
+			}
+
+			setTimeout(gerarQR, 30000);
+		}, "token", token);
+	}
+
+	$("#form").validate({
+		rules: {
+			login: {
+				required: true
+			},
+			senha: {
+				required: true
+			}
+		},
+
+		submitHandler: function (form) {
+			if (JsonWebApi.active)
+				return;
+
+			Notification.wait();
+
+			JsonWebApi.postFormData("<%- root %>/api/requerimento/gerarTokenQR", form, function (response) {
+				if (response.success) {
+					token = response.value;
+					if (!token) {
+						Notification.error("Erro ao gerar o token", true);
+					} else {
+						gerarQR();
+					}
+				} else {
+					Notification.error(response.value, true);
+				}
+			});
+		}
+	});
+	//]]>
+</script>

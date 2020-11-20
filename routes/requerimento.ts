@@ -14,5 +14,4 @@ router.all("/baterPonto", wrap(async (req: express.Request, res: express.Respons
 		res.render("requerimento/baterPonto", { titulo: "Bater Ponto", usuario: u, item: null });
 }));
 
-
 export = router;

@@ -40,21 +40,27 @@
 						<% } %>
 					</select>
 				</div>
-				<div class="form-group">
-					<label for="semestre">Semestre</label>
-					<input id="semestre" name="semestre" maxlength="1" type="number" spellcheck="false" value="<%=(item ? item.semestre : '') %>" />
+				<div class="row">
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="semestre">Semestre</label>
+							<input id="semestre" name="semestre" class="form-control" type="number" min="1" max="8" spellcheck="false" value="<%=(item ? item.semestre : '') %>" />
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="nascimento">Data de Nascimento</label>
+							<input id="nascimento" name="nascimento" class="form-control" type="date" spellcheck="false" value="<%=(item ? item.nascimento : '') %>" />
+						</div>
+					</div>
 				</div>
 				<div class="form-group">
 					<label for="endereco">Endereço</label>
-					<input id="endereco" name="endereco" maxlength="100" type="text" spellcheck="false" value="<%=(item ? item.endereco : '') %>" />
+					<input id="endereco" name="endereco" class="form-control" maxlength="100" type="text" spellcheck="false" value="<%=(item ? item.endereco : '') %>" />
 				</div>
 				<div class="form-group">
 					<label for="telefone">Telefone</label>
-					<input id="telefone" name="telefone" maxlength="20" type="tel" spellcheck="false" value="<%=(item ? item.telefone : '') %>" />
-				</div>
-				<div class="form-group">
-					<label for="nascimento">Data de Nascimento</label>
-					<input id="nascimento" name="nascimento"  type="date" spellcheck="false" value="<%=(item ? item.nascimento : '') %>" />
+					<input id="telefone" name="telefone" class="form-control" maxlength="20" type="tel" spellcheck="false" value="<%=(item ? item.telefone : '') %>" />
 				</div>
 			</div>
 			<div class="panel-footer">
@@ -82,6 +88,29 @@
 				maxlength: 100
 			},
 			idperfil: {
+				required: true
+			},
+			idcargo: {
+				required: true
+			},
+			idcurso: {
+				required: true
+			},
+			semestre: {
+				required: true,
+				number: true,
+				min: 1,
+				max: 8
+			},
+			endereco: {
+				required: true,
+				maxlength: 100
+			},
+			telefone: {
+				required: true,
+				maxlength: 20
+			},
+			nascimento: {
 				required: true
 			}
 		},

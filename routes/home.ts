@@ -56,4 +56,8 @@ router.get("/logout", wrap(async (req: express.Request, res: express.Response) =
 	res.redirect(appsettings.root + "/");
 }));
 
+router.get("/qr", wrap(async (req: express.Request, res: express.Response) => {
+	res.render("home/qr", { layout: "layout-externo" });
+}));
+
 export = router;
