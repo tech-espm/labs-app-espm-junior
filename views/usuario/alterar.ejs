@@ -22,6 +22,40 @@
 						<% } %>
 					</select>
 				</div>
+				<div class="form-group">
+                    <label for="idcargo">Cargo</label>
+                    <select id="idcargo" name="idcargo" class="form-control" size="1">
+                        <option value="">SELECIONE...</option>
+                        <% for (let i = 0; i < cargos.length; i++) { %>
+                        <option value="<%= cargos[i].idcargo %>" <%-((item && item.idcargo === cargos[i].idcargo) ? 'selected="selected"' : '') %>><%= cargos[i].nome %></option>
+                        <% } %>
+                    </select>
+                </div>
+				<div class="form-group">
+					<label for="idcurso">Curso</label>
+					<select id="idcurso" name="idcurso" class="form-control" size="1">
+						<option value="">SELECIONE...</option>
+						<% for (let i = 0; i < cursos.length; i++) { %>
+						<option value="<%= cursos[i].idcurso %>" <%-((item && item.idcurso === cursos[i].idcursos) ? 'selected="selected"' : '') %>><%= cursos[i].nome %></option>
+						<% } %>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="semestre">Semestre</label>
+					<input id="semestre" name="semestre" maxlength="1" type="number" spellcheck="false" value="<%=(item ? item.semestre : '') %>" />
+				</div>
+				<div class="form-group">
+					<label for="endereco">Endereço</label>
+					<input id="endereco" name="endereco" maxlength="100" type="text" spellcheck="false" value="<%=(item ? item.endereco : '') %>" />
+				</div>
+				<div class="form-group">
+					<label for="telefone">Telefone</label>
+					<input id="telefone" name="telefone" maxlength="20" type="tel" spellcheck="false" value="<%=(item ? item.telefone : '') %>" />
+				</div>
+				<div class="form-group">
+					<label for="nascimento">Data de Nascimento</label>
+					<input id="nascimento" name="nascimento"  type="date" spellcheck="false" value="<%=(item ? item.nascimento : '') %>" />
+				</div>
 			</div>
 			<div class="panel-footer">
 				<input value="<%=(item ? 'Salvar Alterações' : 'Criar Usuário') %>" class="btn btn-primary btn-lg btn-block" type="submit" />

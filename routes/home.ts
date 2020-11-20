@@ -10,7 +10,7 @@ router.all("/", wrap(async (req: express.Request, res: express.Response) => {
 	if (!u) {
 		res.redirect(appsettings.root + "/login");
 	} else {
-		res.render("home/dashboard", { titulo: "Dashboard", usuario: u });
+		res.render("home/calendário", { titulo: "Calendário", usuario: u });
 	}
 }));
 

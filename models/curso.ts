@@ -62,7 +62,8 @@ export = class Curso {
 		await Sql.conectar(async (sql: Sql) => {
 			try {
 				await sql.query("update curso set nome = ? where idcurso = ?", [c.nome, c.idcurso]);
-				res = sql.linhasAfetadas.toString();
+				if (!sql.linhasAfetadas)
+					res = "Curso não encontrado";
 			} catch (e) {
 				if (e.code && e.code === "ER_DUP_ENTRY")
 					res = `O Curso ${c.nome} já existe`;
@@ -79,7 +80,8 @@ export = class Curso {
 
 		await Sql.conectar(async (sql: Sql) => {
 			await sql.query("delete from curso where idcurso = ?", [idcurso]);
-			res = sql.linhasAfetadas.toString();
+			if (!sql.linhasAfetadas)
+				res = "Curso não encontrado";
 		});
 
 		return res;
