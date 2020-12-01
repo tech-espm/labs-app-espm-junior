@@ -26,7 +26,7 @@ router.all("/alterar", wrap(async (req: express.Request, res: express.Response) 
 		if (isNaN(idusuario) || !(item = await Usuario.obter(idusuario)))
 			res.render("home/nao-encontrado", { usuario: u });
 		else
-			res.render("usuario/alterar", { titulo: "Editar Usuário", usuario: u, item: item, perfis: await Perfil.listar() });
+			res.render("usuario/alterar", { titulo: "Editar Usuário", usuario: u, item: item, perfis: await Perfil.listar(), cargos: await Cargo.listar(), cursos: await Curso.listar() });
 	}
 }));
 
