@@ -6,12 +6,20 @@ import appsettings = require("../appsettings");
 
 const router = express.Router();
 
-router.all("/baterPonto", wrap(async (req: express.Request, res: express.Response) => {
+router.all("/baterEntrada", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req);
 	if (!u)
 		res.redirect(appsettings.root + "/acesso");
 	else
-		res.render("requerimento/baterPonto", { titulo: "Bater Ponto", usuario: u, item: null });
+		res.render("requerimento/baterPonto", { titulo: "Bater Entrada", usuario: u, entrada: true });
+}));
+
+router.all("/baterSaida", wrap(async (req: express.Request, res: express.Response) => {
+	let u = await Usuario.cookie(req);
+	if (!u)
+		res.redirect(appsettings.root + "/acesso");
+	else
+		res.render("requerimento/baterPonto", { titulo: "Bater Saída", usuario: u, entrada: false });
 }));
 
 export = router;

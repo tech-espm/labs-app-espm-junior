@@ -100,7 +100,7 @@ export = class Usuario {
 		await Sql.conectar(async (sql) => {
 			const tokenAtual = await sql.scalar("select token from tokenqr") as string;
 			if (token && token === tokenAtual) {
-				qr = randomBytes(8).toString("hex");
+				qr = randomBytes(8).toString("hex").toLowerCase();
 				await sql.query("update tokenqr set qr2 = qr1, qr1 = ?", [qr]);
 			}
 		});

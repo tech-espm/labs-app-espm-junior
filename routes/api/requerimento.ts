@@ -9,12 +9,20 @@ const router = express.Router();
 // Se utilizar router.xxx() mas não utilizar o wrap(), as exceções ocorridas
 // dentro da função async não serão tratadas!!!
 
-router.post("/baterPonto", wrap(async (req: express.Request, res: express.Response) => {
+router.get("/baterEntrada/:qr", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req, res);
 	if (!u)
 		return;
-	let id = parseInt(req.query["idusuario"] as string);
-	jsonRes(res, 400, u ? await Ponto.baterEntrada(id) : "Dados inválidos");
+	let qr = req.params["qr"] as string;
+	jsonRes(res, 400, (u && qr) ? await Ponto.baterEntrada(u.idusuario, qr) : "Dados inválidos");
+}));
+
+router.get("/baterSaida/:qr", wrap(async (req: express.Request, res: express.Response) => {
+	let u = await Usuario.cookie(req, res);
+	if (!u)
+		return;
+	let qr = req.params["qr"] as string;
+	jsonRes(res, 400, (u && qr) ? await Ponto.baterSaida(u.idusuario, qr) : "Dados inválidos");
 }));
 
 router.post("/gerarTokenQR", wrap(async (req: express.Request, res: express.Response) => {

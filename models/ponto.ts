@@ -25,10 +25,16 @@ export = class Ponto {
 		return lista || [];
 	}
 
-	public static async baterEntrada(idusuario: number): Promise<string> {  
+	public static async baterEntrada(idusuario: number, qr: string): Promise<string> {
 		let res: string = null;
 
 		await Sql.conectar(async (sql: Sql) => {
+			const valido = await sql.scalar("select token from tokenqr where qr1 = ? or qr2 = ?", [qr, qr]);
+			if (!valido) {
+				res = "Código QR inválido";
+				return;
+			}
+
 			const idponto = await sql.scalar("select idponto from ponto where date(entrada) = curdate() and idusuario = ?", [idusuario]) as number;
 			if (idponto) {
 				res = "Já existe um ponto aberto para a data atual";
@@ -41,10 +47,16 @@ export = class Ponto {
 		return res;
 	}
 
-	public static async baterSaida(idusuario: number): Promise<string> {  
+	public static async baterSaida(idusuario: number, qr: string): Promise<string> {
 		let res: string = null;
 
 		await Sql.conectar(async (sql: Sql) => {
+			const valido = await sql.scalar("select token from tokenqr where qr1 = ? or qr2 = ?", [qr, qr]);
+			if (!valido) {
+				res = "Código QR inválido";
+				return;
+			}
+
 			const idponto = await sql.scalar("select idponto from ponto where date(entrada) = curdate() and idusuario = ?", [idusuario]) as number;
 			if (!idponto) {
 				res = "Não existe um ponto aberto para a data atual";

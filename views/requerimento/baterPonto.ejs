@@ -1,35 +1,318 @@
 <div class="row">
 	<div class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
 		<form id="form" class="panel panel-default" action="#">
-			<div class="panel-footer">
-				<input value="<%=(item ? 'Salvar Alterações' : 'BATER ENTRADA') %>" class="btn btn-primary btn-lg btn-block" type="submit" />
+			<div class="panel-body text-center">
+				<p>Por favor, não esqueça de permitir que a página atual utilize a câmera do seu dispositivo.</p>
+				<p>Caso a câmera não abra automaticamente dentro de alguns segundos, por favor, clique no botão abaixo:</p>
+				<button type="button" class="btn btn-primary" onclick="mostrarQR()">Bater <%- (entrada ? 'Entrada' : 'Saída') %></button>
 			</div>
 		</form>
 	</div>
 </div>
 
+<div id="divPreview" class="fullscreen hidden">
+	<video id="preview" class="fullscreen" autoplay muted playsinline></video>
+	<div id="divCapa" class="fullscreen" onclick="pararDecodificacao()"></div>
+	<canvas id="qr-canvas" style="opacity: 0.5; z-index: 99; position: fixed; top: 0px; left: 0px; display: none;"></canvas>
+</div>
+
+<div class="modal fade" tabindex="-1" role="dialog" id="modalAlerta">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title">Ponto</h4>
+			</div>
+			<div class="modal-body" id="modalAlertaBody"></div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-outline btn-default" data-dismiss="modal"><i class="fa fa-times"></i>Fechar</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<%- contentFor("styles") %>
+<style type="text/css">
+	.fullscreen {
+		padding: 0;
+		margin: 0;
+		left: 0;
+		top: 0;
+		height: 100%;
+		width: 100%;
+		object-fit: cover;
+	}
+
+	div.fullscreen {
+		position: fixed;
+		z-index: 1011;
+	}
+
+	video.fullscreen {
+		pointer-events: none;
+	}
+
+	#divCapa {
+		z-index: 1012;
+		cursor: pointer;
+	}
+
+	canvas, video {
+		display: block;
+	}
+</style>
+
 <%- contentFor("scripts") %>
+<!--
+	JavaScript QRCode reader for HTML5 enabled browser.
+	2011 Lazar Laszlo  http://lazarsoft.info
+	https://github.com/LazarSoft/jsqrcode
+-->
+<script type="text/javascript" src="<%- root %>/lib/qr/js/grid.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/version.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/detector.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/formatinf.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/errorlevel.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/bitmat.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/datablock.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/bmparser.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/datamask.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/rsdecoder.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/gf256poly.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/gf256.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/decoder.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/qrcode.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/findpat.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/alignpat.js"></script>
+<script type="text/javascript" src="<%- root %>/lib/qr/js/databr.js"></script>
+
 <script type="text/javascript">
 	//<![CDATA[
 	"use strict";
 
-	$("#form").validate({
-		
-		submitHandler: function (form) {
-			if (JsonWebApi.active)
-				return;
+	if (!navigator.getUserMedia) {
+		navigator.getUserMedia = (navigator.webkitGetUserMedia ||
+			navigator.mozGetUserMedia ||
+			navigator.msGetUserMedia);
+	}
 
-			Notification.wait();
+	if (!window.URL)
+		window.URL = window.webkitURL;
 
-			JsonWebApi.postFormData("<%- root %>/api/requerimento/baterPonto", form, function (response) {
-				if (response.success) {
-					resetForm("#form");
-					Notification.success("Ponto Batido! " + emoji.happy);
-				} else {
-					Notification.error(response.value, true);
-				}
-			});
-		}
+	if (!("now" in Date))
+		Date.now = function () { return (+new Date()); }
+
+	var preview, previewSrc, previewOk, cameraStream, cameraTrack, canvas, context,
+		modalAlertaVisivel = false,	
+		inverter = false,
+		decodificando = false,
+		ligando = false,
+		divPreview = _("divPreview");
+
+	$("#modalAlerta").on("show.bs.modal", function () {
+		modalAlertaVisivel = true;
 	});
+
+	$("#modalAlerta").on("hidden.bs.modal", function () {
+		modalAlertaVisivel = false;
+	});
+
+	function iniciarDecodificacao() {
+		if (preview.play) {
+			Notification.hide();
+			decodificando = true;
+			preview.play();
+			divPreview.className = "fullscreen";
+			setTimeout(tentarDecodificar, 1000);
+			Notification.show("Clique sobre o vídeo para voltar", "default", 5000, false);
+		}
+	}
+
+	function pararDecodificacao() {
+		decodificando = false;
+		ligando = false;
+
+		preview.removeEventListener("canplay", ajustarPreview);
+		preview.removeEventListener("loadeddata", ajustarPreview);
+		preview.removeEventListener("resize", ajustarPreview);
+		if (preview.pause)
+			preview.pause();
+		if (cameraStream) {
+			if (cameraStream.stop)
+				cameraStream.stop();
+			if (cameraTrack && cameraTrack.stop)
+				cameraTrack.stop();
+			cameraStream = null;
+			cameraTrack = null;
+		}
+		if ("mozSrcObject" in preview)
+			preview.mozSrcObject = null;
+		else
+			preview.src = "";
+		previewOk = false;
+		if (previewSrc) {
+			URL.revokeObjectURL(previewSrc);
+			previewSrc = null;
+		}
+
+		divPreview.className = "fullscreen hidden";
+	}
+
+	function mostrarAlerta(mensagem, erro) {
+		$("#modalAlertaBody").html('<div class="no-margin-bottom alert alert-' + (erro ? 'danger' : 'success') + '">' + mensagem + '</div>');
+		$("#modalAlerta").modal({
+			backdrop: "static",
+			keyboard: false
+		});
+	}
+
+	function tentarDecodificar() {
+		if (!decodificando)
+			return true;
+
+		if (!JsonWebApi.active && !modalAlertaVisivel) {
+			// Desenha o vídeo atualmente exibido no canvas, espelhado horizontalmente quando necessário
+			if (inverter)
+				context.setTransform(-1, 0, 0, 1, canvas.width, 0);
+			context.drawImage(preview, 0, 0, canvas.width, canvas.height);
+			if (inverter)
+				context.setTransform(1, 0, 0, 1, 0, 0);
+
+			try {
+				var result = qrcode.decode(), i, c;
+				if (result && result.length === 16) {
+					result = result.toLowerCase();
+					for (i = result.length - 1; i >= 0; i--) {
+						c = result.charCodeAt(i);
+						// aceita apenas caracteres 0,1,2,3,4,5,6,7,8,9,a,b,c,d,e,f
+						if (c < 0x30 || c > 0x66 || (c > 0x39 && c < 0x61)) {
+							return;
+						}
+					}
+
+					Notification.wait();
+
+					JsonWebApi.get("<%- root %>/api/requerimento/<%- (entrada ? 'baterEntrada' : 'baterSaida') %>/" + result, function (response) {
+						Notification.hide();
+
+						if (response.success) {
+							if (response.value) {
+								mostrarAlerta(response.value + " " + emoji.sad, true);
+							} else {
+								pararDecodificacao();
+								mostrarAlerta("<%- (entrada ? 'Entrada' : 'Saída') %> batida com sucesso " + emoji.happy, false);
+							}
+						} else {
+							mostrarAlerta(response.value, true);
+						}
+					});
+				}
+			} catch (ex) {
+				// Apenas ignora... na maioria das vezes vai dar errado mesmo!
+			}
+		}
+
+		if (decodificando)
+			setTimeout(tentarDecodificar, 50);
+
+		return true;
+	}
+
+	function ajustarPreview() {
+		// Utiliza a variável previewOk para garantir que esse código seja executado apenas uma vez!
+		if (!previewOk) {
+			canvas.width = preview.videoWidth;
+			canvas.height = preview.videoHeight;
+			previewOk = true;
+			ligando = false;
+			// Reproduz o vídeo, efetivamente exibindo o conteúdo da câmera na página
+			iniciarDecodificacao();
+		}
+		return true;
+	}
+
+	function getUserMedia_Success(mediaStream) {
+		// Especifica o tratador do evento "canplay", que é executado quando o
+		// vídeo foi carregado, e já está pronto para reproduzir
+		preview.addEventListener("canplay", ajustarPreview);
+		// Às vezes, canplay não é chamado, dependendo do browser... :(
+		preview.addEventListener("loadeddata", ajustarPreview);
+		preview.addEventListener("resize", ajustarPreview);
+		// Armazena o stream para uso futuro
+		cameraStream = mediaStream;
+		if (cameraStream.getTracks)
+			cameraTrack = cameraStream.getTracks()[0];
+		if ("srcObject" in preview) {
+			// Browsers novos...
+			previewSrc = null;
+			preview.srcObject = mediaStream;
+		} else if ("mozSrcObject" in preview) {
+			// O Firefox antigo trabalha de jeito diferente...
+			previewSrc = null;
+			preview.mozSrcObject = mediaStream;
+		} else {
+			// Para os outros browsers, basta criar uma URL para encapsular o stream, e pronto!
+			previewSrc = URL.createObjectURL(mediaStream);
+			preview.src = previewSrc;
+		}
+		return true;
+	}
+
+	function getUserMedia_Error(error) {
+		ligando = false;
+		Notification.error("Erro ao obter acesso à câmera: " + error, true);
+		return true;
+	}
+
+	function mostrarQR() {
+		if (JsonWebApi.active || decodificando || ligando)
+			return true;
+
+		ligando = true;
+
+		// Tenta obter acesso à câmera de trás
+		if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+			navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+			.then(getUserMedia_Success)
+			.catch(getUserMedia_Error);
+		} else if (navigator.getUserMedia) {
+			navigator.getUserMedia({ video: { facingMode: "environment" }, audio: false }, getUserMedia_Success, getUserMedia_Error);
+		}
+
+		Notification.wait();
+
+		return true;
+	}
+
+	(function () {
+		if (!navigator.getUserMedia && !navigator.mediaDevices) {
+			Notification.error("Aparentemente seu browser não possui a API necessária para acessar a câmera! " + emoji.sad, true);
+		} else {
+			// Obtém o vídeo da página (onde será exibido o preview)
+			preview = document.getElementById("preview");
+			if (inverter) {
+				// Inverte o filme horizontalmente
+				if ("transform" in preview.style)
+					preview.style.transform = "scaleX(-1)";
+				if ("mozTransform" in preview.style)
+					preview.style.mozTransform = "scaleX(-1)";
+				if ("webkitTransform" in preview.style)
+					preview.style.webkitTransform = "scaleX(-1)";
+				if ("oTransform" in preview.style)
+					preview.style.oTransform = "scaleX(-1)";
+			}
+			// Ver explicação na função preview_CanPlay
+			previewOk = false;
+			// Obtém o canvas da página (onde será exibida a foto tirada)
+			canvas = document.getElementById("qr-canvas");
+			// Obtém o contexto de desenho do canvas (utilizado para desenhar)
+			context = canvas.getContext("2d");
+			// Tenta obter acesso à câmera
+			//navigator.getUserMedia({ video: true, audio: false }, getUserMedia_Success, getUserMedia_Error);
+		}
+	})();
+
+	mostrarQR();
+
 	//]]>
 </script>
