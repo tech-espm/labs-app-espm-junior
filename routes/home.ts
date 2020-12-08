@@ -46,7 +46,7 @@ router.get("/perfil", wrap(async (req: express.Request, res: express.Response) =
 	if (!u)
 		res.redirect(appsettings.root + "/");
 	else
-		res.render("home/perfil", { titulo: "Meu Perfil", usuario: u });
+		res.render("home/perfil", { titulo: "Meu Perfil", usuario: u, item: item, perfis: await Perfil.listar(), cargos: await Cargo.listar(), cursos: await Curso.listar() });
 }));
 
 router.get("/logout", wrap(async (req: express.Request, res: express.Response) => {
