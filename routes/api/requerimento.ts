@@ -40,4 +40,10 @@ router.get("/gerarProximoQR", wrap(async (req: express.Request, res: express.Res
 	res.json(await Usuario.gerarProximoQR(req.query["token"] as string));
 }));
 
+ router.put("/dayoff", wrap(async (req: express.Request, res: express.Response) => {
+ 		let u = await Usuario.cookie(req, res);
+ 	if (!u)
+		 return;
+	res.json(await Usuario.pedirDayoff(u));
+ }));
 export = router;

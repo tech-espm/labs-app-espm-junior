@@ -55,6 +55,7 @@ CREATE TABLE usuario (
   telefone varchar(20) NOT NULL,
   nascimento datetime NOT NULL,
   criacao datetime NOT NULL,
+  dayoff int,
   PRIMARY KEY (idusuario),
   UNIQUE KEY login_UN (login),
   KEY usuario_idperfil_FK_idx (idperfil),

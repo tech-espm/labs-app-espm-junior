@@ -22,4 +22,13 @@ router.all("/baterSaida", wrap(async (req: express.Request, res: express.Respons
 		res.render("requerimento/baterPonto", { titulo: "Bater Saída", usuario: u, entrada: false });
 }));
 
+router.all("/dayoff", wrap(async (req: express.Request, res: express.Response) => {
+	let u = await Usuario.cookie(req);
+	if (!u)
+		res.redirect(appsettings.root + "/acesso");
+	else
+		res.render("requerimento/dayoff", { titulo: "Dayoff", usuario: u, item: null});
+}));
+
+
 export = router;

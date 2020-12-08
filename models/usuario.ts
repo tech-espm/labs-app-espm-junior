@@ -252,6 +252,7 @@ export = class Usuario {
 
 	public static async criar(u: Usuario): Promise<string> {
 		let res: string;
+		let dayoff = 3;
 		if ((res = Usuario.validar(u)))
 			return res;
 
@@ -263,7 +264,7 @@ export = class Usuario {
 			try {
 				await sql.beginTransaction();
 
-				await sql.query("insert into usuario (login, nome, idperfil, senha, idcargo, idcurso, semestre, endereco, telefone, nascimento, criacao) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, appsettings.usuarioHashSenhaPadrao, u.idcargo, u.idcurso, u.semestre, u.endereco, u.telefone, u.nascimento]);
+				await sql.query("insert into usuario (login, nome, idperfil, senha, idcargo, idcurso, semestre, endereco, telefone, nascimento, dayoff, criacao ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, appsettings.usuarioHashSenhaPadrao, u.idcargo, u.idcurso, u.semestre, u.endereco, u.telefone, u.nascimento, dayoff]);
 				u.idusuario = await sql.scalar("select last_insert_id()") as number;
 
 				// @@@ Ficha médica...
@@ -337,6 +338,17 @@ export = class Usuario {
 			}
 		});
 
+		
+
+		return res;
+	}
+	public static async pedirDayoff(Usuario: Usuario): Promise<string> {
+		let idusuario = Usuario.idusuario
+		let res: string = null;
+		await Sql.conectar(async (sql: Sql) => {
+				await sql.query("update usuario set dayoff = dayoff-1 where idusuario = ?", [idusuario]);
+				res = sql.linhasAfetadas.toString();
+		});
 		return res;
 	}
 }
