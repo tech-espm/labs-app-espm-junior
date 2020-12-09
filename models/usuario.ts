@@ -124,7 +124,7 @@ export = class Usuario {
 		await Sql.conectar(async (sql: Sql) => {
 			login = login.normalize().trim().toUpperCase();
 
-			let rows = await sql.query("select idusuario, nome, idperfil, senha from usuario where login = ?", [login]);
+			let rows = await sql.query("select idusuario, nome, idperfil, versao, senha from usuario where login = ?", [login]);
 			let row;
 			let ok: boolean;
 
@@ -142,6 +142,7 @@ export = class Usuario {
 			u.login = login;
 			u.nome = row.nome as string;
 			u.idperfil = row.idperfil as number;
+			u.versao = row.versao as number;
 			u.admin = (u.idperfil === Usuario.IdPerfilAdmin);
 
 			res.cookie(appsettings.cookie, cookieStr, { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true, path: "/", secure: appsettings.cookieSecure });
