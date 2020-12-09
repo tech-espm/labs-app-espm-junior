@@ -295,7 +295,7 @@ export = class Usuario {
 			try {
 				await sql.beginTransaction();
 
-				await sql.query("insert into usuario (login, nome, idperfil, senha, idcargo, idcurso, semestre, endereco, telefone, nascimento, dayoff, criacao ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, appsettings.usuarioHashSenhaPadrao, u.idcargo, u.idcurso, u.semestre, u.endereco, u.telefone, u.nascimento, dayoff]);
+				await sql.query("insert into usuario (login, nome, idperfil, versao, senha, idcargo, idcurso, semestre, endereco, telefone, nascimento, dayoff, criacao ) values (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, appsettings.usuarioHashSenhaPadrao, u.idcargo, u.idcurso, u.semestre, u.endereco, u.telefone, u.nascimento, dayoff]);
 				u.idusuario = await sql.scalar("select last_insert_id()") as number;
 
 				// @@@ Ficha médica...
