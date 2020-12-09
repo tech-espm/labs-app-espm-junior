@@ -244,7 +244,7 @@ export = class Usuario {
 		let lista: Usuario[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select idusuario, login, nome, idperfil, idcargo, idcurso, semestre, endereco, telefone, date_format(nascimento, '%d/%m/%Y') nascimento, date_format(criacao, '%d/%m/%Y') criacao from usuario where idusuario = ?", [idusuario]) as Usuario[];
+			lista = await sql.query("select idusuario, login, nome, idperfil, idcargo, idcurso, semestre, endereco, telefone, date_format(nascimento, '%Y-%m-%d') nascimento, date_format(criacao, '%d/%m/%Y') criacao from usuario where idusuario = ?", [idusuario]) as Usuario[];
 		});
 
 		return ((lista && lista[0]) || null);

@@ -36,7 +36,7 @@
 					<select id="idcurso" name="idcurso" class="form-control" size="1">
 						<option value="">SELECIONE...</option>
 						<% for (let i = 0; i < cursos.length; i++) { %>
-						<option value="<%= cursos[i].idcurso %>" <%-((item && item.idcurso === cursos[i].idcursos) ? 'selected="selected"' : '') %>><%= cursos[i].nome %></option>
+						<option value="<%= cursos[i].idcurso %>" <%-((item && item.idcurso === cursos[i].idcurso) ? 'selected="selected"' : '') %>><%= cursos[i].nome %></option>
 						<% } %>
 					</select>
 				</div>
