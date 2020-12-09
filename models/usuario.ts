@@ -28,7 +28,8 @@ export = class Usuario {
 	public telefone: string;
 	public nascimento: string;
 	public criacao: string;
-
+	public dayoff: number;
+	
 	// Utilizados apenas através do cookie
 	public admin: boolean;
 
