@@ -46,6 +46,7 @@ CREATE TABLE usuario (
   login varchar(100) NOT NULL,
   nome varchar(100) NOT NULL,
   idperfil int NOT NULL,
+  versao int NOT NULL,
   senha varchar(100) NOT NULL,
   token char(32) DEFAULT NULL,
   idcargo int NOT NULL,

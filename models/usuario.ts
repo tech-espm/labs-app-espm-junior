@@ -6,16 +6,20 @@ import Sql = require("../infra/sql");
 import GeradorHash = require("../utils/geradorHash");
 import appsettings = require("../appsettings");
 import intToHex = require("../utils/intToHex");
+import Upload = require("../infra/upload");
 
 export = class Usuario {
 
 	private static readonly IdAdmin = 1;
 	private static readonly IdPerfilAdmin = 1;
 
+	public static readonly CaminhoRelativoPerfil = "public/imagens/perfil/";
+
 	public idusuario: number;
 	public login: string;
 	public nome: string;
 	public idperfil: number;
+	public versao: number;
 	public senha: string;
 	public idcargo: number;
 	public idcurso: number;
@@ -45,7 +49,7 @@ export = class Usuario {
 			let usuario: Usuario = null;
 
 			await Sql.conectar(async (sql: Sql) => {
-				let rows = await sql.query("select idusuario, login, nome, idperfil, token from usuario where idusuario = ?", [idusuario]);
+				let rows = await sql.query("select idusuario, login, nome, idperfil, versao, token from usuario where idusuario = ?", [idusuario]);
 				let row;
 
 				if (!rows || !rows.length || !(row = rows[0]))
@@ -61,6 +65,7 @@ export = class Usuario {
 				u.login = row.login as string;
 				u.nome = row.nome as string;
 				u.idperfil = row.idperfil as number;
+				u.versao = row.versao as number;
 				u.admin = (u.idperfil === Usuario.IdPerfilAdmin);
 
 				usuario = u;
@@ -174,7 +179,7 @@ export = class Usuario {
 		});
 	}
 
-	public async alterarPerfil(res: express.Response, nome: string, senhaAtual: string, novaSenha: string): Promise<string> {
+	public async alterarPerfil(res: express.Response, nome: string, senhaAtual: string, novaSenha: string, imagemPerfil: string): Promise<string> {
 		nome = (nome || "").normalize().trim().toUpperCase();
 		if (nome.length < 3 || nome.length > 100)
 			return "Nome inválido";
@@ -206,6 +211,31 @@ export = class Usuario {
 
 				this.nome = nome;
 			}
+
+			if (imagemPerfil) {
+				if (!imagemPerfil.startsWith("data:image/jpeg;base64,") || imagemPerfil.length === 23) {
+					r = (senhaAtual ? "A senha foi alterada com sucesso, mas a imagem de perfil é inválida" : "Imagem de perfil inválida");
+					return;
+				}
+
+				if (imagemPerfil.length > (23 + (256 * 1024 * 4 / 3))) {
+					r = (senhaAtual ? "A senha foi alterada com sucesso, mas a imagem de perfil é muito grande" : "Imagem de perfil muito grande");
+					return;
+				}
+
+				try {
+					await Upload.gravarArquivo({
+						buffer: Buffer.from(imagemPerfil.substr(23), "base64")
+					}, Usuario.CaminhoRelativoPerfil, this.idusuario + ".jpg");
+
+					this.versao++;
+
+					await sql.query("update usuario set versao = ? where idusuario = ?", [this.versao, this.idusuario]);
+				} catch (ex) {
+					r = (senhaAtual ? "A senha foi alterada com sucesso, mas ocorreu um erro ao gravar a imagem de perfil" : "Erro ao gravar a imagem de perfil");
+					return;
+				}
+			}
 		});
 
 		return r;
@@ -234,7 +264,7 @@ export = class Usuario {
 		let lista: Usuario[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select u.idusuario, u.login, u.nome, p.nome perfil, u.idcargo, c.nome cargo, u.idcurso, s.nome curso, u.semestre, u.telefone, date_format(u.nascimento, '%d/%m/%Y') nascimento, date_format(u.criacao, '%d/%m/%Y') criacao from usuario u inner join perfil p on p.idperfil = u.idperfil inner join cargo c on c.idcargo = u.idcargo inner join curso s on s.idcurso = u.idcurso order by u.login asc") as Usuario[];
+			lista = await sql.query("select u.idusuario, u.login, u.nome, u.versao, p.nome perfil, u.idcargo, c.nome cargo, u.idcurso, s.nome curso, u.semestre, u.telefone, date_format(u.nascimento, '%d/%m/%Y') nascimento, date_format(u.criacao, '%d/%m/%Y') criacao from usuario u inner join perfil p on p.idperfil = u.idperfil inner join cargo c on c.idcargo = u.idcargo inner join curso s on s.idcurso = u.idcurso order by u.login asc") as Usuario[];
 		});
 
 		return (lista || []);
