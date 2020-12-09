@@ -51,7 +51,7 @@ export = class Usuario {
 
 			await Sql.conectar(async (sql: Sql) => {
 				let rows = await sql.query("select idusuario, login, nome, idperfil, versao, token from usuario where idusuario = ?", [idusuario]);
-				let row;
+				let row: any;
 
 				if (!rows || !rows.length || !(row = rows[0]))
 					return;
