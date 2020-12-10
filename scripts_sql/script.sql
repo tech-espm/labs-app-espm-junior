@@ -65,7 +65,7 @@ CREATE TABLE usuario (
   CONSTRAINT usuario_idcargo_FK FOREIGN KEY (idcargo) REFERENCES cargo (idcargo) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 
-INSERT INTO usuario (login, nome, idperfil, senha, token, idcargo, idcurso, semestre, endereco, telefone, nascimento, criacao) VALUES ('ADMIN', 'ADMINISTRADOR', 1, 'peTcC99vkvvLqGQL7mdhGuJZIvL2iMEqvCNvZw3475PJ:JVyo1Pg2HyDyw9aSOd3gNPT30KdEyiUYCjs7RUzSoYGN', NULL, 1, 1, 1, '', '', NOW(), NOW());
+INSERT INTO usuario (login, nome, idperfil, versao, senha, token, idcargo, idcurso, semestre, endereco, telefone, nascimento, criacao) VALUES ('ADMIN', 'ADMINISTRADOR', 1, 0, 'peTcC99vkvvLqGQL7mdhGuJZIvL2iMEqvCNvZw3475PJ:JVyo1Pg2HyDyw9aSOd3gNPT30KdEyiUYCjs7RUzSoYGN', NULL, 1, 1, 1, '', '', NOW(), NOW());
 
 -- DROP TABLE IF EXISTS ficha_medica;
 CREATE TABLE ficha_medica (

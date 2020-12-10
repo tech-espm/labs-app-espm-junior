@@ -6,6 +6,11 @@
 	background: #001f33;
 }
 
+.sidebar .nav-second-level li {
+    margin: 0 16px;
+    background: #001523;
+}
+
 @media(min-width:768px) {
 	.sidebar-safari {
 		background: #001f33;
