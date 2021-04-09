@@ -7,6 +7,7 @@ import GeradorHash = require("../utils/geradorHash");
 import appsettings = require("../appsettings");
 import intToHex = require("../utils/intToHex");
 import Upload = require("../infra/upload");
+import FS = require("../infra/fs");
 
 export = class Usuario {
 
@@ -350,8 +351,15 @@ export = class Usuario {
 		let res: string = null;
 
 		await Sql.conectar(async (sql: Sql) => {
+			await sql.beginTransaction();
 			await sql.query("delete from usuario where idusuario = ?", [idusuario]);
 			res = sql.linhasAfetadas.toString();
+			if (sql.linhasAfetadas) {
+				const caminho = Usuario.CaminhoRelativoPerfil + idusuario + ".jpg";
+				if (await FS.existeArquivo(caminho))
+					await FS.excluirArquivo(caminho);
+			}
+			await sql.commit();
 		});
 
 		return res;
