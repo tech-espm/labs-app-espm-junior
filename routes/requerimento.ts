@@ -11,7 +11,7 @@ router.all("/baterEntrada", wrap(async (req: express.Request, res: express.Respo
 	if (!u)
 		res.redirect(appsettings.root + "/acesso");
 	else
-		res.render("requerimento/baterPonto", { titulo: "Bater Entrada", usuario: u, entrada: true });
+		res.render("requerimento/baterPonto", { titulo: "Marcar Entrada", usuario: u, entrada: true });
 }));
 
 router.all("/baterSaida", wrap(async (req: express.Request, res: express.Response) => {
@@ -19,7 +19,7 @@ router.all("/baterSaida", wrap(async (req: express.Request, res: express.Respons
 	if (!u)
 		res.redirect(appsettings.root + "/acesso");
 	else
-		res.render("requerimento/baterPonto", { titulo: "Bater Saída", usuario: u, entrada: false });
+		res.render("requerimento/baterPonto", { titulo: "Marcar Saída", usuario: u, entrada: false });
 }));
 
 router.all("/dayoff", wrap(async (req: express.Request, res: express.Response) => {
@@ -27,7 +27,7 @@ router.all("/dayoff", wrap(async (req: express.Request, res: express.Response) =
 	if (!u)
 		res.redirect(appsettings.root + "/acesso");
 	else
-		res.render("requerimento/dayoff", { titulo: "Dayoff", usuario: u, item: null});
+		res.render("requerimento/dayoff", { titulo: "Day off", usuario: u, item: null});
 }));
 
 

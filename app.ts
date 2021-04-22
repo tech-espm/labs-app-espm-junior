@@ -18,7 +18,6 @@
 // na opção "Install Missing npm Package(s)"
 //****************************************************************
 
-import debug = require("debug");
 import express = require("express");
 import wrap = require("express-async-error-wrapper");
 import cookieParser = require("cookie-parser"); // https://stackoverflow.com/a/16209531/3569421
@@ -156,5 +155,5 @@ app.use(wrap(async (req: express.Request, res: express.Response, next: express.N
 
 //const server = app.listen(appsettings.port, "127.0.0.1", () => {
 const server = app.listen(appsettings.port, () => {
-	debug("Express server listening on port " + server.address()["port"]);
+	console.log("Express server listening on port " + server.address()["port"]);
 });
