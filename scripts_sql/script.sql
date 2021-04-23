@@ -91,3 +91,28 @@ CREATE TABLE ponto (
   KEY idusuario_FK_idx (idusuario),
   CONSTRAINT ponto_idusuario_FK FOREIGN KEY (idusuario) REFERENCES usuario (idusuario) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+-- DROP TABLE IF EXISTS tipoevento;
+CREATE TABLE tipoevento (
+  idtipoevento int NOT NULL AUTO_INCREMENT,
+  nome varchar(50) NOT NULL,
+  corfundo varchar(8) NOT NULL,
+  cortexto varchar(8) NOT NULL,
+  PRIMARY KEY (idtipoevento)
+);
+
+INSERT INTO tipoevento (nome, corfundo, cortexto) VALUES ('CURSO', '#990000', '#ffffff'), ('REUNIÃO', '#000099', '#ffffff'), ('PALESTRA', '#009900', '#ffffff'), ('WORKSHOP', '#009999', '#ffffff');
+
+-- DROP TABLE IF EXISTS evento;
+CREATE TABLE evento (
+  idevento int NOT NULL AUTO_INCREMENT,
+  idtipoevento int NOT NULL,
+  nome varchar(50) NOT NULL,
+  descricao varchar(200) NOT NULL,
+  horainicial smallint NOT NULL,
+  horafinal smallint NOT NULL,
+  data datetime NOT NULL,
+  PRIMARY KEY (idevento),
+  KEY evento_idtipoevento_FK_idx (idtipoevento),
+  CONSTRAINT evento_idtipoevento_FK FOREIGN KEY (idtipoevento) REFERENCES tipoevento (idtipoevento) ON DELETE RESTRICT ON UPDATE RESTRICT
+);
