@@ -13,7 +13,9 @@
 	<ul class="nav navbar-top-links navbar-right">
 		<li class="dropdown">
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="false">
-				<img class="profile-img" alt="Imagem de Perfil" src="<%- root %>/imagens/<%-(usuario.versao ? ('perfil/' + usuario.idusuario + '.jpg?' + usuario.versao) : 'user.png') %>" width="40" height="40" /><%=usuario.login %> <i class="fa fa-caret-down"></i>
+				<img class="profile-img" alt="Imagem de Perfil"
+					src="<%- root %>/imagens/<%-(usuario.versao ? ('perfil/' + usuario.idusuario + '.jpg?' + usuario.versao) : 'user.png') %>"
+					width="40" height="40" /><%=usuario.login %> <i class="fa fa-caret-down"></i>
 			</a>
 			<ul class="dropdown-menu dropdown-user">
 				<li>
@@ -27,38 +29,48 @@
 		</li>
 	</ul>
 
+	<!-- 
+	Retirada do "Requerimentos"
+	Deixar em uma lista so 
+	-->
+
 	<div id="sidebar" class="sidebar" role="navigation">
 		<div id="navbar-collapse" class="sidebar-nav navbar-collapse collapse">
 			<ul class="nav" id="side-menu">
-				<li class="hidden-xs"><button id="btn-sidebar" type="button" class="btn btn-outline btn-default btn-sidebar" title="Ocultar Menu"><i class="fa fa-bars fa-fw fa-nomargin"></i></button></li>
+				<li class="hidden-xs"><button id="btn-sidebar" type="button"
+						class="btn btn-outline btn-default btn-sidebar" title="Ocultar Menu"><i
+							class="fa fa-bars fa-fw fa-nomargin"></i></button></li>
 				<li class="sidebar-spacer"></li>
-				
+
 				<li>
 					<a href="<%- root %>/"><i class="fa fa-calendar fa-fw"></i>Calendário</a>
 				</li>
 
 				<% if (!usuario.admin) { %>
 
-					<li class="sidebar-spacer"></li>
-	
-					<li>
+				<li class="sidebar-spacer"></li>
+
+				<!-- <li>
 						<a href="#"><i class="fa fa-id-card-o fa-fw"></i>Requerimentos<span class="fa arrow"></span></a>
-						<ul class="nav nav-second-level collapse">
-	
-							<li>
-								<a href="<%- root %>/requerimento/baterEntrada"><i class="fa fa-vcard fa-fw"></i>Marcar Entrada</a>
-							</li>
+						<ul class="nav nav-second-level collapse"> -->
 
-							<li>
+				<li>
+					<a href="<%- root %>/requerimento/baterEntrada"><i class="fa fa-vcard fa-fw"></i>Marcar Entrada</a>
+				</li>
+
+				<li class="sidebar-spacer"></li>
+				
+				<!-- <li>
 								<a href="<%- root %>/requerimento/baterSaida"><i class="fa fa-vcard fa-fw"></i>Marcar Saída</a>
-							</li>
+							</li> -->
 
-							<li>
-								<a href="<%- root %>/requerimento/dayoff"><i class="fa fa-calendar-times-o fa-fw"></i>Pedir Day off</a>
-							</li>
-	
-						</ul>
-					</li>
+				<li>
+					<a href="<%- root %>/requerimento/dayoff"><i class="fa fa-calendar-times-o fa-fw"></i>Pedir Day
+						off</a>
+				</li>
+
+				<!-- </ul>
+					</li> -->
 				<% } %>
 
 				<% if (usuario.admin) { %>

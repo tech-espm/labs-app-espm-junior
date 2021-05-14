@@ -14,6 +14,15 @@ router.all("/baterEntrada", wrap(async (req: express.Request, res: express.Respo
 		res.render("requerimento/baterPonto", { titulo: "Marcar Entrada", usuario: u, entrada: true });
 }));
 
+router.all("/baterEntradaonline", wrap(async (req: express.Request, res: express.Response) => {
+	let u = await Usuario.cookie(req);
+	if (!u)
+		res.redirect(appsettings.root + "/acesso");
+	else
+		res.render("requerimento/baterPonto", { titulo: "Marcar Entrada Online", usuario: u, entrada: true });
+}));
+
+
 router.all("/baterSaida", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req);
 	if (!u)

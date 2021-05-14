@@ -10,6 +10,23 @@
 	</div>
 </div>
 
+<!--  
+ botao para marcar entrada online
+ trocar o ONCLICK
+ tirar o qr code e 
+  -->
+
+<div class="row">
+	<div class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
+		<form id="form" class="panel panel-default" action="#">
+			<div class="panel-body text-center">
+				<p>Para bater ponto online clique no botão abaixo:</p>
+				<button type="button" class="btn btn-primary" onclick=>Marcar <%- (entrada ? 'Entrada online' : 'Saída') %></button>
+			</div>
+		</form>
+	</div>
+</div>
+
 <div id="divPreview" class="fullscreen hidden">
 	<video id="preview" class="fullscreen" autoplay muted playsinline></video>
 	<div id="divCapa" class="fullscreen" onclick="pararDecodificacao()"></div>
@@ -312,7 +329,7 @@
 		}
 	})();
 
-	mostrarQR();
+	//mostrarQR();
 
 	//]]>
 </script>
