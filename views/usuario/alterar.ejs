@@ -7,7 +7,7 @@
 				<input type="hidden" id="idusuario" name="idusuario" value="<%=(item ? item.idusuario : 0) %>" />
 				<div class="form-group">
 					<label for="login">Login</label>
-					<input id="login" name="login" maxlength="100" class="form-control upper" type="text" spellcheck="false" value="<%=(item ? item.login : '') %>" <%=(item ? 'readonly="readonly"' : '') %> />
+					<input id="login" name="login" maxlength="100" class="form-control upper" type="email" spellcheck="false" value="<%=(item ? item.login : '') %>" <%=(item ? 'readonly="readonly"' : '') %> />
 				</div>
 				<div class="form-group">
 					<label for="nome">Nome</label>
@@ -79,6 +79,7 @@
 		rules: {
 			login: {
 				required: true,
+				email: true,
 				minlength: 3,
 				maxlength: 100
 			},

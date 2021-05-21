@@ -18,22 +18,6 @@
 					<label for="imagemPerfil">Nova Imagem de Perfil <small>(Até 1 MiB, de preferência quadrada)</small></label>
 					<input id="imagemPerfil" name="imagemPerfil" class="form-control" type="file" accept="image/jpeg" />
 				</div>
-
-				<div class="divider-body"></div>
-
-				<p>Para alterar a senha atual, preencha todos os campos abaixo</p>
-				<div class="form-group">
-					<label for="senhaAtual">Senha atual</label>
-					<input id="senhaAtual" name="senhaAtual" maxlength="20" class="form-control" type="password" />
-				</div>
-				<div class="form-group">
-					<label for="novaSenha">Nova senha</label>
-					<input id="novaSenha" name="novaSenha" maxlength="20" class="form-control" type="password" />
-				</div>
-				<div class="form-group">
-					<label for="novaSenha2">Confirme a nova senha</label>
-					<input id="novaSenha2" name="novaSenha2" maxlength="20" class="form-control" type="password" />
-				</div>
 			</div>
 			<div class="panel-footer">
 				<input value="Salvar Alterações" class="btn btn-primary btn-lg btn-block" type="submit" />
@@ -60,25 +44,6 @@
 				advancedFileSupport: true,
 				maxFileLengthKiB: 1024,
 				fileExtension: ".jpg"
-			},
-			senhaAtual: {
-				maxlength: 20,
-				required: {
-					depends: function (element) {
-						return !!$("#novaSenha").val();
-					}
-				}
-			},
-			novaSenha: {
-				maxlength: 20,
-				required: {
-					depends: function (element) {
-						return !!$("#senhaAtual").val();
-					}
-				}
-			},
-			novaSenha2: {
-				equalTo: "#novaSenha"
 			}
 		},
 
@@ -99,8 +64,6 @@
 			ultimoPasso = function (imagem) {
 				var obj = {
 					nome: document.getElementById("nome").value,
-					senhaAtual: document.getElementById("senhaAtual").value,
-					novaSenha: document.getElementById("novaSenha").value,
 					imagemPerfil: imagem
 				};
 

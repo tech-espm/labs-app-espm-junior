@@ -28,7 +28,7 @@ CREATE TABLE cargo (
   UNIQUE KEY nome_UN (nome)
 );
 
-INSERT INTO cargo (nome) VALUES ('ADMIN'), ('RH'), ('Financeiro');
+INSERT INTO cargo (nome) VALUES ('ADMIN'), ('RH'), ('FINANCEIRO');
 
 -- DROP TABLE IF EXISTS curso;
 CREATE TABLE curso (
@@ -47,7 +47,6 @@ CREATE TABLE usuario (
   nome varchar(100) NOT NULL,
   idperfil int NOT NULL,
   versao int NOT NULL,
-  senha varchar(100) NOT NULL,
   token char(32) DEFAULT NULL,
   idcargo int NOT NULL,
   idcurso int NOT NULL,
@@ -65,7 +64,7 @@ CREATE TABLE usuario (
   CONSTRAINT usuario_idcargo_FK FOREIGN KEY (idcargo) REFERENCES cargo (idcargo) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 
-INSERT INTO usuario (login, nome, idperfil, versao, senha, token, idcargo, idcurso, semestre, endereco, telefone, nascimento, criacao) VALUES ('ADMIN', 'ADMINISTRADOR', 1, 0, 'peTcC99vkvvLqGQL7mdhGuJZIvL2iMEqvCNvZw3475PJ:JVyo1Pg2HyDyw9aSOd3gNPT30KdEyiUYCjs7RUzSoYGN', NULL, 1, 1, 1, '', '', NOW(), NOW());
+INSERT INTO usuario (login, nome, idperfil, versao, token, idcargo, idcurso, semestre, endereco, telefone, nascimento, criacao) VALUES ('ADMIN@ESPM.BR', 'ADMINISTRADOR', 1, 0, NULL, 1, 1, 1, '', '', NOW(), NOW());
 
 -- DROP TABLE IF EXISTS ficha_medica;
 CREATE TABLE ficha_medica (

@@ -8,6 +8,8 @@ import appsettings = require("../appsettings");
 import intToHex = require("../utils/intToHex");
 import Upload = require("../infra/upload");
 import FS = require("../infra/fs");
+import JSONRequest = require("../infra/jsonRequest");
+import emailValido = require("../utils/emailValido");
 
 export = class Usuario {
 
@@ -21,7 +23,6 @@ export = class Usuario {
 	public nome: string;
 	public idperfil: number;
 	public versao: number;
-	public senha: string;
 	public idcargo: number;
 	public idcurso: number;
 	public semestre: number;
@@ -115,44 +116,56 @@ export = class Usuario {
 		return qr;
 	}
 
-	public static async efetuarLogin(login: string, senha: string, res: express.Response): Promise<[string, Usuario]> {
-		if (!login || !senha)
-			return ["Usuário ou senha inválidos", null];
-
+	public static async efetuarLogin(token: string, res: express.Response): Promise<[string, Usuario]> {
 		let r: string = null;
 		let u: Usuario = null;
 
-		await Sql.conectar(async (sql: Sql) => {
-			login = login.normalize().trim().toUpperCase();
+		try {
+			const resposta = await JSONRequest.get(appsettings.ssoToken + encodeURIComponent(token));
+			if (!resposta.sucesso || !resposta.resultado || !resposta.resultado.dados)
+				return [resposta.erro || (resposta.resultado && resposta.resultado.toString()) || "Erro de comunicação de rede", null];
+			
+			const json = resposta.resultado;
+			if (json.erro)
+				return [json.erro, null];
 
-			let rows = await sql.query("select idusuario, nome, idperfil, versao, senha from usuario where login = ?", [login]);
-			let row: any;
-			let ok: boolean;
+			await Sql.conectar(async (sql: Sql) => {
 
-			if (!rows || !rows.length || !(row = rows[0]) || !(ok = await GeradorHash.validarSenha(senha.normalize(), row.senha))) {
-				r = "Usuário ou senha inválidos";
-				return;
-			}
+				json.dados.user = (json.dados.user || "").trim().toUpperCase();
+				json.dados.nome = (json.dados.nome || "").trim().toUpperCase();
 
-			let [token, cookieStr] = Usuario.gerarTokenCookie(row.idusuario);
-
-			await sql.query("update usuario set token = ? where idusuario = ?", [token, row.idusuario]);
-
-			u = new Usuario();
-			u.idusuario = row.idusuario;
-			u.login = login;
-			u.nome = row.nome as string;
-			u.idperfil = row.idperfil as number;
-			u.versao = row.versao as number;
-			u.admin = (u.idperfil === Usuario.IdPerfilAdmin);
-
-			res.cookie(appsettings.cookie, cookieStr, { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true, path: "/", secure: appsettings.cookieSecure });
-		});
+				let rows = await sql.query("select idusuario, nome, idperfil, versao from usuario where login = ?", [json.dados.user]);
+				let row: any;
+				let ok: boolean;
+	
+				if (!rows || !rows.length || !(row = rows[0])) {
+					r = "Usuário não está cadastrado. Por favor, entre em contato com o administrador do sistema.";
+					return;
+				}
+	
+				let [token, cookieStr] = Usuario.gerarTokenCookie(row.idusuario);
+	
+				await sql.query("update usuario set token = ? where idusuario = ?", [token, row.idusuario]);
+	
+				u = new Usuario();
+				u.idusuario = row.idusuario;
+				u.login = json.dados.user;
+				u.nome = row.nome as string;
+				u.idperfil = row.idperfil as number;
+				u.versao = row.versao as number;
+				u.admin = (u.idperfil === Usuario.IdPerfilAdmin);
+	
+				res.cookie(appsettings.cookie, cookieStr, { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true, path: "/", secure: appsettings.cookieSecure });
+			});
+		} catch (ex) {
+			return [ex.message || ex.toString(), null];
+		}
 
 		return [r, u];
 	}
 
 	public static async conferirSenhaAdmin(login: string, senha: string): Promise<boolean> {
+		// @@@ Mudar o funcionamento depois...
 		if (!login || !senha)
 			return false;
 
@@ -182,47 +195,26 @@ export = class Usuario {
 		});
 	}
 
-	public async alterarPerfil(res: express.Response, nome: string, senhaAtual: string, novaSenha: string, imagemPerfil: string): Promise<string> {
+	public async alterarPerfil(res: express.Response, nome: string, imagemPerfil: string): Promise<string> {
 		nome = (nome || "").normalize().trim().toUpperCase();
 		if (nome.length < 3 || nome.length > 100)
 			return "Nome inválido";
 
-		if (!!senhaAtual !== !!novaSenha || (novaSenha && novaSenha.length > 40))
-			return "Senha inválida";
-
 		let r: string = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			if (senhaAtual) {
-				let hash = await sql.scalar("select senha from usuario where idusuario = ?", [this.idusuario]) as string;
-				if (!await GeradorHash.validarSenha(senhaAtual.normalize(), hash)) {
-					r = "Senha atual não confere";
-					return;
-				}
+			await sql.query("update usuario set nome = ? where idusuario = ?", [nome, this.idusuario]);
 
-				hash = await GeradorHash.criarHash(novaSenha.normalize());
-
-				let [token, cookieStr] = Usuario.gerarTokenCookie(this.idusuario);
-
-				await sql.query("update usuario set nome = ?, senha = ?, token = ? where idusuario = ?", [nome, hash, token, this.idusuario]);
-
-				this.nome = nome;
-
-				res.cookie(appsettings.cookie, cookieStr, { maxAge: 365 * 24 * 60 * 60 * 1000, httpOnly: true, path: "/", secure: appsettings.cookieSecure });
-			} else {
-				await sql.query("update usuario set nome = ? where idusuario = ?", [nome, this.idusuario]);
-
-				this.nome = nome;
-			}
+			this.nome = nome;
 
 			if (imagemPerfil) {
 				if (!imagemPerfil.startsWith("data:image/jpeg;base64,") || imagemPerfil.length === 23) {
-					r = (senhaAtual ? "A senha foi alterada com sucesso, mas a imagem de perfil é inválida" : "Imagem de perfil inválida");
+					r = "Imagem de perfil inválida";
 					return;
 				}
 
 				if (imagemPerfil.length > (23 + (256 * 1024 * 4 / 3))) {
-					r = (senhaAtual ? "A senha foi alterada com sucesso, mas a imagem de perfil é muito grande" : "Imagem de perfil muito grande");
+					r = "Imagem de perfil muito grande";
 					return;
 				}
 
@@ -235,7 +227,7 @@ export = class Usuario {
 
 					await sql.query("update usuario set versao = ? where idusuario = ?", [this.versao, this.idusuario]);
 				} catch (ex) {
-					r = (senhaAtual ? "A senha foi alterada com sucesso, mas ocorreu um erro ao gravar a imagem de perfil" : "Erro ao gravar a imagem de perfil");
+					r = "Erro ao gravar a imagem de perfil";
 					return;
 				}
 			}
@@ -247,6 +239,13 @@ export = class Usuario {
 	private static validar(u: Usuario): string {
 		if (!u)
 			return "Dados inválidos";
+
+		u.login = (u.login || "").normalize().trim().toUpperCase();
+		if (u.login.length < 3 || u.login.length > 100 || !emailValido(u.login))
+			return "Login inválido";
+
+		if (!u.login.endsWith("@ESPM.BR") && !u.login.endsWith("@ACAD.ESPM.BR"))
+			return "Login deve terminar com @ESPM.BR ou @ACAD.ESPM.BR";
 
 		u.nome = (u.nome || "").normalize().trim().toUpperCase();
 		if (u.nome.length < 3 || u.nome.length > 100)
@@ -297,7 +296,7 @@ export = class Usuario {
 			try {
 				await sql.beginTransaction();
 
-				await sql.query("insert into usuario (login, nome, idperfil, versao, senha, idcargo, idcurso, semestre, endereco, telefone, nascimento, dayoff, criacao ) values (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, appsettings.usuarioHashSenhaPadrao, u.idcargo, u.idcurso, u.semestre, u.endereco, u.telefone, u.nascimento, dayoff]);
+				await sql.query("insert into usuario (login, nome, idperfil, versao, idcargo, idcurso, semestre, endereco, telefone, nascimento, dayoff, criacao ) values (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, u.idcargo, u.idcurso, u.semestre, u.endereco, u.telefone, u.nascimento, dayoff]);
 				u.idusuario = await sql.scalar("select last_insert_id()") as number;
 
 				// @@@ Ficha médica...
@@ -365,23 +364,6 @@ export = class Usuario {
 		return res;
 	}
 
-	public static async redefinirSenha(idusuario: number): Promise<string> {
-		let res: string = null;
-
-		await Sql.conectar(async (sql: Sql) => {
-			let login = await sql.scalar("select login from usuario where idusuario = ?", [idusuario]) as string;
-			if (!login) {
-				res = "0";
-			} else {
-				await sql.query("update usuario set token = null, senha = ? where idusuario = ?", [appsettings.usuarioHashSenhaPadrao, idusuario]);
-				res = sql.linhasAfetadas.toString();
-			}
-		});
-
-		
-
-		return res;
-	}
 	public static async pedirDayoff(Usuario: Usuario): Promise<string> {
 		let idusuario = Usuario.idusuario
 		let res: string = null;
