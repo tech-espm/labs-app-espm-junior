@@ -1,10 +1,14 @@
 ﻿import express = require("express");
 import wrap = require("express-async-error-wrapper");
-import Perfil = require("../models/perfil");
-import Usuario = require("../models/usuario");
+import appsettings = require("../appsettings");
 import Cargo = require("../models/cargo");
 import Curso = require("../models/curso");
-import appsettings = require("../appsettings");
+import DataUtil = require("../utils/dataUtil");
+import Departamento = require("../models/departamento");
+import Evento = require("../models/evento");
+import Sala = require("../models/sala");
+import Perfil = require("../models/perfil");
+import Usuario = require("../models/usuario");
 
 const router = express.Router();
 
@@ -13,9 +17,24 @@ router.all("/", wrap(async (req: express.Request, res: express.Response) => {
 	if (!u) {
 		res.redirect(appsettings.root + "/login");
 	} else {
-		res.render("home/calendario", { titulo: "Calendário", usuario: u });
-	}
-}));
+		const hoje = new Date(),
+			anoAtual = hoje.getFullYear(),
+			mesAtual = hoje.getMonth() + 1,
+			lista = await Evento.listarOcorrencias(0, 0, anoAtual, mesAtual);
+
+		let opcoes = {
+			titulo: "Dashboard",
+			usuario: u,
+			anoAtual: anoAtual,
+			mesAtual: mesAtual,
+			lista: lista,
+			hoje: DataUtil.hojeISO(),
+			departamentos: await Departamento.listar(),
+			salas: await Sala.listar()
+		};
+
+		res.render("home/calendario", opcoes);
+	}}));
 
 router.all("/login", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req);

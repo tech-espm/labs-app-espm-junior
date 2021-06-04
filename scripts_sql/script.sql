@@ -91,27 +91,49 @@ CREATE TABLE ponto (
   CONSTRAINT ponto_idusuario_FK FOREIGN KEY (idusuario) REFERENCES usuario (idusuario) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- DROP TABLE IF EXISTS tipoevento;
-CREATE TABLE tipoevento (
-  idtipoevento int NOT NULL AUTO_INCREMENT,
-  nome varchar(50) NOT NULL,
-  corfundo varchar(8) NOT NULL,
-  cortexto varchar(8) NOT NULL,
-  PRIMARY KEY (idtipoevento)
+CREATE TABLE evento (
+  id_evento int NOT NULL AUTO_INCREMENT,
+  nome_evento varchar(100) NOT NULL,
+  desc_evento varchar(100) NOT NULL,
+  inicio_evento datetime NOT NULL,
+  termino_evento datetime NOT NULL,
+  PRIMARY KEY (id_evento),
+  KEY evento_inicio_termino_ix (inicio_evento, termino_evento),
+  KEY evento_termino_ix (termino_evento)
 );
 
-INSERT INTO tipoevento (nome, corfundo, cortexto) VALUES ('CURSO', '#990000', '#ffffff'), ('REUNIÃO', '#000099', '#ffffff'), ('PALESTRA', '#009900', '#ffffff'), ('WORKSHOP', '#009999', '#ffffff');
+CREATE TABLE evento_ocorrencia (
+  id_ocorrencia int NOT NULL AUTO_INCREMENT,
+  id_evento int NOT NULL,
+  inicio_ocorrencia datetime NOT NULL,
+  PRIMARY KEY (id_ocorrencia),
+  KEY evento_ocorrencia_id_evento_ix (id_evento, inicio_ocorrencia),
+  KEY evento_ocorrencia_inicio_ocorrencia_ix (inicio_ocorrencia),
+  FOREIGN KEY (id_evento) REFERENCES evento(id_evento) ON DELETE CASCADE ON UPDATE RESTRICT
+);
 
--- DROP TABLE IF EXISTS evento;
-CREATE TABLE evento (
-  idevento int NOT NULL AUTO_INCREMENT,
-  idtipoevento int NOT NULL,
-  nome varchar(50) NOT NULL,
-  descricao varchar(200) NOT NULL,
-  horainicial smallint NOT NULL,
-  horafinal smallint NOT NULL,
-  data datetime NOT NULL,
-  PRIMARY KEY (idevento),
-  KEY evento_idtipoevento_FK_idx (idtipoevento),
-  CONSTRAINT evento_idtipoevento_FK FOREIGN KEY (idtipoevento) REFERENCES tipoevento (idtipoevento) ON DELETE RESTRICT ON UPDATE RESTRICT
+CREATE TABLE sala (
+	id_sala int PRIMARY KEY AUTO_INCREMENT,
+  desc_sala varchar(45)
+);
+
+CREATE TABLE evento_sala (
+	id_evento int NOT NULL,
+  id_sala int NOT NULL,
+  FOREIGN KEY(id_evento) REFERENCES evento(id_evento),
+  FOREIGN KEY(id_sala) REFERENCES sala(id_sala),
+  PRIMARY KEY (id_evento, id_sala)
+);
+
+CREATE TABLE departamento (
+	id_departamento int PRIMARY KEY AUTO_INCREMENT, 
+  desc_departamento varchar(45)
+);
+
+CREATE TABLE evento_departamento (
+	id_evento int NOT NULL,
+  id_departamento int NOT NULL,
+  FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
+  FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento),
+  PRIMARY KEY (id_evento, id_departamento)
 );

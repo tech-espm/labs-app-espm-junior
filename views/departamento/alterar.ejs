@@ -1,0 +1,63 @@
+<div class="row">
+	<div class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
+		<form id="form" class="panel panel-default" action="#">
+			<div class="panel-heading">Informações do Departamento</div>
+			<div class="panel-body no-bottom">
+				<input type="hidden" id="id_departamento" name="id_departamento" value="<%=(item ? item.id_departamento : 0) %>" />
+				<div class="form-group">
+					<label for="desc_departamento">Nome</label>
+					<input id="desc_departamento" name="desc_departamento" maxlength="100" class="form-control" type="text" spellcheck="false" value="<%=(item ? item.desc_departamento : '') %>" />
+				</div>
+			</div>
+			<div class="panel-footer">
+				<input value="<%=(item ? 'Salvar Alterações' : 'Criar Departamento') %>" class="btn btn-primary btn-lg btn-block" type="submit" />
+			</div>
+		</form>
+	</div>
+</div>
+
+<%- contentFor("scripts") %>
+<script type="text/javascript">
+	//<![CDATA[
+	"use strict";
+
+	$("#form").validate({
+		rules: {
+			desc_departamento: {
+				required: true,
+				minlength: 2,
+				maxlength: 100
+			}
+		},
+
+		submitHandler: function (form) {
+			if (JsonWebApi.active)
+				return;
+
+			Notification.wait();
+
+			//<% if (item) { %>
+
+			JsonWebApi.postFormData("<%- root %>/api/departamento/alterar", form, function (response) {
+				if (response.success)
+					Notification.success("Departamento alterado com sucesso! " + emoji.happy);
+				else
+					Notification.error(response.value, true);
+			});
+
+			//<% } else { %>
+
+			JsonWebApi.postFormData("<%- root %>/api/departamento/criar", form, function (response) {
+				if (response.success) {
+					resetForm("#form");
+					Notification.success("Departamento criado com sucesso! " + emoji.happy);
+				} else {
+					Notification.error(response.value, true);
+				}
+			});
+
+			//<% } %>
+		}
+	});
+	//]]>
+</script>
