@@ -58,7 +58,7 @@
 
 			erroImagem = function (erro) {
 				ajustandoImagem = false;
-				Notification.error("Ocorreu um erro durante o processamento da imagem", true);
+				Notification.error("Ocorreu um erro durante o processamento da imagem " + emoji.sad, true);
 			};
 
 			ultimoPasso = function (imagem) {
@@ -71,7 +71,7 @@
 					if (response.success)
 						Notification.success("Perfil alterado com sucesso! " + emoji.happy);
 					else
-						Notification.error(response.value, true);
+					Notification.error(response.value + " " + emoji.sad, true);
 				});
 			};
 

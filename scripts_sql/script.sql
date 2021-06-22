@@ -59,8 +59,10 @@ CREATE TABLE usuario (
   UNIQUE KEY login_UN (login),
   KEY usuario_idperfil_FK_idx (idperfil),
   KEY usuario_idcargo_FK_idx (idcargo),
+  KEY usuario_idcurso_FK_idx (idcurso),
   CONSTRAINT usuario_idperfil_FK FOREIGN KEY (idperfil) REFERENCES perfil (idperfil) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT usuario_idcargo_FK FOREIGN KEY (idcargo) REFERENCES cargo (idcargo) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT usuario_idcargo_FK FOREIGN KEY (idcargo) REFERENCES cargo (idcargo) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT usuario_idcurso_FK FOREIGN KEY (idcurso) REFERENCES curso (idcurso) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 
 INSERT INTO usuario (login, nome, idperfil, versao, token, idcargo, idcurso, semestre, endereco, telefone, nascimento, criacao) VALUES ('admin@espm.br', 'Administrador', 1, 0, NULL, 1, 1, 1, '', '', NOW(), NOW());

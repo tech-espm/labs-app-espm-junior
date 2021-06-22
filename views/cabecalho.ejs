@@ -60,53 +60,16 @@
 <link rel="stylesheet" href="<%- root %>/lib/data-tables/css/data-tables.bootstrap-1.0.7.css" />
 <link rel="stylesheet" href="<%- root %>/lib/fullcalendar/main.min.css" />
 <link rel="stylesheet" href="<%- root %>/lib/sweetalert2/sweetalert2.min.css" />
-<link rel="stylesheet" href="<%- root %>/css/admin-1.0.30.css" />
-<link rel="stylesheet" href="<%- root %>/css/style.css?20210621" />
+<link rel="stylesheet" href="<%- root %>/css/admin.css?20210622" />
+<link rel="stylesheet" href="<%- root %>/css/style.css?20210622" />
 
 <script type="text/javascript" src="<%- root %>/lib/jquery/js/jquery-1.0.1.min.js"></script>
 <script type="text/javascript" src="<%- root %>/lib/metis-menu/js/metis-menu-1.0.1.min.js"></script>
-<script type="text/javascript" src="<%- root %>/js/main-1.0.10.js"></script>
+<script type="text/javascript" src="<%- root %>/js/main.js?20210622"></script>
+<script type="text/javascript" src="<%- root %>/js/junior.js?20210622"></script>
 <script type="text/javascript">
 	//<![CDATA[
 	"use strict";
 	Notification.pathBase = "<%- root %>/";
-	Notification.imagePath = "imagens";
-	window.prepareCbSearchAllowLower = true;
-
-	Notification.success = function (message, title) {
-		Notification.hide();
-
-		return swal({
-			title: ((title && title !== true) ? title : "Sucesso!"),
-			text: message,
-			type: "success",
-			buttonsStyling: false,
-			confirmButtonClass: "btn btn-success"
-		});
-	};
-
-	Notification.info = function (message, title) {
-		Notification.hide();
-
-		return swal({
-			title: ((title && title !== true) ? title : "Informação"),
-			text: message,
-			type: "info",
-			buttonsStyling: false,
-			confirmButtonClass: "btn btn-default"
-		});
-	};
-
-	Notification.error = function (message, title) {
-		Notification.hide();
-
-		return swal({
-			title: ((title && title !== true) ? title : "Erro!"),
-			text: message,
-			type: "error",
-			buttonsStyling: false,
-			confirmButtonClass: "btn btn-danger"
-		});
-	};
 	//]]>
 </script>

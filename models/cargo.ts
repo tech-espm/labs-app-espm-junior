@@ -2,7 +2,7 @@ import Sql = require("../infra/sql");
 
 export = class Cargo {
 	public idcargo: number;
-    public nome: string;
+	public nome: string;
 
 	private static validar(c: Cargo): string {
 		if (!c)
@@ -13,7 +13,7 @@ export = class Cargo {
 			return "Nome do cargo inválido";
 
 		return null; 
-    }
+	}
 
 	public static async listar(): Promise<Cargo[]> {
 		let lista: Cargo[] = null;
@@ -79,9 +79,21 @@ export = class Cargo {
 		let res: string = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			await sql.query("delete from cargo where idcargo = ?", [idcargo]);
-			if (!sql.linhasAfetadas)
-				res = "Cargo não encontrado";
+			try {
+				await sql.query("delete from cargo where idcargo = ?", [idcargo]);
+				if (!sql.linhasAfetadas)
+					res = "Cargo não encontrado";
+				} catch (e) {
+				if (e.code) {
+					switch (e.code) {
+						case "ER_ROW_IS_REFERENCED":
+						case "ER_ROW_IS_REFERENCED_2":
+							res = "O cargo não pode ser excluído porque pertence a um ou mais usuários";
+							return;
+					}
+				}
+				throw e;
+			}
 		});
 
 		return res;

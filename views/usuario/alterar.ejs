@@ -128,7 +128,7 @@
 				if (response.success)
 					Notification.success("Usuário alterado com sucesso! " + emoji.happy);
 				else
-					Notification.error(response.value, true);
+				Notification.error(response.value + " " + emoji.sad, true);
 			});
 
 			//<% } else { %>
@@ -138,7 +138,7 @@
 					resetForm("#form");
 					Notification.success("Usuário criado com sucesso! " + emoji.happy);
 				} else {
-					Notification.error(response.value, true);
+					Notification.error(response.value + " " + emoji.sad, true);
 				}
 			});
 

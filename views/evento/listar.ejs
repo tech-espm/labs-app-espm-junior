@@ -2,8 +2,8 @@
 <div class="row">
 	<div class="col-lg-12">
 		<div class="panel panel-default">
+			<div class="panel-heading">Filtro de Eventos</div>
 			<div id="tabela_container" class="panel-body dataTable_wrapper">
-				<h3 class="no-margin-top">Filtro</h3>
 				<div class="row">
 					<div class="col-sm-6">
 						<div class="form-group">
@@ -93,7 +93,7 @@
 	prepareCbSearch(document.getElementById("sala"));
 	prepareCbSearch(document.getElementById("mes"));
 
-	var trClicada, tabela, departamentoAtual = 0, salaAtual = 0, mesAtual = <%- mesAtual %>, anoAtual = <%- anoAtual %>;
+	var tabela, departamentoAtual = 0, salaAtual = 0, mesAtual = <%- mesAtual %>, anoAtual = <%- anoAtual %>;
 
 	function criarTabela(dados) {
 		$("#tabela_wrapper").remove();
@@ -119,38 +119,30 @@
 			if (JsonWebApi.active)
 				return;
 
-			var evento = tabela.row(trClicada = this.parentNode.parentNode).data();
+			var trClicada = this.parentNode.parentNode,
+				evento = tabela.row(trClicada).data();
 
 			if (this.getAttribute("data-excluir")) {
-				$("#lblNome").text(evento.nome_evento);
+				Notification.okcancel("Tem certeza que deseja excluir o evento " + evento.nome_evento + "? Esta operação NÃO pode ser desfeita!", null, true, "Excluir").then(function (result) {
+					if (JsonWebApi.active || !trClicada)
+						return;
 
-				$("#modalExcluir").modal({
-					backdrop: "static",
-					keyboard: true
+					if (result.value) {
+						Notification.wait();
+
+						JsonWebApi.get("<%- root %>/api/evento/excluir", function (response) {
+							if (response.success) {
+								Notification.success("Evento excluído com sucesso! " + emoji.happy);
+								tabela.row(trClicada).remove().draw();
+							} else {
+								Notification.error(response.value + " " + emoji.sad, true);
+							}
+							trClicada = null;
+						}, "id_evento", evento.id_evento);
+					}
 				});
 			}
 		});
-	}
-
-	function excluir() {
-		if (JsonWebApi.active || !trClicada)
-			return;
-
-		$("#modalExcluir").modal("hide");
-
-		var evento = tabela.row(trClicada).data();
-
-		Notification.wait();
-
-		JsonWebApi.get("<%- root %>/api/evento/excluir", function (response) {
-			if (response.success) {
-				Notification.success("Evento excluído com sucesso! " + emoji.happy);
-				tabela.row(trClicada).remove().draw();
-			} else {
-				Notification.error(response.value, true);
-			}
-			trClicada = null;
-		}, "id_evento", evento.id_evento);
 	}
 
 	function atualizar() {
@@ -173,7 +165,7 @@
 				mesAtual = mes;
 				criarTabela(response.value);
 			} else {
-				Notification.error(response.value, true);
+				Notification.error(response.value + " " + emoji.sad, true);
 			}
 		}, "id_departamento", departamento, "id_sala", sala, "ano", ano, "mes", mes);
 	}

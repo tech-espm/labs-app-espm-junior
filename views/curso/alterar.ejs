@@ -43,7 +43,7 @@
 				if (response.success)
 					Notification.success("Curso alterado com sucesso! " + emoji.happy);
 				else
-					Notification.error(response.value, true);
+				Notification.error(response.value + " " + emoji.sad, true);
 			});
 
 			//<% } else { %>
@@ -53,7 +53,7 @@
 					resetForm("#form");
 					Notification.success("Curso criado com sucesso! " + emoji.happy);
 				} else {
-					Notification.error(response.value, true);
+					Notification.error(response.value + " " + emoji.sad, true);
 				}
 			});
 

@@ -18,76 +18,76 @@ export = class Departamento {
 	}
 
 	public static async listar(): Promise<Departamento[]>{
-        let lista: Departamento[] = null;
-        await Sql.conectar(async (sql) =>{
-            lista = await sql.query("select id_departamento, desc_departamento from departamento");
-        });
-        return lista;
+		let lista: Departamento[] = null;
+		await Sql.conectar(async (sql) =>{
+			lista = await sql.query("select id_departamento, desc_departamento from departamento");
+		});
+		return lista;
 	}
 
 	public static async criar(departamento: Departamento): Promise<string>{
-        let erro: string = Departamento.validar(departamento);
+		let erro: string = Departamento.validar(departamento);
 
-        if(erro){
-            return erro;
-        }
+		if(erro){
+			return erro;
+		}
 
-        await Sql.conectar(async(sql)=>{
-            let lista = await sql.query("insert into departamento (desc_departamento) values (?)",[departamento.desc_departamento]);
-        });
+		await Sql.conectar(async(sql)=>{
+			let lista = await sql.query("insert into departamento (desc_departamento) values (?)",[departamento.desc_departamento]);
+		});
 
-        return erro;
-    } 
+		return erro;
+	} 
 
 	public static async obter(id_departamento:number): Promise<Departamento>{
-        let departamento: Departamento = null;
+		let departamento: Departamento = null;
 
-        await Sql.conectar(async(sql)=>{
-            let lista: Departamento[] = await sql.query("select id_departamento, desc_departamento from departamento where id_departamento = ?",[id_departamento]);
-         
-            if(lista && lista.length){
-                departamento = lista[0];
-            }
-        });
+		await Sql.conectar(async(sql)=>{
+			let lista: Departamento[] = await sql.query("select id_departamento, desc_departamento from departamento where id_departamento = ?",[id_departamento]);
+		 
+			if(lista && lista.length){
+				departamento = lista[0];
+			}
+		});
 
-        return departamento;
+		return departamento;
 
-    }
+	}
 
 	public static async alterar(departamento: Departamento): Promise<string>{
-        let erro: string = Departamento.validar(departamento);
+		let erro: string = Departamento.validar(departamento);
 
-        if(erro){
-            return erro;
-        }
+		if(erro){
+			return erro;
+		}
 
-        await Sql.conectar(async(sql)=>{
-            let lista = await sql.query("update departamento set desc_departamento = ? where id_departamento = ?",[departamento.desc_departamento, departamento.id_departamento]);
-        });
+		await Sql.conectar(async(sql)=>{
+			let lista = await sql.query("update departamento set desc_departamento = ? where id_departamento = ?",[departamento.desc_departamento, departamento.id_departamento]);
+		});
 
-        return erro;
-    }
+		return erro;
+	}
 
 	public static async excluir(id_departamento:number): Promise<string>{
-        let erro: string = null;
+		let erro: string = null;
 
-        await Sql.conectar(async(sql)=>{
-            try {
-                await sql.query("delete from departamento where id_departamento=?;",[id_departamento]);
-                if (!sql.linhasAfetadas)
-                    erro = "Departamento não encontrado";
-            } catch (e) {
+		await Sql.conectar(async(sql)=>{
+			try {
+				await sql.query("delete from departamento where id_departamento=?;",[id_departamento]);
+				if (!sql.linhasAfetadas)
+					erro = "Departamento não encontrado";
+			} catch (e) {
 				if (e.code) {
 					switch (e.code) {
 						case "ER_ROW_IS_REFERENCED":
 						case "ER_ROW_IS_REFERENCED_2":
 							erro = "O departamento não pode ser excluído porque pertence a um ou mais eventos";
-                            return;
+							return;
 					}
 				}
 				throw e;
-            }
-        });
-        return erro;
-    }
+			}
+		});
+		return erro;
+	}
 }

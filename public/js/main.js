@@ -106,7 +106,7 @@ window.customFilterHandler = function (table, input) {
 };
 window.customFilterHandlerPlain = function (table, input) {
 	var lastSearch = "", handler = function () {
-		var s = input.value;
+		var s = trim(input.value.normalize());
 		if (lastSearch !== s) {
 			lastSearch = s;
 			table.search(s).draw();

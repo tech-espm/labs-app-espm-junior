@@ -55,38 +55,30 @@
 		if (JsonWebApi.active)
 			return;
 
-		var usuario = tabela.row(trClicada = this.parentNode.parentNode).data();
+		var trClicada = this.parentNode.parentNode,
+			usuario = tabela.row(trClicada).data();
 
 		if (this.getAttribute("data-excluir")) {
-			$("#lblNome").text(usuario.login);
+			Notification.okcancel("Tem certeza que deseja excluir o usuário " + usuario.nome + "? Esta operação NÃO pode ser desfeita!", null, true, "Excluir").then(function (result) {
+				if (JsonWebApi.active || !trClicada)
+					return;
 
-			$("#modalExcluir").modal({
-				backdrop: "static",
-				keyboard: true
+				if (result.value) {
+					Notification.wait();
+
+					JsonWebApi.get("<%- root %>/api/usuario/excluir", function (response) {
+						if (response.success) {
+							Notification.success("Usuário excluído com sucesso! " + emoji.happy);
+							tabela.row(trClicada).remove().draw();
+						} else {
+							Notification.error(response.value + " " + emoji.sad, true);
+						}
+						trClicada = null;
+					}, "idusuario", usuario.idusuario);
+				}
 			});
 		}
 	});
-
-	function excluir() {
-		if (JsonWebApi.active || !trClicada)
-			return;
-
-		$("#modalExcluir").modal("hide");
-
-		var usuario = tabela.row(trClicada).data();
-
-		Notification.wait();
-
-		JsonWebApi.get("<%- root %>/api/usuario/excluir", function (response) {
-			if (response.success) {
-				Notification.success("Usuário excluído com sucesso! " + emoji.happy);
-				tabela.row(trClicada).remove().draw();
-			} else {
-				Notification.error(response.value, true);
-			}
-			trClicada = null;
-		}, "idusuario", usuario.idusuario);
-	}
 
 	//]]>
 </script>

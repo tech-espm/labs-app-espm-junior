@@ -98,12 +98,12 @@
 
 			if (response.success) {
 				if (response.value) {
-					Notification.error(response.value, true);
+					Notification.error(response.value + " " + emoji.sad, true);
 				} else {
 					Notification.success("<%- (entrada ? 'Entrada' : 'Saída') %> marcada com sucesso " + emoji.happy);
 				}
 			} else {
-				Notification.error(response.value, true);
+				Notification.error(response.value + " " + emoji.sad, true);
 			}
 		});
 	}

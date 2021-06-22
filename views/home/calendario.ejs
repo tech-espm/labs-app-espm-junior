@@ -178,7 +178,7 @@
 				
 				desenharCalendario();
 			} else {
-				Notification.error(response.value, true);
+				Notification.error(response.value + " " + emoji.sad, true);
 			}
 		}, "id_departamento", departamento, "id_sala", sala, "ano", ano, "mes", mes);
 	}

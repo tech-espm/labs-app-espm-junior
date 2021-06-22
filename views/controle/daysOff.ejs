@@ -85,7 +85,7 @@
 					Notification.success("Days Off sincronizados com sucesso! " + emoji.happy);
 				}
 				else
-					Notification.error(response.value, true);
+				Notification.error(response.value + " " + emoji.sad, true);
 			});
 		}
 	});

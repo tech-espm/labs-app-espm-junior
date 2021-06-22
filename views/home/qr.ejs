@@ -105,12 +105,12 @@
 				if (response.success) {
 					token = response.value;
 					if (!token) {
-						Notification.error("Erro ao gerar o token", true);
+						Notification.error("Erro ao gerar o token " + emoji.sad, true);
 					} else {
 						gerarQR();
 					}
 				} else {
-					Notification.error(response.value, true);
+					Notification.error(response.value + " " + emoji.sad, true);
 				}
 			});
 		}
