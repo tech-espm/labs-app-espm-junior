@@ -103,7 +103,7 @@
 	if ("serviceWorker" in navigator) {
 		window.addEventListener("beforeinstallprompt", beforeInstallPrompt);
 
-		navigator.serviceWorker.register("<%- root %>/sw");
+		navigator.serviceWorker.register("<%- root %>/sw.js");
 	}
 </script>
 

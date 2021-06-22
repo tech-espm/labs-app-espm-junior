@@ -1,7 +1,7 @@
 ﻿"use strict";
 
-const CACHE_PREFIX = "squilo-static-cache";
-const CACHE_VERSION = "-20210621";
+const CACHE_PREFIX = "espmjunior-static-cache";
+const CACHE_VERSION = "-20210622";
 const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
 
 self.addEventListener("install", function (e) {
@@ -9,11 +9,11 @@ self.addEventListener("install", function (e) {
 
 	e.waitUntil(caches.open(CACHE_NAME).then((cache) => {
 		const files = [
-			"/html/offline.html",
-			"/imagens/logo.png",
-			"/favicons/favicon.png",
-			"/favicons/favicon-512x512.png",
-			"/favicons/manifest.webmanifest"
+			"<%- root %>/offline",
+			"<%- root %>/imagens/logo.png",
+			"<%- root %>/favicons/favicon.png",
+			"<%- root %>/favicons/favicon-512x512.png",
+			"<%- root %>/manifest.webmanifest"
 		];
 		const promises = new Array(files.length);
 		for (let i = files.length - 1; i >= 0; i--)
@@ -49,9 +49,9 @@ self.addEventListener("fetch", function (e) {
 	e.respondWith(fetch(e.request).catch((reason) => {
 		return caches.open(CACHE_NAME).then((cache) => {
 			if (e.request.mode === "navigate")
-				return cache.match("/html/offline.html");
+				return cache.match("<%- root %>/offline");
 			else if (e.request.url.indexOf("favicon-") >= 0)
-				return cache.match("/favicons/favicon-512x512.png");
+				return cache.match("<%- root %>/favicons/favicon-512x512.png");
 			else
 				return cache.match(e.request);
 		});

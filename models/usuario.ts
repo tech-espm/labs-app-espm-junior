@@ -131,15 +131,14 @@ export = class Usuario {
 
 			await Sql.conectar(async (sql: Sql) => {
 
-				json.dados.user = (json.dados.user || "").trim().toLowerCase();
-				json.dados.nome = (json.dados.nome || "").trim();
+				json.dados.emailAcademico = (json.dados.emailAcademico || "").trim().toLowerCase();
 
-				let rows = await sql.query("select idusuario, nome, idperfil, versao from usuario where login = ?", [json.dados.user]);
+				let rows = await sql.query("select idusuario, nome, idperfil, versao from usuario where login = ?", [json.dados.emailAcademico]);
 				let row: any;
 				let ok: boolean;
 	
 				if (!rows || !rows.length || !(row = rows[0])) {
-					r = "Usuário não está cadastrado. Por favor, entre em contato com o administrador do sistema.";
+					r = "Usuário " + json.dados.emailAcademico + " não está cadastrado. Por favor, entre em contato com o administrador do sistema.";
 					return;
 				}
 	
@@ -149,7 +148,7 @@ export = class Usuario {
 	
 				u = new Usuario();
 				u.idusuario = row.idusuario;
-				u.login = json.dados.user;
+				u.login = json.dados.emailAcademico;
 				u.nome = row.nome as string;
 				u.idperfil = row.idperfil as number;
 				u.versao = row.versao as number;

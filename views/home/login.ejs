@@ -5,6 +5,9 @@
 				<img alt="ESPM Júnior" src="<%- root %>/imagens/logo.png" style="max-width: 100%;" />
 			</div>
 			<hr />
+			<% if (mensagem) { %>
+			<div class="alert alert-danger col-xs-space-bottom"><%= mensagem %></div>
+			<% } %>
 			<a href="<%- ssoRedir %>" class="btn btn-primary btn-lg btn-block"><i class="fa fa-lock fa-nomargin"></i><br>Acessar área administrativa com minhas credenciais da ESPM</a>
 		</div>
 	</div>
