@@ -51,11 +51,36 @@
 		<div class="panel panel-default">
 			<div class="panel-body text-center">
 				<h2 class="no-margin-top col-xs-space-bottom"><i class="fa fa-calendar"></i>Resumo do Mês</h2>
-				<div id="calendarioPlaceholder"></div>
+				<ul class="nav nav-pills" role="tablist" id="tabPills">
+					<li role="presentation" class="active"><a id="pillCalendario" href="#tabCalendario" aria-controls="tabCalendario" role="tab" data-toggle="pill">Calendário</a></li>
+					<li role="presentation"><a href="#tabTabela" aria-controls="tabTabela" role="tab" data-toggle="pill">Tabela</a></li>
+				</ul>
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane fade in active" id="tabCalendario"><div class="col-xs-space-top" id="calendario_container"></div></div>
+					<div role="tabpanel" class="tab-pane fade" id="tabTabela"><div class="col-xs-space-top" id="tabela_container"></div></div>
+				</div>
 			</div>
 		</div>
 	</div>
 </div>
+
+<%- contentFor("styles") %>
+<style type="text/css">
+	#tabPills > li {
+		float: none;
+		display: inline-block;
+	}
+
+	#tabPills > li > a {
+		color: #333;
+	}
+
+	#tabPills > li.active > a,
+	#tabPills > li > a:focus,
+	#tabPills > li > a:hover {
+		color: #fff;
+	}
+</style>
 
 <%- contentFor("scripts") %>
 <script type="text/javascript">
@@ -67,6 +92,36 @@
 	var usuarioAtual = 0, mesAtual = <%- mesAtual %>, anoAtual = <%- anoAtual %>;
 
 	var ocorrencias = <%- JSON.stringify(lista) %>, calendario = null;
+
+	$("#tabPills a").on("shown.bs.tab", function (e) {
+		if (e.target.id == "pillCalendario" && calendario)
+			calendario.updateSize();
+	});
+
+	function criarTabela(dados) {
+		for (var i = dados.length - 1; i >= 0; i--) {
+			var ponto = dados[i],
+				h = ponto.data.lastIndexOf(":") - 2;
+
+			ponto.entrada = ((h > 0) ? ponto.data.substr(h) : "");
+			ponto.dataptbr = ponto.data.substr(8, 2) + "/" + ponto.data.substr(5, 2) + "/" + ponto.data.substr(0, 4);
+		}
+
+		$("#tabela_wrapper").remove();
+		$("#tabela_container").append('<table class="table table-striped table-hover" id="tabela"></table>');
+
+		prepareDataTable("tabela", {
+			order: [[0, "asc"], [1, "asc"]],
+			deferRender: true,
+			columns: [
+				{ title: "Data", "class": "col-min", "type": "customdatetimeint", data: "dataptbr" },
+				{ title: "Entrada", "class": "col-min", data: "entrada" },
+				{ title: "Nome", "class": "text-left", render: encode, data: "nome" },
+			],
+			data: dados,
+			export: { title: "Ponto de " + format2(mesAtual) + "-" + anoAtual }
+		});
+	}
 
 	function desenharCalendario() {
 		if (!ocorrencias)
@@ -80,7 +135,9 @@
 			ocorrencias[i].end = data;
 		}
 
-		$("#calendarioPlaceholder").html('<div id="calendario"></div>');
+		criarTabela(ocorrencias);
+
+		$("#calendario_container").html('<div id="calendario"></div>');
 
 		var opcoesCalendario = {
 			headerToolbar: {
