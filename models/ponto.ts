@@ -6,7 +6,7 @@ export = class Ponto {
 	public entrada: string;
 	public saida: string;
 
-	public static async listar(ano: number, mes: number): Promise<{ idusuario: number, nome: string, data: string }[]> {
+	public static async listar(ano: number, mes: number, idusuario?: number): Promise<{ idusuario: number, nome: string, data: string }[]> {
 		let lista: { idusuario: number, nome: string, data: string }[] = null,
 			proximo_ano = ano,
 			proximo_mes = mes + 1;
@@ -20,7 +20,7 @@ export = class Ponto {
 			fim = `${proximo_ano}-${proximo_mes}-01`;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select p.idusuario, u.nome, date_format(p.entrada, '%Y-%m-%d %H:%i') data from ponto p inner join usuario u on u.idusuario = p.idusuario where p.entrada >= ? and p.entrada < ?", [inicio, fim]);
+			lista = await sql.query("select p.idusuario, u.nome, date_format(p.entrada, '%Y-%m-%d %H:%i') data from ponto p inner join usuario u on u.idusuario = p.idusuario where p.entrada >= ? and p.entrada < ?" + (idusuario ? " and p.idusuario = ?" : ""), idusuario ? [inicio, fim, idusuario] : [inicio, fim]);
 		});
 
 		return lista || [];

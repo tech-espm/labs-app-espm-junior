@@ -4,13 +4,13 @@
 			<div class="panel-body no-bottom">
 				<h2 class="no-margin-top col-xs-space-bottom text-center"><i class="fa fa-filter"></i>Filtro</h2>
 				<div class="row">
-					<div class="col-sm-4 col-sm-offset-2">
+					<div class="col-sm-3">
 						<div class="form-group">
 							<label for="ano">Ano</label>
 							<input id="ano" type="number" class="form-control" onchange="atualizar()" value="<%- anoAtual %>" />
 						</div>
 					</div>
-					<div class="col-sm-4">
+					<div class="col-sm-3">
 						<div class="form-group">
 							<label for="mes">Mês</label>
 							<select size="1" id="mes" class="form-control" onchange="atualizar()">
@@ -26,6 +26,17 @@
 								<option value="10" <%- (mesAtual === 10 ? 'selected="selected"' : '') %>>Outubro</option>
 								<option value="11" <%- (mesAtual === 11 ? 'selected="selected"' : '') %>>Novembro</option>
 								<option value="12" <%- (mesAtual === 12 ? 'selected="selected"' : '') %>>Dezembro</option>
+							</select>
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="usuario">Usuário</label>
+							<select size="1" id="usuario" class="form-control" onchange="atualizar()">
+								<option value="0">Todos</option>
+								<% for (let i = 0; i < usuarios.length; i++) { %>
+									<option value="<%- usuarios[i].idusuario %>"><%= usuarios[i].nome %></option>
+								<% } %>
 							</select>
 						</div>
 					</div>
@@ -50,9 +61,10 @@
 <script type="text/javascript">
 	"use strict";
 
+	prepareCbSearch(document.getElementById("usuario"));
 	prepareCbSearch(document.getElementById("mes"));
 
-	var mesAtual = <%- mesAtual %>, anoAtual = <%- anoAtual %>;
+	var usuarioAtual = 0, mesAtual = <%- mesAtual %>, anoAtual = <%- anoAtual %>;
 
 	var ocorrencias = <%- JSON.stringify(lista) %>, calendario = null;
 
@@ -87,7 +99,7 @@
 			events: ocorrencias,
 			eventClick: function(info) {
 				info.jsEvent.preventDefault();
-				Notification.info(null, info.event.title);
+				Notification.info("Entrada: " + format2(info.event.start.getHours()) + ":" + format2(info.event.start.getMinutes()), info.event.title);
 			}
 		};
 
@@ -97,10 +109,11 @@
 	}
 
 	function atualizar() {
+		var usuario = parseInt($("#usuario").val());
 		var ano = (parseInt($("#ano").val()) || 0);
 		var mes = (parseInt($("#mes").val()) || 0);
 
-		if ((ano === anoAtual && mes === mesAtual) || JsonWebApi.active)
+		if ((usuario === usuarioAtual && ano === anoAtual && mes === mesAtual) || JsonWebApi.active)
 			return;
 
 		Notification.wait();
@@ -108,6 +121,7 @@
 		JsonWebApi.get("<%- root %>/api/controle/listarPonto", function (response) {
 			if (response.success) {
 				Notification.hide();
+				usuarioAtual = usuario;
 				anoAtual = ano;
 				mesAtual = mes;
 				ocorrencias = response.value || [];
@@ -116,7 +130,7 @@
 			} else {
 				Notification.error(response.value + " " + emoji.sad, true);
 			}
-		}, "ano", ano, "mes", mes);
+		}, "ano", ano, "mes", mes, "idusuario", usuario);
 	}
 
 	desenharCalendario();

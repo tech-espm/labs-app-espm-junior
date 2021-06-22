@@ -5,25 +5,21 @@
 			<div class="panel-body">
 				<div class="row">
 					<div class="col-xs-6">
-						<div class="form-group">
+						<div class="form-group no-margin-bottom">
 							<label for="ano">Ano</label>
-							<input type="number" id="ano" name="ano" class="form-control" value="<%- anoAtual %>" />
+							<input type="number" id="ano" name="ano" class="form-control" value="<%- anoAtual %>" onchange="atualizarDaysOff()" />
 						</div>
 					</div>
 
 					<div class="col-xs-6">
-						<div class="form-group">
+						<div class="form-group no-margin-bottom">
 							<label for="semestre">Semestre</label>
-							<select size="1" id="semestre" name="semestre" class="form-control">
+							<select size="1" id="semestre" name="semestre" class="form-control" onchange="atualizarDaysOff()">
 								<option value="1" <%- ((semestreAtual === 1) ? 'selected="selected"' : '') %>>1</option>
 								<option value="2" <%- ((semestreAtual === 2) ? 'selected="selected"' : '') %>>2</option>
 							</select>
 						</div>
 					</div>
-				</div>
-
-				<div class="text-right">
-					<button class="btn btn-primary" type="button" onclick="atualizarDaysOff()"><i class="fa fa-refresh"></i>Atualizar Lista</button>
 				</div>
 
 				<hr />

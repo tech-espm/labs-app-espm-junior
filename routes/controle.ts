@@ -20,6 +20,7 @@ router.all("/listarPonto", wrap(async (req: express.Request, res: express.Respon
 			anoAtual: infoAtual.anoAtual,
 			mesAtual: infoAtual.mesAtual,
 			hoje: DataUtil.hojeISO(),
+			usuarios: await Usuario.listarDropDown(),
 			lista: await Ponto.listar(infoAtual.anoAtual, infoAtual.mesAtual)
 		});
 	}

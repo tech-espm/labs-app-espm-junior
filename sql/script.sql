@@ -58,6 +58,7 @@ CREATE TABLE usuario (
   criacao datetime NOT NULL,
   PRIMARY KEY (idusuario),
   UNIQUE KEY login_UN (login),
+  KEY usuario_nome_idx (nome),
   KEY usuario_idperfil_FK_idx (idperfil),
   KEY usuario_idcargo_FK_idx (idcargo),
   KEY usuario_idcurso_FK_idx (idcurso),
@@ -104,7 +105,7 @@ CREATE TABLE ponto (
   saida datetime NULL,
   PRIMARY KEY (idponto),
   KEY ponto_entrada_FK_idx (entrada),
-  KEY idusuario_FK_idx (idusuario),
+  KEY ponto_idusuario_FK_idx (idusuario, entrada),
   CONSTRAINT ponto_idusuario_FK FOREIGN KEY (idusuario) REFERENCES usuario (idusuario) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
