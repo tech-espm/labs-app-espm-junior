@@ -103,6 +103,7 @@ CREATE TABLE ponto (
   entrada datetime NOT NULL,
   saida datetime NULL,
   PRIMARY KEY (idponto),
+  KEY ponto_entrada_FK_idx (entrada),
   KEY idusuario_FK_idx (idusuario),
   CONSTRAINT ponto_idusuario_FK FOREIGN KEY (idusuario) REFERENCES usuario (idusuario) ON DELETE CASCADE ON UPDATE CASCADE
 );

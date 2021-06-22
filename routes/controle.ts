@@ -4,8 +4,26 @@ import Ponto = require("../models/ponto");
 import Usuario = require("../models/usuario");
 import appsettings = require("../appsettings");
 import DayOff = require("../models/dayOff");
+import DataUtil = require("../utils/dataUtil");
 
 const router = express.Router();
+
+router.all("/listarPonto", wrap(async (req: express.Request, res: express.Response) => {
+	let u = await Usuario.cookie(req);
+	if (!u || !u.admin) {
+		res.redirect(appsettings.root + "/acesso");
+	} else {
+		const infoAtual = DayOff.infoAtual();
+		res.render("controle/listarPonto", {
+			titulo: "Gerenciar Ponto",
+			usuario: u,
+			anoAtual: infoAtual.anoAtual,
+			mesAtual: infoAtual.mesAtual,
+			hoje: DataUtil.hojeISO(),
+			lista: await Ponto.listar(infoAtual.anoAtual, infoAtual.mesAtual)
+		});
+	}
+}));
 
 router.all("/marcarEntrada", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req);

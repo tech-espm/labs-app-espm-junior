@@ -14,7 +14,6 @@ router.all("/criar", wrap(async (req: express.Request, res: express.Response) =>
 		res.render("departamento/alterar", { titulo: "Criar Departamento", usuario: u, item: null });
 }));
 
-
 router.all("/alterar", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req);
 	if (!u || !u.admin) {
@@ -40,6 +39,5 @@ router.get("/listar", wrap(async (req: express.Request, res: express.Response) =
 	else
 		res.render("departamento/listar", { titulo: "Gerenciar Departamentos", usuario: u, lista: JSON.stringify(await Departamento.listar()) });
 }));
-
 
 export = router;

@@ -13,7 +13,7 @@ export = class DayOff {
 	public criacao: string;
 
 	public static infoAtual(): { hoje: number, anoAtual: number, mesAtual: number, semestreAtual: number } {
-		const hoje = parseInt(DataUtil.hojeBrasil().replace(DayOff.RegExp, "")),
+		const hoje = parseInt(DataUtil.hojeISO().replace(DayOff.RegExp, "")),
 			anoAtual = (hoje / 10000) | 0,
 			mesAtual = ((hoje / 100) | 0) % 100,
 			semestreAtual = (mesAtual < 7 ? 1 : 2);

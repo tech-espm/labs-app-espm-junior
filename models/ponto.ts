@@ -6,20 +6,21 @@ export = class Ponto {
 	public entrada: string;
 	public saida: string;
 
-	public static async listarDeUsuarioMes(idusuario: number, mes: number, ano: number): Promise<Ponto[]> {
-		let lista: Ponto[] = null;
+	public static async listar(ano: number, mes: number): Promise<{ idusuario: number, nome: string, data: string }[]> {
+		let lista: { idusuario: number, nome: string, data: string }[] = null,
+			proximo_ano = ano,
+			proximo_mes = mes + 1;
 
-		let proximo_ano = ano;
-		let proximo_mes = mes + 1;
 		if (proximo_mes > 12) {
 			proximo_mes = 1;
 			proximo_ano++;
 		}
-		let inicio = `${ano}-${mes}-01`;
-		let fim = `${proximo_ano}-${proximo_mes}-01`;
+
+		const inicio = `${ano}-${mes}-01`,
+			fim = `${proximo_ano}-${proximo_mes}-01`;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = (await sql.query("select idusuario, date_format(entrada, '%Y-%m-%d %H:%i') entrada, date_format(saida, '%Y-%m-%d %H:%i') saida from ponto where idusuario = ? and entrada >= ? and entrada < ?", [idusuario, inicio, fim])) as Ponto[];
+			lista = await sql.query("select p.idusuario, u.nome, date_format(p.entrada, '%Y-%m-%d %H:%i') data from ponto p inner join usuario u on u.idusuario = p.idusuario where p.entrada >= ? and p.entrada < ?", [inicio, fim]);
 		});
 
 		return lista || [];

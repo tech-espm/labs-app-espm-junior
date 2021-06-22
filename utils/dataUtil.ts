@@ -1,10 +1,5 @@
 
 export = class DataUtil {
-	public static hojeBrasil(): string {
-		const agora = new Date();
-		return (new Date(agora.getTime() - (180 * 60000))).toISOString().substr(0, 10);
-	}
-
 	public static formatar(ano: number, mes: number, dia: number): string {
 		return ano + "-" + ((mes < 10) ? ("0" + mes) : mes) + "-" + ((dia < 10) ? ("0" + dia) : dia);
 	}
@@ -88,26 +83,26 @@ export = class DataUtil {
 	}
 
 	public static hojeISO(): string {
-		const hoje = new Date();
+		const hoje = new Date((new Date()).getTime() - (180 * 60000));
 
-		return DataUtil.formatar(hoje.getFullYear(), hoje.getMonth() + 1, hoje.getDate());
+		return DataUtil.formatar(hoje.getUTCFullYear(), hoje.getUTCMonth() + 1, hoje.getUTCDate());
 	}
 
 	public static hojeISOComHorario(): string {
-		const hoje = new Date();
+		const hoje = new Date((new Date()).getTime() - (180 * 60000));
 
-		return DataUtil.formatarComHorario(hoje.getFullYear(), hoje.getMonth() + 1, hoje.getDate(), hoje.getHours(), hoje.getMinutes(), hoje.getSeconds());
+		return DataUtil.formatarComHorario(hoje.getUTCFullYear(), hoje.getUTCMonth() + 1, hoje.getUTCDate(), hoje.getUTCHours(), hoje.getUTCMinutes(), hoje.getUTCSeconds());
 	}
 
 	public static hojeISOInicioDoDia(): string {
-		const hoje = new Date();
+		const hoje = new Date((new Date()).getTime() - (180 * 60000));
 
-		return DataUtil.formatarComHorario(hoje.getFullYear(), hoje.getMonth() + 1, hoje.getDate(), 0, 0, 0);
+		return DataUtil.formatarComHorario(hoje.getUTCFullYear(), hoje.getUTCMonth() + 1, hoje.getUTCDate(), 0, 0, 0);
 	}
 
 	public static hojeISOFimDoDia(): string {
-		const hoje = new Date();
+		const hoje = new Date((new Date()).getTime() - (180 * 60000));
 
-		return DataUtil.formatarComHorario(hoje.getFullYear(), hoje.getMonth() + 1, hoje.getDate(), 23, 59, 59);
+		return DataUtil.formatarComHorario(hoje.getUTCFullYear(), hoje.getUTCMonth() + 1, hoje.getUTCDate(), 23, 59, 59);
 	}
 }

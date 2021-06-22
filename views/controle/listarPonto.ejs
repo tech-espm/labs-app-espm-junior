@@ -1,0 +1,124 @@
+﻿<div class="row">
+	<div class="col-lg-12">
+		<div class="panel panel-default">
+			<div class="panel-body no-bottom">
+				<h2 class="no-margin-top col-xs-space-bottom text-center"><i class="fa fa-filter"></i>Filtro</h2>
+				<div class="row">
+					<div class="col-sm-4 col-sm-offset-2">
+						<div class="form-group">
+							<label for="ano">Ano</label>
+							<input id="ano" type="number" class="form-control" onchange="atualizar()" value="<%- anoAtual %>" />
+						</div>
+					</div>
+					<div class="col-sm-4">
+						<div class="form-group">
+							<label for="mes">Mês</label>
+							<select size="1" id="mes" class="form-control" onchange="atualizar()">
+								<option value="1" <%- (mesAtual === 1 ? 'selected="selected"' : '') %>>Janeiro</option>
+								<option value="2" <%- (mesAtual === 2 ? 'selected="selected"' : '') %>>Fevereiro</option>
+								<option value="3" <%- (mesAtual === 3 ? 'selected="selected"' : '') %>>Março</option>
+								<option value="4" <%- (mesAtual === 4 ? 'selected="selected"' : '') %>>Abril</option>
+								<option value="5" <%- (mesAtual === 5 ? 'selected="selected"' : '') %>>Maio</option>
+								<option value="6" <%- (mesAtual === 6 ? 'selected="selected"' : '') %>>Junho</option>
+								<option value="7" <%- (mesAtual === 7 ? 'selected="selected"' : '') %>>Julho</option>
+								<option value="8" <%- (mesAtual === 8 ? 'selected="selected"' : '') %>>Agosto</option>
+								<option value="9" <%- (mesAtual === 9 ? 'selected="selected"' : '') %>>Setembro</option>
+								<option value="10" <%- (mesAtual === 10 ? 'selected="selected"' : '') %>>Outubro</option>
+								<option value="11" <%- (mesAtual === 11 ? 'selected="selected"' : '') %>>Novembro</option>
+								<option value="12" <%- (mesAtual === 12 ? 'selected="selected"' : '') %>>Dezembro</option>
+							</select>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-lg-12">
+		<div class="panel panel-default">
+			<div class="panel-body text-center">
+				<h2 class="no-margin-top col-xs-space-bottom"><i class="fa fa-calendar"></i>Resumo do Mês</h2>
+				<div id="calendarioPlaceholder"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<%- contentFor("scripts") %>
+<script type="text/javascript">
+	"use strict";
+
+	prepareCbSearch(document.getElementById("mes"));
+
+	var mesAtual = <%- mesAtual %>, anoAtual = <%- anoAtual %>;
+
+	var ocorrencias = <%- JSON.stringify(lista) %>, calendario = null;
+
+	function desenharCalendario() {
+		if (!ocorrencias)
+			ocorrencias = [];
+
+		for (var i = 0; i < ocorrencias.length; i++) {
+			var data = converterDataISO(ocorrencias[i].data);
+			// https://fullcalendar.io/docs/event-object
+			ocorrencias[i].title = ocorrencias[i].nome;
+			ocorrencias[i].start = data;
+			ocorrencias[i].end = data;
+		}
+
+		$("#calendarioPlaceholder").html('<div id="calendario"></div>');
+
+		var opcoesCalendario = {
+			headerToolbar: {
+				left: "",
+				center: "title",
+				right: ""
+			},
+			initialDate: ((anoAtual == "<%- anoAtual %>" && mesAtual == "<%- mesAtual %>") ? "<%- hoje %>" : (anoAtual + "-" + format2(mesAtual) + "-01")),
+			initialView: "dayGridMonth",
+			locale: "pt-br",
+			buttonIcons: false,
+			weekNumbers: false,
+			navLinks: false,
+			editable: false,
+			dayMaxEvents: true,
+			events: ocorrencias,
+			eventClick: function(info) {
+				info.jsEvent.preventDefault();
+				Notification.info(null, info.event.title);
+			}
+		};
+
+		calendario = new FullCalendar.Calendar(document.getElementById("calendario"), opcoesCalendario);
+
+		calendario.render();
+	}
+
+	function atualizar() {
+		var ano = (parseInt($("#ano").val()) || 0);
+		var mes = (parseInt($("#mes").val()) || 0);
+
+		if ((ano === anoAtual && mes === mesAtual) || JsonWebApi.active)
+			return;
+
+		Notification.wait();
+
+		JsonWebApi.get("<%- root %>/api/controle/listarPonto", function (response) {
+			if (response.success) {
+				Notification.hide();
+				anoAtual = ano;
+				mesAtual = mes;
+				ocorrencias = response.value || [];
+				
+				desenharCalendario();
+			} else {
+				Notification.error(response.value + " " + emoji.sad, true);
+			}
+		}, "ano", ano, "mes", mes);
+	}
+
+	desenharCalendario();
+
+</script>
