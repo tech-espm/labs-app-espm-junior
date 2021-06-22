@@ -10,48 +10,56 @@ Notification.imagePath = "imagens";
 window.prepareCbSearchAllowLower = true;
 window.prepareCustomFilterPlain = true;
 
+function fixMessage(message, obj) {
+	if (message) {
+		if (message.html)
+			obj.html = message.html;
+		else
+			obj.text = message;
+	} else {
+		obj.text = "";
+	}
+	return obj;
+}
+
 Notification.success = function (message, title) {
 	Notification.hide();
 
-	return swal({
+	return swal(fixMessage(message, {
 		title: ((title && title !== true) ? title : "Sucesso!"),
-		text: message,
 		type: "success",
 		buttonsStyling: false,
 		confirmButtonClass: "btn btn-success"
-	});
+	}));
 };
 
 Notification.info = function (message, title) {
 	Notification.hide();
 
-	return swal({
+	return swal(fixMessage(message, {
 		title: ((title && title !== true) ? title : "Informação"),
-		text: message,
 		type: "info",
 		buttonsStyling: false,
 		confirmButtonClass: "btn btn-default"
-	});
+	}));
 };
 
 Notification.error = function (message, title) {
 	Notification.hide();
 
-	return swal({
+	return swal(fixMessage(message, {
 		title: ((title && title !== true) ? title : "Oops..."),
-		text: message,
 		type: "error",
 		buttonsStyling: false,
 		confirmButtonClass: "btn btn-danger"
-	});
+	}));
 };
 
 Notification.okcancel = function (message, title, danger, confirmButtonText) {
 	Notification.hide();
 
-	return swal({
+	return swal(fixMessage(message, {
 		title: ((title && title !== true) ? title : (danger ? "Oops..." : "Confirmação")),
-		text: message,
 		type: (danger ? "warning" : "question"),
 		buttonsStyling: false,
 		showCancelButton: true,
@@ -60,5 +68,5 @@ Notification.okcancel = function (message, title, danger, confirmButtonText) {
 		cancelButtonClass: "btn btn-default",
 		cancelButtonText: "Cancelar",
 		focusCancel: true
-	});
+	}));
 };

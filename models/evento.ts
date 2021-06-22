@@ -42,10 +42,12 @@ export = class Evento {
 		if(!evento.nome_evento || evento.nome_evento.length>100){
 			return "Nome inválido";
 		}
+
 		evento.desc_evento = (evento.desc_evento || "").normalize().trim();
-		if(!evento.desc_evento || evento.desc_evento.length>100){
-			return "Descrição Inválida";
+		if(evento.desc_evento.length>100){
+			return "Link / URL inválida";
 		}
+
 		evento.inicio_evento = DataUtil.converterDataISO(evento.inicio_evento);
 		if(!evento.inicio_evento) {
 			//validação de data será aqui?

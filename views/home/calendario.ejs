@@ -147,7 +147,9 @@
 			events: ocorrencias,
 			eventClick: function(info) {
 				info.jsEvent.preventDefault();
-				Notification.info(info.event.url, info.event.title);
+				Notification.info(info.event.url ? {
+					html: '<a target="_blank" href="' + info.event.url + '">' + info.event.url + '</a>'
+				} : null, info.event.title);
 			}
 		};
 
