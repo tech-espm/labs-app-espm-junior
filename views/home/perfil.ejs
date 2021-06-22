@@ -12,6 +12,15 @@
 					<input id="nome" name="nome" maxlength="100" class="form-control" type="text" spellcheck="false" value="<%=usuario.nome %>" />
 				</div>
 
+				<% if (usuario.admin) { %>
+					<div class="form-group">
+						<label for="senhaqr">Senha de Liberação do QR <small>(Deixe em branco para manter a senha atual)</small></label>
+						<input id="senhaqr" name="senhaqr" maxlength="100" class="form-control" type="password" />
+					</div>
+				<% } else { %>
+					<input id="senhaqr" name="senhaqr" type="hidden" value="" />
+				<% } %>
+
 				<div class="divider-body"></div>
 
 				<div class="form-group">
@@ -64,6 +73,7 @@
 			ultimoPasso = function (imagem) {
 				var obj = {
 					nome: document.getElementById("nome").value,
+					senhaqr: document.getElementById("senhaqr").value,
 					imagemPerfil: imagem
 				};
 

@@ -164,9 +164,8 @@ export = class Usuario {
 		return [r, u];
 	}
 
-	public static async conferirSenhaAdmin(login: string, senha: string): Promise<boolean> {
-		// @@@ Mudar o funcionamento depois...
-		if (!login || !senha)
+	public static async conferirSenhaAdmin(login: string, senhaqr: string): Promise<boolean> {
+		if (!login || !senhaqr)
 			return false;
 
 		let ok = false;
@@ -174,10 +173,10 @@ export = class Usuario {
 		await Sql.conectar(async (sql: Sql) => {
 			login = login.normalize().trim().toLowerCase();
 
-			let rows = await sql.query("select idperfil, senha from usuario where login = ?", [login]);
+			let rows = await sql.query("select idperfil, senhaqr from usuario where login = ?", [login]);
 			let row: any;
 
-			if (!rows || !rows.length || !(row = rows[0]) || !await GeradorHash.validarSenha(senha.normalize(), row.senha)) {
+			if (!rows || !rows.length || !(row = rows[0]) || !row.senhaqr || !await GeradorHash.validarSenha(senhaqr.normalize(), row.senhaqr)) {
 				return;
 			}
 
@@ -195,15 +194,21 @@ export = class Usuario {
 		});
 	}
 
-	public async alterarPerfil(res: express.Response, nome: string, imagemPerfil: string): Promise<string> {
+	public async alterarPerfil(res: express.Response, nome: string, senhaqr: string, imagemPerfil: string): Promise<string> {
 		nome = (nome || "").normalize().trim();
 		if (nome.length < 3 || nome.length > 100)
 			return "Nome inválido";
+
+		if (senhaqr)
+			senhaqr = senhaqr.normalize();
 
 		let r: string = null;
 
 		await Sql.conectar(async (sql: Sql) => {
 			await sql.query("update usuario set nome = ? where idusuario = ?", [nome, this.idusuario]);
+
+			if (senhaqr)
+				await sql.query("update usuario set senhaqr = ? where idusuario = ?", [await GeradorHash.criarHash(senhaqr), this.idusuario]);
 
 			this.nome = nome;
 

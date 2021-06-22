@@ -54,6 +54,7 @@ CREATE TABLE usuario (
   endereco varchar(100) NOT NULL,
   telefone varchar(20) NOT NULL,
   nascimento datetime NOT NULL,
+  senhaqr varchar(100) NULL,
   criacao datetime NOT NULL,
   PRIMARY KEY (idusuario),
   UNIQUE KEY login_UN (login),

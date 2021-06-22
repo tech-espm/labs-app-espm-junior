@@ -41,9 +41,9 @@ router.get("/marcarSaidaOnline", wrap(async (req: express.Request, res: express.
 
 router.post("/gerarTokenQR", wrap(async (req: express.Request, res: express.Response) => {
 	const login = req.body.login as string,
-		senha = req.body.senha as string;
+		senhaqr = req.body.senhaqr as string;
 
-	if (!await Usuario.conferirSenhaAdmin(login, senha)) {
+	if (!await Usuario.conferirSenhaAdmin(login, senhaqr)) {
 		res.status(403).json("Não permitido");
 	} else {
 		res.json(await Usuario.gerarTokenQR());
