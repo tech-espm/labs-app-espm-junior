@@ -3,6 +3,7 @@ import DataUtil = require("../utils/dataUtil");
 
 export = class DayOff {
 	public static readonly QuantidadeMaxima = 3;
+	private static readonly RegExp = /[\/\-\:\s]/g;
 
 	public iddayoff: number;
 	public idusuario: number;
@@ -11,22 +12,21 @@ export = class DayOff {
 	public data: string;
 	public criacao: string;
 
-	public static infoAtual(): { regexp: RegExp, hoje: number, anoAtual: number, semestreAtual: number } {
-		const regexp = /[\/\-\:\s]/g,
-			hoje = parseInt(DataUtil.hojeBrasil().replace(regexp, "")),
+	public static infoAtual(): { hoje: number, anoAtual: number, mesAtual: number, semestreAtual: number } {
+		const hoje = parseInt(DataUtil.hojeBrasil().replace(DayOff.RegExp, "")),
 			anoAtual = (hoje / 10000) | 0,
 			mesAtual = ((hoje / 100) | 0) % 100,
 			semestreAtual = (mesAtual < 7 ? 1 : 2);
 
 		return {
-			regexp,
 			hoje,
 			anoAtual,
+			mesAtual,
 			semestreAtual
 		};
 	}
 
-	public static async listar(ano?: number, semestre?: number, idusuario?: number): Promise<DayOff[]> {
+	public static async listar(ano?: number, semestre?: number, idusuario?: number): Promise<{ nome: string, data: string }[]> {
 		if (!ano || !semestre) {
 			const infoAtual = DayOff.infoAtual();
 
@@ -37,10 +37,10 @@ export = class DayOff {
 				semestre = infoAtual.semestreAtual;
 		}
 
-		let lista: DayOff[] = null;
+		let lista: { nome: string, data: string }[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select d.iddayoff, d.idusuario, u.nome, date_format(d.data, '%Y-%m-%d') data from dayoff d inner join usuario u on u.idusuario = d.idusuario where d.ano = ? and d.semestre = ?" + (idusuario ? (" and d.idusuario = ? order by d.data asc") : ""), idusuario ? [ano, semestre, idusuario] : [ano, semestre]);
+			lista = await sql.query("select u.nome, date_format(d.data, '%Y-%m-%d') data from dayoff d inner join usuario u on u.idusuario = d.idusuario where d.ano = ? and d.semestre = ?" + (idusuario ? (" and d.idusuario = ? order by d.data asc") : ""), idusuario ? [ano, semestre, idusuario] : [ano, semestre]);
 		});
 
 		return lista || [];
@@ -51,7 +51,7 @@ export = class DayOff {
 			return "Dados inválidos";
 
 		const infoAtual = DayOff.infoAtual(),
-			regexp = infoAtual.regexp,
+			regexp = DayOff.RegExp,
 			hoje = infoAtual.hoje,
 			anoAtual = infoAtual.anoAtual,
 			semestreAtual = infoAtual.semestreAtual;

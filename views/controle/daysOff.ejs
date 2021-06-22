@@ -102,7 +102,7 @@
 				Notification.hide();
 
 				if (!response.value || !response.value.length) {
-					bodyDaysOff.innerHTML = '<tr><td class="text-center">Não há days off cadastrados</td></tr>';
+					bodyDaysOff.innerHTML = '<tr><td class="text-center">Não há days off cadastrados para ' + $("#ano").val() + '-' + $("#semestre").val() + '</td></tr>';
 				} else {
 					for (var i = 0; i < response.value.length; i++) {
 						$("#bodyDaysOff").append('<tr><td class="col-min"><button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerDayOff(this)"><i class="fa fa-nomargin fa-times"></i></button></td><td><input name="daysOff" class="form-control" type="date" value="' + response.value[i].data + '" /></td></tr>');

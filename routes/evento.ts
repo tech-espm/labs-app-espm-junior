@@ -1,6 +1,7 @@
 import express = require("express");
 import wrap = require("../infra/wrap");
 import multer = require("multer");
+import DayOff = require("../models/dayOff");
 import Evento = require("../models/evento");
 import Sala = require("../models/sala");
 import Departamento = require("../models/departamento");
@@ -48,15 +49,14 @@ router.get("/listar", wrap(async (req: express.Request, res: express.Response) =
 	if (!u || !u.admin)
 		res.redirect(appsettings.root + "/acesso");
 	else{
-		const hoje = new Date(),
-			anoAtual = hoje.getFullYear(),
-			mesAtual = hoje.getMonth() + 1;
+		const infoAtual = DayOff.infoAtual();
+
 		res.render("evento/listar", {
 			titulo: "Gerenciar Eventos",
 			usuario: u,
-			anoAtual: anoAtual,
-			mesAtual: mesAtual,
-			lista: JSON.stringify(await Evento.listar(0, 0, anoAtual, mesAtual)),
+			anoAtual: infoAtual.anoAtual,
+			mesAtual: infoAtual.mesAtual,
+			lista: JSON.stringify(await Evento.listar(0, 0, infoAtual.anoAtual, infoAtual.mesAtual)),
 			departamentos: await Departamento.listar(),
 			salas: await Sala.listar()
 		});
@@ -83,15 +83,14 @@ router.all("/download/:iddepartamento", wrap(async (req: express.Request, res: e
 	if (!u || !u.admin)
 		res.redirect(appsettings.root + "/acesso");
 	else{
-		const hoje = new Date(),
-		anoAtual = hoje.getFullYear();
+		const infoAtual = DayOff.infoAtual();
 		
 		res.render("evento/download", {
 			layout: "layout-vazio",
 			titulo: "Plano de Eventos",
 			usuario: u,
-			anoAtual: anoAtual,
-			lista: await Evento.listarOcorrencias(parseInt(req.params["iddepartamento"]), 0, anoAtual),
+			anoAtual: infoAtual.anoAtual,
+			lista: await Evento.listarOcorrencias(parseInt(req.params["iddepartamento"]), 0, infoAtual.anoAtual),
 			departamentos: await Departamento.listar()
 		});	
 	}

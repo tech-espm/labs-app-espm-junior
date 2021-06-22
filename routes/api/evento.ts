@@ -3,6 +3,7 @@ import wrap = require("../../infra/wrap");
 import jsonRes = require("../../utils/jsonRes");
 import Evento = require("../../models/evento");
 import Usuario = require("../../models/usuario");
+import DayOff = require("../../models/dayOff");
 
 const router = express.Router();
 
@@ -18,16 +19,28 @@ router.get("/listar", wrap(async (req: express.Request, res: express.Response) =
 	));
 }));
 
-router.get("/listarOcorrencias", wrap(async (req: express.Request, res: express.Response) => {
+router.get("/listarOcorrenciasEDaysOff", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req, res);
 	if (!u)
 		return;
-	res.json(await Evento.listarOcorrencias(
-		parseInt(req.query["id_departamento"] as string),
-		parseInt(req.query["id_sala"] as string),
-		parseInt(req.query["ano"] as string),
-		parseInt(req.query["mes"] as string)
-	));
+
+	const ano = parseInt(req.query["ano"] as string),
+		mes = parseInt(req.query["mes"] as string);
+
+	if (!ano || !mes || ano < 0 || mes < 1 || mes > 12) {
+		res.status(400).json("Dados inválidos");
+		return;
+	}
+
+	res.json({
+		ocorrencias: await Evento.listarOcorrencias(
+			parseInt(req.query["id_departamento"] as string),
+			parseInt(req.query["id_sala"] as string),
+			ano,
+			mes),
+
+		daysOff: await DayOff.listar(ano, mes < 7 ? 1 : 2)
+	});
 }));
 
 router.get("/obter", wrap(async (req: express.Request, res: express.Response) => {

@@ -3,6 +3,7 @@ import wrap = require("../infra/wrap");
 import appsettings = require("../appsettings");
 import Cargo = require("../models/cargo");
 import Curso = require("../models/curso");
+import DayOff = require("../models/dayOff");
 import DataUtil = require("../utils/dataUtil");
 import Departamento = require("../models/departamento");
 import Evento = require("../models/evento");
@@ -17,17 +18,15 @@ router.all("/", wrap(async (req: express.Request, res: express.Response) => {
 	if (!u) {
 		res.redirect(appsettings.root + "/login");
 	} else {
-		const hoje = new Date(),
-			anoAtual = hoje.getFullYear(),
-			mesAtual = hoje.getMonth() + 1,
-			lista = await Evento.listarOcorrencias(0, 0, anoAtual, mesAtual);
+		const infoAtual = DayOff.infoAtual();
 
 		let opcoes = {
-			titulo: "Dashboard",
+			titulo: "Calendário",
 			usuario: u,
-			anoAtual: anoAtual,
-			mesAtual: mesAtual,
-			lista: lista,
+			anoAtual: infoAtual.anoAtual,
+			mesAtual: infoAtual.mesAtual,
+			daysOff: await DayOff.listar(infoAtual.anoAtual, infoAtual.semestreAtual),
+			lista: await Evento.listarOcorrencias(0, 0, infoAtual.anoAtual, infoAtual.mesAtual),
 			hoje: DataUtil.hojeISO(),
 			departamentos: await Departamento.listar(),
 			salas: await Sala.listar()

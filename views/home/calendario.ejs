@@ -123,10 +123,35 @@
 	// aLink.textContent = url.substr(url.indexOf("://") + 3);
 	// prepareCopyHandler();
 
-	var ocorrencias = <%- JSON.stringify(lista) %>, calendario = null;
+	var ocorrencias = <%- JSON.stringify(lista) %>, daysOff = <%- JSON.stringify(daysOff) %>, calendario = null, regexp = /[\/\-\:\s]/g;
 
 	function desenharCalendario() {
+		if (!ocorrencias)
+			ocorrencias = [];
+
 		converterEventos(ocorrencias);
+
+		if (daysOff && daysOff.length) {
+			for (var i = 0; i < daysOff.length; i++) {
+				var data = parseInt(daysOff[i].data.replace(regexp, "")),
+					ano = (data / 10000) | 0,
+					mes = ((data / 100) | 0) % 100;
+
+				if (ano !== anoAtual || mes !== mesAtual)
+					continue;
+
+				// https://fullcalendar.io/docs/event-object
+				ocorrencias.push({
+					backgroundColor: "#ffa453",
+					borderColor: "#ffa453",
+					textColor: "#000",
+					title: daysOff[i].nome,
+					url: "#dayOff",
+					start: daysOff[i].data,
+					end: daysOff[i].data
+				});
+			}
+		}
 
 		$("#calendarioPlaceholder").html('<div id="calendario"></div>');
 
@@ -147,9 +172,13 @@
 			events: ocorrencias,
 			eventClick: function(info) {
 				info.jsEvent.preventDefault();
-				Notification.info(info.event.url ? {
-					html: '<a target="_blank" href="' + info.event.url + '">' + info.event.url + '</a>'
-				} : null, info.event.title);
+				if (info.event.url === "#dayOff") {
+					Notification.info(info.event.title, "Day Off");
+				} else {
+					Notification.info((info.event.url && info.event.url !== "/") ? {
+						html: '<a target="_blank" href="' + info.event.url + '">' + info.event.url + '</a>'
+					} : null, info.event.title);
+				}
 			}
 		};
 
@@ -169,14 +198,15 @@
 
 		Notification.wait();
 
-		JsonWebApi.get("<%- root %>/api/evento/listarOcorrencias", function (response) {
+		JsonWebApi.get("<%- root %>/api/evento/listarOcorrenciasEDaysOff", function (response) {
 			if (response.success) {
 				Notification.hide();
 				departamentoAtual = departamento;
 				salaAtual = sala;
 				anoAtual = ano;
 				mesAtual = mes;
-				ocorrencias = response.value;
+				ocorrencias = response.value.ocorrencias || [];
+				daysOff = response.value.daysOff || [];
 				
 				desenharCalendario();
 			} else {
