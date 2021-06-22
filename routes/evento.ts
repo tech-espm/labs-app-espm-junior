@@ -1,5 +1,5 @@
 import express = require("express");
-import wrap = require("express-async-error-wrapper");
+import wrap = require("../infra/wrap");
 import multer = require("multer");
 import Evento = require("../models/evento");
 import Sala = require("../models/sala");

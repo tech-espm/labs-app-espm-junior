@@ -35,7 +35,7 @@
 						<div class="form-group">
 							<label for="id_sala">Sala</label>
 							<select size="1" id="id_sala" name="id_sala" class="form-control">
-								<option value="">SELECIONE...</option>
+								<option value="">Selecione...</option>
 								<% for (let i = 0; i < salas.length; i++) { %>
 									<option value="<%=salas[i].id_sala %>" <%=((item && item.id_sala == salas[i].id_sala) ? 'selected="selected"' : '')%>><%=salas[i].desc_sala %></option>
 								<% } %>
@@ -47,7 +47,7 @@
 						<div class="form-group">
 							<label for="id_departamento">Departamento</label>
 							<select size="1" id="id_departamento" name="id_departamento" class="form-control">
-								<option value="">SELECIONE...</option>
+								<option value="">Selecione...</option>
 								<% for (let i = 0; i < departamentos.length; i++) { %>
 									<option value="<%=departamentos[i].id_departamento %>" <%=((item && item.id_departamento == departamentos[i].id_departamento) ? 'selected="selected"' : '')%>><%=departamentos[i].desc_departamento %></option>
 								<% } %>

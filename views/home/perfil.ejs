@@ -5,11 +5,11 @@
 			<div class="panel-body no-bottom">
 				<div class="form-group">
 					<label for="login">Login</label>
-					<input id="login" name="login" class="form-control upper" type="text" spellcheck="false" readonly="readonly" value="<%=usuario.login %>" />
+					<input id="login" name="login" class="form-control lower" type="text" spellcheck="false" readonly="readonly" value="<%=usuario.login %>" />
 				</div>
 				<div class="form-group">
 					<label for="nome">Nome</label>
-					<input id="nome" name="nome" maxlength="100" class="form-control upper" type="text" spellcheck="false" value="<%=usuario.nome %>" />
+					<input id="nome" name="nome" maxlength="100" class="form-control" type="text" spellcheck="false" value="<%=usuario.nome %>" />
 				</div>
 
 				<div class="divider-body"></div>
@@ -58,7 +58,7 @@
 
 			erroImagem = function (erro) {
 				ajustandoImagem = false;
-				Notification.error("Ocorreu um erro durante o processamento da imagem " + emoji.sad, true);
+				Notification.error("Ocorreu um erro durante o processamento da imagem", true);
 			};
 
 			ultimoPasso = function (imagem) {

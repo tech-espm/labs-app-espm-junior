@@ -1,5 +1,5 @@
 ﻿import express = require("express");
-import wrap = require("express-async-error-wrapper");
+import wrap = require("../infra/wrap");
 import appsettings = require("../appsettings");
 import Cargo = require("../models/cargo");
 import Curso = require("../models/curso");
@@ -34,7 +34,12 @@ router.all("/", wrap(async (req: express.Request, res: express.Response) => {
 		};
 
 		res.render("home/calendario", opcoes);
-	}}));
+	}
+}));
+
+router.all("/sw", wrap(async (req: express.Request, res: express.Response) => {
+	res.contentType("text/javascript").render("home/sw", { layout: "layout-vazio" });
+}));
 
 router.all("/login", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req);

@@ -1,4 +1,4 @@
-CREATE DATABASE IF NOT EXISTS espmjunior;
+CREATE DATABASE IF NOT EXISTS espmjunior DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_0900_ai_ci;
 USE espmjunior;
 
 -- DROP TABLE IF EXISTS tokenqr;
@@ -18,7 +18,7 @@ CREATE TABLE perfil (
   UNIQUE KEY nome_UN (nome)
 );
 
-INSERT INTO perfil (nome) VALUES ('ADMINISTRADOR'), ('COMUM');
+INSERT INTO perfil (nome) VALUES ('Administrador'), ('Comum');
 
 -- DROP TABLE IF EXISTS cargo;
 CREATE TABLE cargo (
@@ -28,7 +28,7 @@ CREATE TABLE cargo (
   UNIQUE KEY nome_UN (nome)
 );
 
-INSERT INTO cargo (nome) VALUES ('ADMIN'), ('RH'), ('FINANCEIRO');
+INSERT INTO cargo (nome) VALUES ('Administrador'), ('RH'), ('Financeiro');
 
 -- DROP TABLE IF EXISTS curso;
 CREATE TABLE curso (
@@ -38,7 +38,7 @@ CREATE TABLE curso (
   UNIQUE KEY nome_UN (nome)
 );
 
-INSERT INTO curso (nome) VALUES ('NENHUM'), ('ADM'), ('RI'), ('PP'), ('CISO'), ('TECH');
+INSERT INTO curso (nome) VALUES ('Nenhum'), ('ADM'), ('RI'), ('PP'), ('CISO'), ('TECH');
 
 -- DROP TABLE IF EXISTS usuario;
 CREATE TABLE usuario (
@@ -55,7 +55,6 @@ CREATE TABLE usuario (
   telefone varchar(20) NOT NULL,
   nascimento datetime NOT NULL,
   criacao datetime NOT NULL,
-  dayoff int,
   PRIMARY KEY (idusuario),
   UNIQUE KEY login_UN (login),
   KEY usuario_idperfil_FK_idx (idperfil),
@@ -64,7 +63,7 @@ CREATE TABLE usuario (
   CONSTRAINT usuario_idcargo_FK FOREIGN KEY (idcargo) REFERENCES cargo (idcargo) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 
-INSERT INTO usuario (login, nome, idperfil, versao, token, idcargo, idcurso, semestre, endereco, telefone, nascimento, criacao) VALUES ('ADMIN@ESPM.BR', 'ADMINISTRADOR', 1, 0, NULL, 1, 1, 1, '', '', NOW(), NOW());
+INSERT INTO usuario (login, nome, idperfil, versao, token, idcargo, idcurso, semestre, endereco, telefone, nascimento, criacao) VALUES ('admin@espm.br', 'Administrador', 1, 0, NULL, 1, 1, 1, '', '', NOW(), NOW());
 
 -- DROP TABLE IF EXISTS ficha_medica;
 CREATE TABLE ficha_medica (

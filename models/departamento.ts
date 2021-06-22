@@ -43,7 +43,7 @@ export = class Departamento {
         let departamento: Departamento = null;
 
         await Sql.conectar(async(sql)=>{
-            let lista = await sql.query("select id_departamento, desc_departamento from departamento where id_departamento = ?",[id_departamento]);
+            let lista: Departamento[] = await sql.query("select id_departamento, desc_departamento from departamento where id_departamento = ?",[id_departamento]);
          
             if(lista && lista.length){
                 departamento = lista[0];
@@ -72,13 +72,22 @@ export = class Departamento {
         let erro: string = null;
 
         await Sql.conectar(async(sql)=>{
-            let lista = await sql.query("delete from departamento where id_departamento=?;",[id_departamento]);
-         
-            if(!sql.linhasAfetadas){
-                erro = 'Departamento não encontrado';
+            try {
+                await sql.query("delete from departamento where id_departamento=?;",[id_departamento]);
+                if (!sql.linhasAfetadas)
+                    erro = "Departamento não encontrado";
+            } catch (e) {
+				if (e.code) {
+					switch (e.code) {
+						case "ER_ROW_IS_REFERENCED":
+						case "ER_ROW_IS_REFERENCED_2":
+							erro = "O departamento não pode ser excluído porque pertence a um ou mais eventos";
+                            return;
+					}
+				}
+				throw e;
             }
         });
         return erro;
-
     }
 }

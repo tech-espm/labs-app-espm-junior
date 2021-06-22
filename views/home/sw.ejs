@@ -1,0 +1,59 @@
+﻿"use strict";
+
+const CACHE_PREFIX = "squilo-static-cache";
+const CACHE_VERSION = "-20210621";
+const CACHE_NAME = CACHE_PREFIX + CACHE_VERSION;
+
+self.addEventListener("install", function (e) {
+	self.skipWaiting();
+
+	e.waitUntil(caches.open(CACHE_NAME).then((cache) => {
+		const files = [
+			"/html/offline.html",
+			"/imagens/logo.png",
+			"/favicons/favicon.png",
+			"/favicons/favicon-512x512.png",
+			"/favicons/manifest.webmanifest"
+		];
+		const promises = new Array(files.length);
+		for (let i = files.length - 1; i >= 0; i--)
+			promises[i] = cache.add(new Request(files[i], { cache: "no-store" }));
+		return Promise.all(promises);
+	}));
+});
+
+self.addEventListener("activate", function (e) {
+	self.clients.claim();
+
+	e.waitUntil(
+		// List all cache storages in our domain.
+		caches.keys().then(function (keyList) {
+			// Create one Promise for deleting each cache storage that is not
+			// our current cache storage, taking care not to delete other
+			// cache storages from the domain by checking the key prefix (we
+			// are not using map() to avoid inserting undefined into the array).
+			const oldCachesPromises = [];
+
+			for (let i = keyList.length - 1; i >= 0; i--) {
+				const key = keyList[i];
+				if (key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME)
+					oldCachesPromises.push(caches.delete(key));
+			}
+
+			return Promise.all(oldCachesPromises);
+		})
+	);
+});
+
+self.addEventListener("fetch", function (e) {
+	e.respondWith(fetch(e.request).catch((reason) => {
+		return caches.open(CACHE_NAME).then((cache) => {
+			if (e.request.mode === "navigate")
+				return cache.match("/html/offline.html");
+			else if (e.request.url.indexOf("favicon-") >= 0)
+				return cache.match("/favicons/favicon-512x512.png");
+			else
+				return cache.match(e.request);
+		});
+	}));
+});

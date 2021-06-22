@@ -25,14 +25,16 @@ export = class Ponto {
 		return lista || [];
 	}
 
-	public static async baterEntrada(idusuario: number, qr: string): Promise<string> {
+	public static async marcarEntrada(idusuario: number, qr: string, online: boolean): Promise<string> {
 		let res: string = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			const valido = await sql.scalar("select token from tokenqr where qr1 = ? or qr2 = ?", [qr, qr]);
-			if (!valido) {
-				res = "Código QR inválido";
-				return;
+			if (!online) {
+				const valido = await sql.scalar("select token from tokenqr where qr1 = ? or qr2 = ?", [qr, qr]);
+				if (!valido) {
+					res = "Código QR inválido";
+					return;
+				}
 			}
 
 			const idponto = await sql.scalar("select idponto from ponto where date(entrada) = curdate() and idusuario = ?", [idusuario]) as number;
@@ -47,14 +49,16 @@ export = class Ponto {
 		return res;
 	}
 
-	public static async baterSaida(idusuario: number, qr: string): Promise<string> {
+	public static async marcarSaida(idusuario: number, qr: string, online: boolean): Promise<string> {
 		let res: string = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			const valido = await sql.scalar("select token from tokenqr where qr1 = ? or qr2 = ?", [qr, qr]);
-			if (!valido) {
-				res = "Código QR inválido";
-				return;
+			if (!online) {
+				const valido = await sql.scalar("select token from tokenqr where qr1 = ? or qr2 = ?", [qr, qr]);
+				if (!valido) {
+					res = "Código QR inválido";
+					return;
+				}
 			}
 
 			const idponto = await sql.scalar("select idponto from ponto where date(entrada) = curdate() and idusuario = ?", [idusuario]) as number;
@@ -64,9 +68,9 @@ export = class Ponto {
 			}
 
 			await sql.query("update ponto set saida = now() where idponto = ? and saida is null", [idponto]);
-			if (sql.linhasAfetadas === 0) {
+
+			if (sql.linhasAfetadas === 0)
 				res = "Já foi marcada a saída para a data atual";
-			}
 		});
 
 		return res;

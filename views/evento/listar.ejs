@@ -9,7 +9,7 @@
 						<div class="form-group">
 							<label for="departamento">Departamento</label>
 							<select size="1" id="departamento" class="form-control" onchange="atualizar()">
-								<option value="0">Todas</option>
+								<option value="0">Todos</option>
 								<% for (let i = 0; i < departamentos.length; i++) { %>
 									<option value="<%- departamentos[i].id_departamento %>"><%= departamentos[i].desc_departamento %></option>
 								<% } %>
@@ -89,7 +89,6 @@
 	//<![CDATA[
 	"use strict";
 
-	window.prepareCbSearchAllowLower = true;
 	prepareCbSearch(document.getElementById("departamento"));
 	prepareCbSearch(document.getElementById("sala"));
 	prepareCbSearch(document.getElementById("mes"));

@@ -1,7 +1,7 @@
 {
 	"name": "ESPM Júnior",
 	"short_name": "ESPM Júnior",
-	"start_url": "/",
+	"start_url": "/espmjunior",
 	"dir": "ltr",
 	"lang": "pt-BR",
 	"orientation": "portrait-primary",

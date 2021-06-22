@@ -1,5 +1,5 @@
 import express = require("express");
-import wrap = require("express-async-error-wrapper");
+import wrap = require("../infra/wrap");
 import Sala = require("../models/sala");
 import Usuario = require("../models/usuario");
 import appsettings = require("../appsettings");

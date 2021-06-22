@@ -19,7 +19,7 @@
 //****************************************************************
 
 import express = require("express");
-import wrap = require("express-async-error-wrapper");
+import wrap = require("./infra/wrap");
 import cookieParser = require("cookie-parser"); // https://stackoverflow.com/a/16209531/3569421
 import path = require("path");
 import appsettings = require("./appsettings");
@@ -27,8 +27,8 @@ import appsettings = require("./appsettings");
 // @@@ Configura o cache, para armazenar as 200 últimas páginas
 // já processadas, por ordem de uso
 import ejs = require("ejs");
-import lru = require("lru-cache");
-ejs.cache = lru(200);
+import LRU = require("lru-cache");
+ejs.cache = new LRU(200);
 
 const app = express();
 
@@ -102,7 +102,7 @@ app.use("/cargo", require("./routes/cargo"));
 app.use("/curso", require("./routes/curso"));
 app.use("/departamento", require("./routes/departamento"));
 app.use("/evento", require("./routes/evento"));
-app.use("/requerimento", require("./routes/requerimento"));
+app.use("/controle", require("./routes/controle"));
 app.use("/sala", require("./routes/sala"));
 app.use("/usuario", require("./routes/usuario"));
 // API
@@ -110,7 +110,7 @@ app.use("/api/cargo", require("./routes/api/cargo"));
 app.use("/api/curso", require("./routes/api/curso"));
 app.use("/api/departamento", require("./routes/api/departamento"));
 app.use("/api/evento", require("./routes/api/evento"));
-app.use("/api/requerimento", require("./routes/api/requerimento"));
+app.use("/api/controle", require("./routes/api/controle"));
 app.use("/api/sala", require("./routes/api/sala"));
 app.use("/api/usuario", require("./routes/api/usuario"));
 

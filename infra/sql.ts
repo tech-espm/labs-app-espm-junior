@@ -1,68 +1,82 @@
-﻿import mysql = require("mysql");
-import SqlPool = require("./sqlPool");
+﻿import mysql = require("mysql2");
+import appsettings = require("../appsettings");
+
+let pool: mysql.Pool;
+
+function init(poolConfig: mysql.PoolOptions): void {
+	if (!poolConfig)
+		throw new Error("Missing poolConfig");
+
+	if (!pool)
+		pool = mysql.createPool(poolConfig);
+}
+
+init(appsettings.sqlPool);
 
 export = class Sql {
-	// https://www.npmjs.com/package/mysql
+	// https://www.npmjs.com/package/mysql2
 
-	private connection;
-	private transacaoAberta: boolean;
-	public linhasAfetadas: number;
+	private connection: mysql.PoolConnection | null = null;
+	private pendingTransaction = false;
+	public linhasAfetadas = 0;
+	public resultFields: mysql.FieldPacket[] | null = null;
 
-	public static async conectar(callback: (sql: Sql) => Promise<void>): Promise<void> {
-		return new Promise<void>((resolve, reject) => {
-			SqlPool.pool.getConnection((error, connection) => {
+	public static async conectar<T>(callback: (sql: Sql) => Promise<T>): Promise<T> {
+		return new Promise<T>(function (resolve, reject) {
+			pool.getConnection(function (error, connection) {
 				if (error) {
 					reject(error);
 					return;
 				}
 
-				let sql = new Sql();
+				const sql = new Sql();
 				sql.connection = connection;
-				sql.transacaoAberta = false;
-				sql.linhasAfetadas = 0;
+
+				function cleanUp() {
+					if (sql) {
+						sql.connection = null;
+						sql.resultFields = null;
+					}
+					connection.release();
+				}
+
 				try {
 					callback(sql)
-						.then(() => {
-							if (sql.transacaoAberta) {
-								sql.transacaoAberta = false;
-								connection.rollback(error => {
-									connection.release();
-									if (error)
-										reject(error);
-									else
-										resolve();
+						.then(function (value: T) {
+							if (sql.pendingTransaction) {
+								sql.pendingTransaction = false;
+								connection.rollback(function () {
+									cleanUp();
+
+									resolve(value);
 								});
 							} else {
-								connection.release();
-								resolve();
+								cleanUp();
+								resolve(value);
 							}
-						}, reason => {
-							if (sql.transacaoAberta) {
-								sql.transacaoAberta = false;
-								connection.rollback(error => {
-									connection.release();
-									if (error)
-										reject(error);
-									else
-										reject(reason);
+						}, function (reason) {
+							if (sql.pendingTransaction) {
+								sql.pendingTransaction = false;
+								connection.rollback(function () {
+									cleanUp();
+
+									reject(reason);
 								});
 							} else {
-								connection.release();
+								cleanUp();
 								reject(reason);
 							}
 						});
 				} catch (e) {
-					if (sql.transacaoAberta) {
-						sql.transacaoAberta = false;
-						connection.rollback(error => {
-							connection.release();
-							if (error)
-								reject(error);
-							else
-								reject(e);
+					if (sql.pendingTransaction) {
+						sql.pendingTransaction = false;
+						connection.rollback(function () {
+							cleanUp();
+
+							reject(e);
 						});
 					} else {
-						connection.release();
+						cleanUp();
 						reject(e);
 					}
 				}
@@ -70,107 +84,120 @@ export = class Sql {
 		});
 	}
 
-	public async query(queryStr: string, valores: any[] = null): Promise<any[]> {
-		return new Promise<any[]>((resolve, reject) => {
-			let terminar = (error, results, fields) => {
+	public async query<T>(queryStr: string, values?: any): Promise<T[]> {
+		return new Promise<T[]>((resolve, reject) => {
+			const callback = (error: mysql.QueryError | null, results?: any, fields?: mysql.FieldPacket[]) => {
 				if (error) {
 					reject(error);
 					return;
 				}
 
-				this.linhasAfetadas = parseInt(results.affectedRows);
+				this.linhasAfetadas = parseInt(results.affectedRows) | 0;
+				this.resultFields = (fields || null);
 
-				resolve(results as any[]);
+				resolve(results as T[]);
 			};
 
-			if (valores)
-				this.connection.query(queryStr, valores, terminar);
+			if (!this.connection)
+				throw new Error("Null connection");
+
+			if (values && values.length)
+				this.connection.query(queryStr, values, callback);
 			else
-				this.connection.query(queryStr, terminar);
+				this.connection.query(queryStr, callback);
 		});
 	}
 
-	public async scalar(queryStr: string, valores: any[] = null): Promise<any> {
-		return new Promise<any>((resolve, reject) => {
-			let terminar = (error, results, fields) => {
+	public async scalar<T>(queryStr: string, values?: any): Promise<T | null> {
+		return new Promise<T | null>((resolve, reject) => {
+			const callback = (error: mysql.QueryError | null, results?: any, fields?: mysql.FieldPacket[]) => {
 				if (error) {
 					reject(error);
 					return;
 				}
 
-				this.linhasAfetadas = parseInt(results.affectedRows);
+				this.linhasAfetadas = parseInt(results.affectedRows) | 0;
+				this.resultFields = (fields || null);
 
-				let r;
+				if (results) {
+					const r = results[0];
 
-				if (!results || !(r = results[0]))
-					resolve(null);
-
-				for (let i in r) {
-					resolve(r[i]);
-					return;
+					if (r) {
+						for (let i in r) {
+							resolve(r[i]);
+							return;
+						}
+					}
 				}
 
 				resolve(null);
 			};
 
-			if (valores)
-				this.connection.query(queryStr, valores, terminar);
+			if (!this.connection)
+				throw new Error("Null connection");
+
+			if (values && values.length)
+				this.connection.query(queryStr, values, callback);
 			else
-				this.connection.query(queryStr, terminar);
+				this.connection.query(queryStr, callback);
 		});
 	}
 
 	public async beginTransaction(): Promise<void> {
-		return new Promise<void>((resolve, reject) => {
-			if (this.transacaoAberta) {
-				reject(new Error("Já existe uma transação aberta"));
-				return;
-			}
+		if (this.pendingTransaction)
+			throw new Error("There is already an open transaction in this connection");
 
-			this.connection.beginTransaction(error => {
+		return new Promise<void>((resolve, reject) => {
+			if (!this.connection)
+				throw new Error("Null connection");
+
+			this.connection.beginTransaction((error) => {
 				if (error) {
 					reject(error);
 					return;
 				}
-				this.transacaoAberta = true;
+
+				this.pendingTransaction = true;
+
 				resolve();
 			});
 		});
 	}
 
 	public async commit(): Promise<void> {
-		return new Promise<void>((resolve, reject) => {
-			if (!this.transacaoAberta) {
-				resolve();
-				return;
-			}
+		if (!this.pendingTransaction)
+			return;
 
-			this.connection.commit(error => {
+		return new Promise<void>((resolve, reject) => {
+			if (!this.connection)
+				throw new Error("Null connection");
+
+			this.connection.commit((error) => {
 				if (error) {
 					reject(error);
 					return;
 				}
-				this.transacaoAberta = false;
+
+				this.pendingTransaction = false;
+
 				resolve();
 			});
 		});
 	}
 
 	public async rollback(): Promise<void> {
-		return new Promise<void>((resolve, reject) => {
-			if (!this.transacaoAberta) {
-				resolve();
-				return;
-			}
+		if (!this.pendingTransaction)
+			return;
 
-			this.connection.rollback(error => {
-				if (error) {
-					reject(error);
-					return;
-				}
-				this.transacaoAberta = false;
+		return new Promise<void>((resolve, reject) => {
+			if (!this.connection)
+				throw new Error("Null connection");
+
+			this.connection.rollback(() => {
+				this.pendingTransaction = false;
+
 				resolve();
 			});
 		});
 	}
-}
+};

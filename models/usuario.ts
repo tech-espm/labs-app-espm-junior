@@ -10,6 +10,7 @@ import Upload = require("../infra/upload");
 import FS = require("../infra/fs");
 import JSONRequest = require("../infra/jsonRequest");
 import emailValido = require("../utils/emailValido");
+import DataUtil = require("../utils/dataUtil");
 
 export = class Usuario {
 
@@ -30,7 +31,6 @@ export = class Usuario {
 	public telefone: string;
 	public nascimento: string;
 	public criacao: string;
-	public dayoff: number;
 	
 	// Utilizados apenas através do cookie
 	public admin: boolean;
@@ -131,8 +131,8 @@ export = class Usuario {
 
 			await Sql.conectar(async (sql: Sql) => {
 
-				json.dados.user = (json.dados.user || "").trim().toUpperCase();
-				json.dados.nome = (json.dados.nome || "").trim().toUpperCase();
+				json.dados.user = (json.dados.user || "").trim().toLowerCase();
+				json.dados.nome = (json.dados.nome || "").trim();
 
 				let rows = await sql.query("select idusuario, nome, idperfil, versao from usuario where login = ?", [json.dados.user]);
 				let row: any;
@@ -172,7 +172,7 @@ export = class Usuario {
 		let ok = false;
 
 		await Sql.conectar(async (sql: Sql) => {
-			login = login.normalize().trim().toUpperCase();
+			login = login.normalize().trim().toLowerCase();
 
 			let rows = await sql.query("select idperfil, senha from usuario where login = ?", [login]);
 			let row: any;
@@ -196,7 +196,7 @@ export = class Usuario {
 	}
 
 	public async alterarPerfil(res: express.Response, nome: string, imagemPerfil: string): Promise<string> {
-		nome = (nome || "").normalize().trim().toUpperCase();
+		nome = (nome || "").normalize().trim();
 		if (nome.length < 3 || nome.length > 100)
 			return "Nome inválido";
 
@@ -240,24 +240,45 @@ export = class Usuario {
 		if (!u)
 			return "Dados inválidos";
 
-		u.login = (u.login || "").normalize().trim().toUpperCase();
+		u.idusuario = parseInt(u.idusuario as any);
+
+		u.login = (u.login || "").normalize().trim().toLowerCase();
 		if (u.login.length < 3 || u.login.length > 100 || !emailValido(u.login))
 			return "Login inválido";
 
-		if (!u.login.endsWith("@ESPM.BR") && !u.login.endsWith("@ACAD.ESPM.BR"))
-			return "Login deve terminar com @ESPM.BR ou @ACAD.ESPM.BR";
+		if (!u.login.endsWith("@espm.br") && !u.login.endsWith("@acad.espm.br"))
+			return "Login deve terminar com @espm.br ou @acad.espm.br";
 
-		u.nome = (u.nome || "").normalize().trim().toUpperCase();
+		u.nome = (u.nome || "").normalize().trim();
 		if (u.nome.length < 3 || u.nome.length > 100)
 			return "Nome inválido";
 
-		// @@@ validar os campos
-		// idcargo: number;
-		// idcurso: number;
-		// semestre: number;
-		// endereco: string;
-		// telefone: string;
-		// nascimento: string;
+		u.idperfil = parseInt(u.idperfil as any);
+		if (isNaN(u.idperfil))
+			return "Perfil inválido";
+
+		u.idcargo = parseInt(u.idcargo as any);
+		if (isNaN(u.idcargo))
+			return "Cargo inválido";
+
+		u.idcurso = parseInt(u.idcurso as any);
+		if (isNaN(u.idcurso))
+			return "Curso inválido";
+
+		u.semestre = parseInt(u.semestre as any);
+		if (isNaN(u.semestre))
+			return "Semestre inválido";
+
+		u.endereco = (u.endereco || "").normalize().trim();
+		if (u.endereco.length < 3 || u.endereco.length > 100)
+			return "Endereço inválido";
+
+		u.telefone = (u.telefone || "").normalize().trim();
+		if (u.telefone.length < 3 || u.telefone.length > 20)
+			return "Telefone inválido";
+
+		if (!(u.nascimento = DataUtil.converterDataISO(u.nascimento)))
+			return "Data de nascimento inválida";
 
 		return null;
 	}
@@ -284,19 +305,15 @@ export = class Usuario {
 
 	public static async criar(u: Usuario): Promise<string> {
 		let res: string;
-		let dayoff = 3;
+
 		if ((res = Usuario.validar(u)))
 			return res;
-
-		u.login = (u.login || "").normalize().trim().toUpperCase();
-		if (u.login.length < 3 || u.login.length > 100)
-			return "Login inválido";
 
 		await Sql.conectar(async (sql: Sql) => {
 			try {
 				await sql.beginTransaction();
 
-				await sql.query("insert into usuario (login, nome, idperfil, versao, idcargo, idcurso, semestre, endereco, telefone, nascimento, dayoff, criacao ) values (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, u.idcargo, u.idcurso, u.semestre, u.endereco, u.telefone, u.nascimento, dayoff]);
+				await sql.query("insert into usuario (login, nome, idperfil, versao, idcargo, idcurso, semestre, endereco, telefone, nascimento, criacao ) values (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, u.idcargo, u.idcurso, u.semestre, u.endereco, u.telefone, u.nascimento]);
 				u.idusuario = await sql.scalar("select last_insert_id()") as number;
 
 				// @@@ Ficha médica...
@@ -361,16 +378,6 @@ export = class Usuario {
 			await sql.commit();
 		});
 
-		return res;
-	}
-
-	public static async pedirDayoff(Usuario: Usuario): Promise<string> {
-		let idusuario = Usuario.idusuario
-		let res: string = null;
-		await Sql.conectar(async (sql: Sql) => {
-				await sql.query("update usuario set dayoff = dayoff-1 where idusuario = ?", [idusuario]);
-				res = sql.linhasAfetadas.toString();
-		});
 		return res;
 	}
 }

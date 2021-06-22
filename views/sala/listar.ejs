@@ -40,7 +40,7 @@
 		deferRender: true,
 		columns: [
 			{ title: "", "class": "col-min", searchable: false, orderable: false, data: "id_sala", render: function (v, type, row) { return "<a target=\"_blank\" title=\"Editar\" href=\"<%- root %>/sala/alterar?id_sala=" + row.id_sala + "\" class=\"btn btn-outline btn-primary\"><i class=\"fa fa-nomargin fa-edit\"></i></a> <button title=\"Excluir\" type=\"button\" data-excluir=\"1\" class=\"btn btn-outline btn-danger\"><i class=\"fa fa-nomargin fa-times\"></i></button>"; } },
-			{ title: "Descrição", render: encode, data: "desc_sala" }
+			{ title: "Nome", render: encode, data: "desc_sala" }
 		],
 		data: <%- lista %>,
 		export: { title: "Salas" }
@@ -79,8 +79,7 @@
 				Notification.success("Sala excluída com sucesso! " + emoji.happy);
 				tabela.row(trClicada).remove().draw();
 			} else {
-				Notification.error("A sala não pode ser excluída, porque pertence a um evento.", true);
-				// Notification.error(response.value, true);
+				Notification.error(response.value, true);
 			}
 			trClicada = null;
 		}, "id_sala", sala.id_sala);

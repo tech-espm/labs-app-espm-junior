@@ -6,7 +6,7 @@ import FS = require("./fs");
 export = class Upload {
 	public static async gravarArquivoDeForm(expressRequest: express.Request, expressResponse: express.Response, caminhoRelativoPasta: string, nomeArquivo: string, tamanhoMaximoArquivoEmBytes: number, campoArquivoNoForm: string): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
-			let caminhoAbsolutoPasta;
+			let caminhoAbsolutoPasta: string;
 			try {
 				caminhoAbsolutoPasta = FS.gerarCaminhoAbsoluto(caminhoRelativoPasta);
 			} catch (e) {
@@ -49,7 +49,7 @@ export = class Upload {
 
 	public static async gravarArquivo(arquivo: any, caminhoRelativoPasta: string, nomeArquivo: string): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
-			let caminhoAbsolutoArquivo;
+			let caminhoAbsolutoArquivo: string;
 			try {
 				caminhoAbsolutoArquivo = FS.gerarCaminhoAbsolutoArquivo(caminhoRelativoPasta, nomeArquivo);
 			} catch (e) {
@@ -68,7 +68,7 @@ export = class Upload {
 
 	public static async criarArquivoVazio(caminhoRelativoPasta: string, nomeArquivo: string): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
-			let caminhoAbsolutoArquivo;
+			let caminhoAbsolutoArquivo: string;
 			try {
 				caminhoAbsolutoArquivo = FS.gerarCaminhoAbsolutoArquivo(caminhoRelativoPasta, nomeArquivo);
 			} catch (e) {
@@ -83,7 +83,7 @@ export = class Upload {
 						return;
 					}
 
-					fs.writeFile(caminhoAbsolutoArquivo, [], (err) => {
+					fs.writeFile(caminhoAbsolutoArquivo, "", (err) => {
 						if (err)
 							reject(err);
 						else
@@ -98,7 +98,7 @@ export = class Upload {
 
 	public static async adicionarAoFinalDoArquivo(arquivo: any, caminhoRelativoPasta: string, nomeArquivo: string): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
-			let caminhoAbsolutoArquivo;
+			let caminhoAbsolutoArquivo: string;
 			try {
 				caminhoAbsolutoArquivo = FS.gerarCaminhoAbsolutoArquivo(caminhoRelativoPasta, nomeArquivo);
 			} catch (e) {

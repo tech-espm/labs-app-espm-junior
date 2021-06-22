@@ -63,18 +63,53 @@
 	<div class="col-lg-12">
 		<div class="panel panel-default">
 			<div class="panel-body text-center">
-				<h2 class="no-margin-top col-xs-space-bottom"><i class="fa fa-calendar"></i>Resumo de Hoje</h2>
+				<h2 class="no-margin-top col-xs-space-bottom"><i class="fa fa-calendar"></i>Resumo do Mês</h2>
 				<div id="calendarioPlaceholder"></div>
 			</div>
 		</div>
 	</div>
 </div>
 
+<%- contentFor("page-header") %>
+<button id="btnInstalar" type="button" class="btn btn-sm btn-outline btn-default" onclick="instalar()" style="float: right; display: none;"><i class="fa fa14 fa-fw fa-download"></i> Instalar app</button>
+
 <%- contentFor("scripts") %>
+<script type="text/javascript">
+	var installationPrompt = null;
+
+	function instalar() {
+		document.getElementById("btnInstalar").style.display = "none";
+
+		if (installationPrompt) {
+			try {
+				var p = installationPrompt;
+				installationPrompt = null;
+				p["prompt"]();
+			} catch (ex) {
+				// Apenas ignora...
+			}
+		}
+	}
+
+	function beforeInstallPrompt(e) {
+		if (("preventDefault" in e))
+			e.preventDefault();
+
+		installationPrompt = e;
+
+		document.getElementById("btnInstalar").style.display = (e ? "" : "none");
+	}
+
+	if ("serviceWorker" in navigator) {
+		window.addEventListener("beforeinstallprompt", beforeInstallPrompt);
+
+		navigator.serviceWorker.register("<%- root %>/sw");
+	}
+</script>
+
 <script type="text/javascript">
 	"use strict";
 
-	window.prepareCbSearchAllowLower = true;
 	prepareCbSearch(document.getElementById("departamento"));
 	prepareCbSearch(document.getElementById("sala"));
 	prepareCbSearch(document.getElementById("mes"));
@@ -109,7 +144,11 @@
 			navLinks: false,
 			editable: false,
 			dayMaxEvents: true,
-			events: ocorrencias
+			events: ocorrencias,
+			eventClick: function(info) {
+				info.jsEvent.preventDefault();
+				Notification.info(info.event.url, info.event.title);
+			}
 		};
 
 		calendario = new FullCalendar.Calendar(document.getElementById("calendario"), opcoesCalendario);

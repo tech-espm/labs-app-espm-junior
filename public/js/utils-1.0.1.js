@@ -20,6 +20,7 @@ function converterEventos(ocorrencias) {
 		return null;
 	for (var i = 0; i < ocorrencias.length; i++) {
 		ocorrencias[i].title = ocorrencias[i].nome_evento;
+		ocorrencias[i].url = ocorrencias[i].desc_evento;
 		ocorrencias[i].start = converterDataISO(ocorrencias[i].inicio_ocorrencia);
 		ocorrencias[i].end = converterDataISO(ocorrencias[i].inicio_ocorrencia);
 	}

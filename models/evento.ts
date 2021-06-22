@@ -254,12 +254,12 @@ export = class Evento {
         let evento: Evento = null;
 
         await Sql.conectar(async(sql)=>{
-			let lista = await sql.query("select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%Y-%m-%d') inicio_evento, date_format(e.termino_evento, '%Y-%m-%d') termino_evento, et.id_departamento, es.id_sala from evento e inner join evento_departamento et on et.id_evento = e.id_evento inner join evento_sala es on es.id_evento = e.id_evento where e.id_evento = ?",[id_evento]);
+			let lista: Evento[] = await sql.query("select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%Y-%m-%d') inicio_evento, date_format(e.termino_evento, '%Y-%m-%d') termino_evento, et.id_departamento, es.id_sala from evento e inner join evento_departamento et on et.id_evento = e.id_evento inner join evento_sala es on es.id_evento = e.id_evento where e.id_evento = ?",[id_evento]);
          
             if(lista && lista.length){
                 evento = lista[0];
 
-				let ocorrencias = await sql.query("select date_format(inicio_ocorrencia, '%Y-%m-%d') inicio_ocorrencia from evento_ocorrencia where id_evento = ?",[id_evento]);
+				let ocorrencias: { inicio_ocorrencia: string }[] = await sql.query("select date_format(inicio_ocorrencia, '%Y-%m-%d') inicio_ocorrencia from evento_ocorrencia where id_evento = ?",[id_evento]);
 				evento.ocorrencias = new Array(ocorrencias.length);
 				for (let i = ocorrencias.length - 1; i >= 0; i--)
 					evento.ocorrencias[i] = ocorrencias[i].inicio_ocorrencia;

@@ -51,21 +51,25 @@
 				<li class="sidebar-spacer"></li>
 
 				<!-- <li>
-						<a href="#"><i class="fa fa-id-card-o fa-fw"></i>Requerimentos<span class="fa arrow"></span></a>
+						<a href="#"><i class="fa fa-id-card-o fa-fw"></i>Controle de Presença<span class="fa arrow"></span></a>
 						<ul class="nav nav-second-level collapse"> -->
 
 				<li>
-					<a href="<%- root %>/requerimento/baterEntrada"><i class="fa fa-vcard fa-fw"></i>Marcar Entrada</a>
+					<a href="<%- root %>/controle/marcarEntrada"><i class="fa fa-vcard fa-fw"></i>Marcar Entrada</a>
+				</li>
+
+				<li>
+					<a href="<%- root %>/controle/marcarEntradaOnline"><i class="fa fa-vcard fa-fw"></i>Marcar Entrada Online</a>
 				</li>
 
 				<li class="sidebar-spacer"></li>
 				
 				<!-- <li>
-								<a href="<%- root %>/requerimento/baterSaida"><i class="fa fa-vcard fa-fw"></i>Marcar Saída</a>
+								<a href="<%- root %>/controle/marcarSaida"><i class="fa fa-vcard fa-fw"></i>Marcar Saída</a>
 							</li> -->
 
 				<li>
-					<a href="<%- root %>/requerimento/dayoff"><i class="fa fa-calendar-times-o fa-fw"></i>Pedir Day
+					<a href="<%- root %>/controle/dayoff"><i class="fa fa-calendar-times-o fa-fw"></i>Pedir Day
 						off</a>
 				</li>
 
@@ -125,21 +129,6 @@
 				</li>
 
 				<li>
-					<a href="#"><i class="fa fa-bullhorn fa-fw"></i>Eventos<span class="fa arrow"></span></a>
-					<ul class="nav nav-second-level collapse">
-
-						<li>
-							<a href="<%- root %>/evento/criar"><i class="fa fa-plus fa-fw"></i>Criar</a>
-						</li>
-
-						<li>
-							<a href="<%- root %>/evento/listar"><i class="fa fa-tasks fa-fw"></i>Gerenciar</a>
-						</li>
-
-					</ul>
-				</li>
-
-				<li>
 					<a href="#"><i class="fa fa-map-marker fa-fw"></i>Salas<span class="fa arrow"></span></a>
 					<ul class="nav nav-second-level collapse">
 
@@ -149,6 +138,21 @@
 
 						<li>
 							<a href="<%- root %>/sala/listar"><i class="fa fa-tasks fa-fw"></i>Gerenciar</a>
+						</li>
+
+					</ul>
+				</li>
+
+				<li>
+					<a href="#"><i class="fa fa-bullhorn fa-fw"></i>Eventos<span class="fa arrow"></span></a>
+					<ul class="nav nav-second-level collapse">
+
+						<li>
+							<a href="<%- root %>/evento/criar"><i class="fa fa-plus fa-fw"></i>Criar</a>
+						</li>
+
+						<li>
+							<a href="<%- root %>/evento/listar"><i class="fa fa-tasks fa-fw"></i>Gerenciar</a>
 						</li>
 
 					</ul>

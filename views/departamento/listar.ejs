@@ -40,7 +40,7 @@
 		deferRender: true,
 		columns: [
 			{ title: "", "class": "col-min", searchable: false, orderable: false, data: "id_departamento", render: function (v, type, row) { return "<a target=\"_blank\" title=\"Editar\" href=\"<%- root %>/departamento/alterar?id_departamento=" + row.id_departamento + "\" class=\"btn btn-outline btn-primary\"><i class=\"fa fa-nomargin fa-edit\"></i></a> <button title=\"Excluir\" type=\"button\" data-excluir=\"1\" class=\"btn btn-outline btn-danger\"><i class=\"fa fa-nomargin fa-times\"></i></button>"; } },
-			{ title: "Descrição", render: encode, data: "desc_departamento" },
+			{ title: "Nome", render: encode, data: "desc_departamento" },
 		],
 		data: <%- lista %>,
 		export: { title: "Departamentos" }
@@ -79,7 +79,7 @@
 				Notification.success("Departamento excluído com sucesso! " + emoji.happy);
 				tabela.row(trClicada).remove().draw();
 			} else {
-				Notification.error("O departamento não pode ser excluído, porque pertence a um evento. ", true);
+				Notification.error(response.value, true);
 			}
 			trClicada = null;
 		}, "id_departamento", departamento.id_departamento);

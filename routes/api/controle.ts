@@ -1,5 +1,5 @@
 ﻿import express = require("express");
-import wrap = require("express-async-error-wrapper");
+import wrap = require("../../infra/wrap");
 import Ponto = require("../../models/ponto");
 import Usuario = require("../../models/usuario");
 import jsonRes = require("../../utils/jsonRes");
@@ -9,20 +9,34 @@ const router = express.Router();
 // Se utilizar router.xxx() mas não utilizar o wrap(), as exceções ocorridas
 // dentro da função async não serão tratadas!!!
 
-router.get("/baterEntrada/:qr", wrap(async (req: express.Request, res: express.Response) => {
+router.get("/marcarEntrada/:qr", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req, res);
 	if (!u)
 		return;
 	let qr = req.params["qr"] as string;
-	jsonRes(res, 400, (u && qr) ? await Ponto.baterEntrada(u.idusuario, qr) : "Dados inválidos");
+	jsonRes(res, 400, (u && qr) ? await Ponto.marcarEntrada(u.idusuario, qr, false) : "Dados inválidos");
 }));
 
-router.get("/baterSaida/:qr", wrap(async (req: express.Request, res: express.Response) => {
+router.get("/marcarEntradaOnline", wrap(async (req: express.Request, res: express.Response) => {
+	let u = await Usuario.cookie(req, res);
+	if (!u)
+		return;
+	jsonRes(res, 400, u ? await Ponto.marcarEntrada(u.idusuario, null, true) : "Dados inválidos");
+}));
+
+router.get("/marcarSaida/:qr", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req, res);
 	if (!u)
 		return;
 	let qr = req.params["qr"] as string;
-	jsonRes(res, 400, (u && qr) ? await Ponto.baterSaida(u.idusuario, qr) : "Dados inválidos");
+	jsonRes(res, 400, (u && qr) ? await Ponto.marcarSaida(u.idusuario, qr, false) : "Dados inválidos");
+}));
+
+router.get("/marcarSaidaOnline", wrap(async (req: express.Request, res: express.Response) => {
+	let u = await Usuario.cookie(req, res);
+	if (!u)
+		return;
+	jsonRes(res, 400, u ? await Ponto.marcarSaida(u.idusuario, null, true) : "Dados inválidos");
 }));
 
 router.post("/gerarTokenQR", wrap(async (req: express.Request, res: express.Response) => {
@@ -40,10 +54,4 @@ router.get("/gerarProximoQR", wrap(async (req: express.Request, res: express.Res
 	res.json(await Usuario.gerarProximoQR(req.query["token"] as string));
 }));
 
- router.put("/dayoff", wrap(async (req: express.Request, res: express.Response) => {
- 		let u = await Usuario.cookie(req, res);
- 	if (!u)
-		 return;
-	res.json(await Usuario.pedirDayoff(u));
- }));
 export = router;

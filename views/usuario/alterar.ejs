@@ -7,16 +7,16 @@
 				<input type="hidden" id="idusuario" name="idusuario" value="<%=(item ? item.idusuario : 0) %>" />
 				<div class="form-group">
 					<label for="login">Login</label>
-					<input id="login" name="login" maxlength="100" class="form-control upper" type="email" spellcheck="false" value="<%=(item ? item.login : '') %>" <%=(item ? 'readonly="readonly"' : '') %> />
+					<input id="login" name="login" maxlength="100" class="form-control lower" type="email" spellcheck="false" value="<%=(item ? item.login : '') %>" <%=(item ? 'readonly="readonly"' : '') %> />
 				</div>
 				<div class="form-group">
 					<label for="nome">Nome</label>
-					<input id="nome" name="nome" maxlength="100" class="form-control upper" type="text" spellcheck="false" value="<%=(item ? item.nome : '') %>" />
+					<input id="nome" name="nome" maxlength="100" class="form-control" type="text" spellcheck="false" value="<%=(item ? item.nome : '') %>" />
 				</div>
 				<div class="form-group">
 					<label for="idperfil">Perfil</label>
 					<select id="idperfil" name="idperfil" class="form-control" size="1">
-						<option value="">SELECIONE...</option>
+						<option value="">Selecione...</option>
 						<% for (let i = 0; i < perfis.length; i++) { %>
 						<option value="<%= perfis[i].idperfil %>" <%-((item && item.idperfil === perfis[i].idperfil) ? 'selected="selected"' : '') %>><%= perfis[i].nome %></option>
 						<% } %>
@@ -25,7 +25,7 @@
 				<div class="form-group">
                     <label for="idcargo">Cargo</label>
                     <select id="idcargo" name="idcargo" class="form-control" size="1">
-                        <option value="">SELECIONE...</option>
+                        <option value="">Selecione...</option>
                         <% for (let i = 0; i < cargos.length; i++) { %>
                         <option value="<%= cargos[i].idcargo %>" <%-((item && item.idcargo === cargos[i].idcargo) ? 'selected="selected"' : '') %>><%= cargos[i].nome %></option>
                         <% } %>
@@ -34,7 +34,7 @@
 				<div class="form-group">
 					<label for="idcurso">Curso</label>
 					<select id="idcurso" name="idcurso" class="form-control" size="1">
-						<option value="">SELECIONE...</option>
+						<option value="">Selecione...</option>
 						<% for (let i = 0; i < cursos.length; i++) { %>
 						<option value="<%= cursos[i].idcurso %>" <%-((item && item.idcurso === cursos[i].idcurso) ? 'selected="selected"' : '') %>><%= cursos[i].nome %></option>
 						<% } %>
@@ -136,7 +136,7 @@
 			JsonWebApi.postFormData("<%- root %>/api/usuario/criar", form, function (response) {
 				if (response.success) {
 					resetForm("#form");
-					Notification.success("Usuário criado com sucesso (senha padrão: 1234)! " + emoji.happy);
+					Notification.success("Usuário criado com sucesso! " + emoji.happy);
 				} else {
 					Notification.error(response.value, true);
 				}

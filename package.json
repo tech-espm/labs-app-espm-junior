@@ -11,28 +11,28 @@
   },
   "main": "app.js",
   "dependencies": {
-    "calendar": "^0.1.1",
-    "cookie-parser": "1.4.3",
-    "debug": "4.1.0",
-    "ejs": "2.6.1",
-    "express": "4.17.1",
-    "express-async-error-wrapper": "1.0.3",
-    "express-ejs-layouts": "2.5.0",
+    "cookie-parser": "^1.4.5",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "express-ejs-layouts": "^2.5.1",
     "full": "^1.0.1",
-    "lru-cache": "4.1.3",
+    "lru-cache": "^6.0.0",
     "moment": "^2.24.0",
     "multer": "^1.4.2",
-    "mysql": "^2.16.0"
+    "mysql2": "^2.2.5"
   },
   "devDependencies": {
-    "@types/debug": "0.0.30",
-    "@types/express": "^4.16.1",
-    "@types/express-serve-static-core": "^4.16.2",
+    "@types/cookie-parser": "^1.4.2",
+    "@types/ejs": "^3.0.6",
+    "@types/express": "^4.17.12",
+    "@types/express-ejs-layouts": "^2.3.2",
+    "@types/express-serve-static-core": "^4.17.20",
+    "@types/lru-cache": "^5.1.0",
     "@types/mime": "^1.3.1",
-    "@types/node": "^10.12.30",
-    "@types/serve-static": "^1.7.32"
+    "@types/node": "^14.14.21",
+    "@types/serve-static": "^1.13.9"
   },
   "engines": {
-    "node": ">12.0.0"
+    "node": ">=12.0.0"
   }
 }

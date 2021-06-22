@@ -42,7 +42,7 @@ export = class Sala {
         let sala: Sala = null;
 
         await Sql.conectar(async(sql)=>{
-            let lista = await sql.query("select id_sala, desc_sala from sala where id_sala = ?",[id_sala]);
+            let lista: Sala[] = await sql.query("select id_sala, desc_sala from sala where id_sala = ?",[id_sala]);
          
             if(lista && lista.length){
                 sala = lista[0];
@@ -71,14 +71,23 @@ export = class Sala {
         let erro: string = null;
 
         await Sql.conectar(async(sql)=>{
-            let lista = await sql.query("delete from sala where id_sala=?;",[id_sala]);
-         
-            if(!sql.linhasAfetadas){
-                erro = 'Sala não encontrada';
+            try {
+                await sql.query("delete from sala where id_sala=?;",[id_sala]);
+
+                if (!sql.linhasAfetadas)
+                    erro = "Sala não encontrada";
+            } catch (e) {
+				if (e.code) {
+					switch (e.code) {
+						case "ER_ROW_IS_REFERENCED":
+						case "ER_ROW_IS_REFERENCED_2":
+							erro = "A sala não pode ser excluída porque pertence a um ou mais eventos";
+                            return;
+					}
+				}
+				throw e;
             }
         });
-
         return erro;
-
     }
 }

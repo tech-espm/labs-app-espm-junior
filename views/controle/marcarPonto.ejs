@@ -1,27 +1,25 @@
+<% if (online) { %>
+
 <div class="row">
 	<div class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
 		<form id="form" class="panel panel-default" action="#">
 			<div class="panel-body text-center">
-				<p>Por favor, não esqueça de permitir que a página atual utilize a câmera do seu dispositivo.</p>
-				<p>Caso a câmera não abra automaticamente dentro de alguns segundos, por favor, clique no botão abaixo:</p>
-				<button type="button" class="btn btn-primary" onclick="mostrarQR()">Marcar <%- (entrada ? 'Entrada' : 'Saída') %></button>
+				<p>Por favor, utilize o botão abaixo para marcar o ponto de maneira online.</p>
+				<button type="button" class="btn btn-primary" onclick="marcarOnline()">Marcar <%- (entrada ? "Entrada" : "Saída") %></button>
 			</div>
 		</form>
 	</div>
 </div>
 
-<!--  
- botao para marcar entrada online
- trocar o ONCLICK
- tirar o qr code e 
-  -->
+<% } else { %>
 
 <div class="row">
 	<div class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
 		<form id="form" class="panel panel-default" action="#">
 			<div class="panel-body text-center">
-				<p>Para bater ponto online clique no botão abaixo:</p>
-				<button type="button" class="btn btn-primary" onclick=>Marcar <%- (entrada ? 'Entrada online' : 'Saída') %></button>
+				<p>Por favor, não esqueça de permitir que a página atual utilize a câmera do seu dispositivo.</p>
+				<p>Caso a câmera não abra automaticamente dentro de alguns segundos, por favor, clique no botão abaixo.</p>
+				<button type="button" class="btn btn-primary" onclick="mostrarQR()">Marcar <%- (entrada ? "Entrada" : "Saída") %></button>
 			</div>
 		</form>
 	</div>
@@ -47,6 +45,8 @@
 		</div>
 	</div>
 </div>
+
+<% } %>
 
 <%- contentFor("styles") %>
 <style type="text/css">
@@ -80,6 +80,39 @@
 </style>
 
 <%- contentFor("scripts") %>
+
+<% if (online) { %>
+
+<script type="text/javascript">
+	//<![CDATA[
+	"use strict";
+
+	function marcarOnline() {
+		if (JsonWebApi.active)
+			return;
+
+		Notification.wait();
+
+		JsonWebApi.get("<%- root %>/api/controle/<%- (entrada ? 'marcarEntradaOnline' : 'marcarSaidaOnline') %>", function (response) {
+			Notification.hide();
+
+			if (response.success) {
+				if (response.value) {
+					Notification.error(response.value, true);
+				} else {
+					Notification.success("<%- (entrada ? 'Entrada' : 'Saída') %> marcada com sucesso " + emoji.happy);
+				}
+			} else {
+				Notification.error(response.value, true);
+			}
+		});
+	}
+
+	//]]>
+</script>
+
+<% } else { %>
+
 <!--
 	JavaScript QRCode reader for HTML5 enabled browser.
 	2011 Lazar Laszlo  http://lazarsoft.info
@@ -209,15 +242,15 @@
 
 					Notification.wait();
 
-					JsonWebApi.get("<%- root %>/api/requerimento/<%- (entrada ? 'baterEntrada' : 'baterSaida') %>/" + result, function (response) {
+					JsonWebApi.get("<%- root %>/api/controle/<%- (entrada ? 'marcarEntrada' : 'marcarSaida') %>/" + result, function (response) {
 						Notification.hide();
 
 						if (response.success) {
 							if (response.value) {
-								mostrarAlerta(response.value + " " + emoji.sad, true);
+								mostrarAlerta(response.value, true);
 							} else {
 								pararDecodificacao();
-								mostrarAlerta("<%- (entrada ? 'Entrada' : 'Saída') %> batida com sucesso " + emoji.happy, false);
+								mostrarAlerta("<%- (entrada ? 'Entrada' : 'Saída') %> marcada com sucesso " + emoji.happy, false);
 							}
 						} else {
 							mostrarAlerta(response.value, true);
@@ -303,7 +336,7 @@
 
 	(function () {
 		if (!navigator.getUserMedia && !navigator.mediaDevices) {
-			Notification.error("Aparentemente seu browser não possui a API necessária para acessar a câmera! " + emoji.sad, true);
+			Notification.error("Aparentemente seu browser não possui a API necessária para acessar a câmera!", true);
 		} else {
 			// Obtém o vídeo da página (onde será exibido o preview)
 			preview = document.getElementById("preview");
@@ -333,3 +366,4 @@
 
 	//]]>
 </script>
+<% } %>

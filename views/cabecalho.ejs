@@ -8,21 +8,24 @@
 <meta property="og:locale" content="pt_BR" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://academico.espm.br/espmjunior" />
-<meta property="og:title" content="App ESPM Júnior" />
-<meta property="og:site_name" content="App ESPM Júnior" />
-<meta property="og:description" content="App ESPM Júnior" />
+<meta property="og:title" content="ESPM Júnior" />
+<meta property="og:site_name" content="ESPM Júnior" />
+<meta property="og:description" content="ESPM Júnior" />
 <meta property="og:image" content="https://academico.espm.br/espmjunior/imagens/loginbg.jpg" />
 <meta property="og:image:type" content="image/jpeg" />
 <meta property="og:image:width" content="1920" />
 <meta property="og:image:height" content="1160" />
 
 <meta name="author" content="ESPM" />
-<meta name="description" content="App ESPM Júnior" />
+<meta name="description" content="ESPM Júnior" />
 <meta name="keywords" content="espm, espm júnior" />
 
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-<meta name="apple-mobile-web-app-title" content="App ESPM Júnior" />
+<meta name="apple-mobile-web-app-title" content="ESPM Júnior" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-status-bar-style" content="black" />
+<meta name="mobile-web-app-title" content="ESPM Júnior" />
 <!--
 	https://w3c.github.io/manifest/#icon-masks
 	https://github.com/w3c/manifest/issues/555
@@ -44,7 +47,7 @@
 <link rel="icon" type="image/png" sizes="16x16" href="<%- root %>/favicons/favicon-16x16.png" />
 <link rel="Shortcut Icon" href="<%- root %>/favicons/favicon.ico" />
 <link rel="Shortcut Icon" href="<%- root %>/favicons/favicon.png" />
-<link rel="manifest" href="<%- root %>/favicons/manifest.json" />
+<link rel="manifest" href="<%- root %>/favicons/manifest.webmanifest" />
 <meta name="msapplication-config" content="<%- root %>/favicons/browserconfig.xml" />
 <meta name="theme-color" content="#001f33" />
 
@@ -56,8 +59,9 @@
 <link rel="stylesheet" href="<%- root %>/lib/font-awesome/css/font-awesome-1.0.2.min.css" />
 <link rel="stylesheet" href="<%- root %>/lib/data-tables/css/data-tables.bootstrap-1.0.7.css" />
 <link rel="stylesheet" href="<%- root %>/lib/fullcalendar/main.min.css" />
+<link rel="stylesheet" href="<%- root %>/lib/sweetalert2/sweetalert2.min.css" />
 <link rel="stylesheet" href="<%- root %>/css/admin-1.0.30.css" />
-<link rel="stylesheet" href="<%- root %>/css/style-1.0.0.css" />
+<link rel="stylesheet" href="<%- root %>/css/style.css?20210621" />
 
 <script type="text/javascript" src="<%- root %>/lib/jquery/js/jquery-1.0.1.min.js"></script>
 <script type="text/javascript" src="<%- root %>/lib/metis-menu/js/metis-menu-1.0.1.min.js"></script>
@@ -67,5 +71,42 @@
 	"use strict";
 	Notification.pathBase = "<%- root %>/";
 	Notification.imagePath = "imagens";
+	window.prepareCbSearchAllowLower = true;
+
+	Notification.success = function (message, title) {
+		Notification.hide();
+
+		return swal({
+			title: ((title && title !== true) ? title : "Sucesso!"),
+			text: message,
+			type: "success",
+			buttonsStyling: false,
+			confirmButtonClass: "btn btn-success"
+		});
+	};
+
+	Notification.info = function (message, title) {
+		Notification.hide();
+
+		return swal({
+			title: ((title && title !== true) ? title : "Informação"),
+			text: message,
+			type: "info",
+			buttonsStyling: false,
+			confirmButtonClass: "btn btn-default"
+		});
+	};
+
+	Notification.error = function (message, title) {
+		Notification.hide();
+
+		return swal({
+			title: ((title && title !== true) ? title : "Erro!"),
+			text: message,
+			type: "error",
+			buttonsStyling: false,
+			confirmButtonClass: "btn btn-danger"
+		});
+	};
 	//]]>
 </script>
