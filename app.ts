@@ -108,6 +108,7 @@ app.use("/usuario", require("./routes/usuario"));
 // API
 app.use("/api/cargo", require("./routes/api/cargo"));
 app.use("/api/curso", require("./routes/api/curso"));
+app.use("/api/dayOff", require("./routes/api/dayOff"));
 app.use("/api/departamento", require("./routes/api/departamento"));
 app.use("/api/evento", require("./routes/api/evento"));
 app.use("/api/controle", require("./routes/api/controle"));

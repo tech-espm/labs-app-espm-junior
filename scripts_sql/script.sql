@@ -65,6 +65,20 @@ CREATE TABLE usuario (
 
 INSERT INTO usuario (login, nome, idperfil, versao, token, idcargo, idcurso, semestre, endereco, telefone, nascimento, criacao) VALUES ('admin@espm.br', 'Administrador', 1, 0, NULL, 1, 1, 1, '', '', NOW(), NOW());
 
+-- DROP TABLE IF EXISTS dayoff;
+CREATE TABLE dayoff (
+  iddayoff int NOT NULL AUTO_INCREMENT,
+  idusuario int NOT NULL,
+  ano smallint NOT NULL,
+  semestre tinyint NOT NULL,
+  data datetime NOT NULL,
+  criacao datetime NOT NULL,
+  PRIMARY KEY (iddayoff),
+  KEY dayoff_ano_semestre_idusuario_idx (ano, semestre, idusuario),
+  KEY dayoff_idusuario_FK_idx (idusuario),
+  CONSTRAINT dayoff_idusuario_FK FOREIGN KEY (idusuario) REFERENCES usuario (idusuario) ON DELETE CASCADE ON UPDATE RESTRICT
+);
+
 -- DROP TABLE IF EXISTS ficha_medica;
 CREATE TABLE ficha_medica (
   idusuario int NOT NULL,

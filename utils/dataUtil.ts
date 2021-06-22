@@ -1,5 +1,10 @@
 
 export = class DataUtil {
+	public static hojeBrasil(): string {
+		const agora = new Date();
+		return (new Date(agora.getTime() - (180 * 60000))).toISOString().substr(0, 10);
+	}
+
 	public static formatar(ano: number, mes: number, dia: number): string {
 		return ano + "-" + ((mes < 10) ? ("0" + mes) : mes) + "-" + ((dia < 10) ? ("0" + dia) : dia);
 	}
