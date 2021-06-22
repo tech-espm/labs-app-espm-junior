@@ -3,7 +3,7 @@ import wrap = require("../infra/wrap");
 import Ponto = require("../models/ponto");
 import Usuario = require("../models/usuario");
 import appsettings = require("../appsettings");
-import DayOff = require("../models/dayoff");
+import DayOff = require("../models/dayOff");
 
 const router = express.Router();
 

@@ -1,6 +1,6 @@
 ﻿import express = require("express");
 import wrap = require("../../infra/wrap");
-import DayOff = require("../../models/dayoff");
+import DayOff = require("../../models/dayOff");
 import Usuario = require("../../models/usuario");
 
 const router = express.Router();
