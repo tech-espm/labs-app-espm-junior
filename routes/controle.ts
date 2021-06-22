@@ -33,14 +33,19 @@ router.all("/marcarSaida", wrap(async (req: express.Request, res: express.Respon
 
 router.all("/daysOff", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req);
-	if (!u)
+	if (!u) {
 		res.redirect(appsettings.root + "/acesso");
-	else
+	} else {
+		const infoAtual = DayOff.infoAtual();
+
 		res.render("controle/daysOff", {
 			titulo: "Days Off",
 			usuario: u,
-			daysOff: await DayOff.listar(0, 0, u.idusuario)
+			anoAtual: infoAtual.anoAtual,
+			semestreAtual: infoAtual.semestreAtual,
+			daysOff: await DayOff.listar(infoAtual.anoAtual, infoAtual.semestreAtual, u.idusuario)
 		});
+	}
 }));
 
 export = router;

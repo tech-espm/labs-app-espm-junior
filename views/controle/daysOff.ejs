@@ -1,14 +1,35 @@
 ﻿<div class="row">
 	<div class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
 		<form id="form" class="panel panel-default" action="#">
-			<div class="panel-heading">Days Off do Semestre Atual</div>
+			<div class="panel-heading">Filtro de Days Off</div>
 			<div class="panel-body">
 				<div class="row">
 					<div class="col-xs-6">
+						<div class="form-group">
+							<label for="ano">Ano</label>
+							<input type="number" id="ano" name="ano" class="form-control" value="<%- anoAtual %>" />
+						</div>
 					</div>
-					<div class="col-xs-6 text-right col-xs-space-bottom">
-						<button class="btn btn-primary" type="button" onclick="adicionarDayOff()"><i class="fa fa-plus"></i>Adicionar Day Off</button>
+
+					<div class="col-xs-6">
+						<div class="form-group">
+							<label for="semestre">Semestre</label>
+							<select size="1" id="semestre" name="semestre" class="form-control">
+								<option value="1" <%- ((semestreAtual === 1) ? 'selected="selected"' : '') %>>1</option>
+								<option value="2" <%- ((semestreAtual === 2) ? 'selected="selected"' : '') %>>2</option>
+							</select>
+						</div>
 					</div>
+				</div>
+
+				<div class="text-right">
+					<button class="btn btn-primary" type="button" onclick="atualizarDaysOff()"><i class="fa fa-refresh"></i>Atualizar Lista</button>
+				</div>
+
+				<hr />
+
+				<div class="text-right col-xs-space-bottom">
+					<button class="btn btn-primary" type="button" onclick="adicionarDayOff()"><i class="fa fa-plus"></i>Adicionar Day Off</button>
 				</div>
 
 				<table class="table table-striped table-hover no-margin-bottom">
@@ -67,9 +88,36 @@
 		}
 	}
 
+	function atualizarDaysOff() {
+		if (JsonWebApi.active)
+			return;
+
+		Notification.wait();
+
+		JsonWebApi.get("<%- root %>/api/dayOff/listar", function (response) {
+			var bodyDaysOff = document.getElementById("bodyDaysOff");
+			$("#bodyDaysOff").empty();
+
+			if (response.success) {
+				Notification.hide();
+
+				if (!response.value || !response.value.length) {
+					bodyDaysOff.innerHTML = '<tr><td class="text-center">Não há days off cadastrados</td></tr>';
+				} else {
+					for (var i = 0; i < response.value.length; i++) {
+						$("#bodyDaysOff").append('<tr><td class="col-min"><button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerDayOff(this)"><i class="fa fa-nomargin fa-times"></i></button></td><td><input name="daysOff" class="form-control" type="date" value="' + response.value[i].data + '" /></td></tr>');
+					}
+				}
+			} else {
+				bodyDaysOff.innerHTML = '<tr><td class="text-center">Ocorreu um erro na atualização</td></tr>';
+				Notification.error(response.value + " " + emoji.sad, true);
+			}
+		}, "ano", $("#ano").val(), "semestre", $("#semestre").val());
+	}
+
 	$("#form").validate({
 		rules: {
-			daysoff: {
+			daysOff: {
 				required: true
 			}
 		},
@@ -80,12 +128,11 @@
 
 			Notification.wait();
 
-			JsonWebApi.postFormData("<%- root %>/api/dayOff/sincronizar", form, function (response) {
-				if (response.success) {
+			JsonWebApi.postFormData("<%- root %>/api/dayOff/sincronizar?ano=" + encodeURIComponent($("#ano").val()) + "&semestre=" + encodeURIComponent($("#semestre").val()), form, function (response) {
+				if (response.success)
 					Notification.success("Days Off sincronizados com sucesso! " + emoji.happy);
-				}
 				else
-				Notification.error(response.value + " " + emoji.sad, true);
+					Notification.error(response.value + " " + emoji.sad, true);
 			});
 		}
 	});

@@ -11,18 +11,31 @@ export = class DayOff {
 	public data: string;
 	public criacao: string;
 
-	public static async listar(ano?: number, semestre?: number, idusuario?: number): Promise<DayOff[]> {
+	public static infoAtual(): { regexp: RegExp, hoje: number, anoAtual: number, semestreAtual: number } {
 		const regexp = /[\/\-\:\s]/g,
 			hoje = parseInt(DataUtil.hojeBrasil().replace(regexp, "")),
 			anoAtual = (hoje / 10000) | 0,
 			mesAtual = ((hoje / 100) | 0) % 100,
 			semestreAtual = (mesAtual < 7 ? 1 : 2);
 
-		if (!ano)
-			ano = anoAtual;
+		return {
+			regexp,
+			hoje,
+			anoAtual,
+			semestreAtual
+		};
+	}
 
-		if (!semestre)
-			semestre = semestreAtual;
+	public static async listar(ano?: number, semestre?: number, idusuario?: number): Promise<DayOff[]> {
+		if (!ano || !semestre) {
+			const infoAtual = DayOff.infoAtual();
+
+			if (!ano)
+				ano = infoAtual.anoAtual;
+
+			if (!semestre)
+				semestre = infoAtual.semestreAtual;
+		}
 
 		let lista: DayOff[] = null;
 
@@ -33,15 +46,15 @@ export = class DayOff {
 		return lista || [];
 	}
 
-	public static async sincronizar(idusuario: number, daysOff: string[]): Promise<string> {
+	public static async sincronizar(ano: number, semestre: number, idusuario: number, daysOff: string[]): Promise<string> {
 		if (!daysOff)
 			return "Dados inválidos";
 
-		const regexp = /[\/\-\:\s]/g,
-			hoje = parseInt(DataUtil.hojeBrasil().replace(regexp, "")),
-			anoAtual = (hoje / 10000) | 0,
-			mesAtual = ((hoje / 100) | 0) % 100,
-			semestreAtual = (mesAtual < 7 ? 1 : 2);
+		const infoAtual = DayOff.infoAtual(),
+			regexp = infoAtual.regexp,
+			hoje = infoAtual.hoje,
+			anoAtual = infoAtual.anoAtual,
+			semestreAtual = infoAtual.semestreAtual;
 
 		for (let i = daysOff.length - 1; i >= 0; i--) {
 			if (!daysOff[i])
@@ -51,15 +64,15 @@ export = class DayOff {
 				return "Data inválida";
 
 			const data = parseInt(daysOff[i].replace(regexp, "")),
-				ano = (data / 10000) | 0,
-				mes = ((data / 100) | 0) % 100,
-				semestre = (mes < 7 ? 1 : 2);
+				anoData = (data / 10000) | 0,
+				mesData = ((data / 100) | 0) % 100,
+				semestreData = (mesData < 7 ? 1 : 2);
 
-			if (ano !== anoAtual)
-				return "Não é permitido pedir um day off para um ano diferente do atual";
+			if (ano !== anoAtual || ano !== anoData)
+				return "Não é permitido sincronizar days off de um ano diferente do atual";
 
-			if (semestre !== semestreAtual)
-				return "Não é permitido pedir um day off para um semestre diferente do atual";
+			if (semestre !== semestreAtual || semestre !== semestreData)
+				return "Não é permitido sincronizar days off de um semestre diferente do atual";
 		}
 
 		let res: string = null;
@@ -86,6 +99,20 @@ export = class DayOff {
 			if ((existentes + adicionar.length) > DayOff.QuantidadeMaxima) {
 				res = "Não é permitido pedir mais de " + DayOff.QuantidadeMaxima + " days off por semestre";
 				return;
+			}
+
+			for (let i = antigos.length - 1; i >= 0; i--) {
+				if (parseInt(antigos[i].data.replace(regexp, "")) < hoje) {
+					res = "Não é permitido excluir um day off de uma data passada";
+					return;
+				}
+			}
+
+			for (let i = adicionar.length - 1; i >= 0; i--) {
+				if (parseInt(adicionar[i].replace(regexp, "")) < hoje) {
+					res = "Não é permitido adicionar um day off em uma data passada";
+					return;
+				}
 			}
 
 			await sql.beginTransaction();
