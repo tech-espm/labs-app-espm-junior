@@ -27,6 +27,7 @@ export = class Usuario {
 	public idcargo: number;
 	public idcurso: number;
 	public semestre: number;
+	public daysoff: number;
 	public endereco: string;
 	public telefone: string;
 	public nascimento: string;
@@ -254,7 +255,7 @@ export = class Usuario {
 			return "Login deve terminar com @espm.br ou @acad.espm.br";
 
 		u.nome = (u.nome || "").normalize().trim();
-		if (u.nome.length < 3 || u.nome.length > 100)
+		if (u.nome.length < 2 || u.nome.length > 100)
 			return "Nome inválido";
 
 		u.idperfil = parseInt(u.idperfil as any);
@@ -272,6 +273,10 @@ export = class Usuario {
 		u.semestre = parseInt(u.semestre as any);
 		if (isNaN(u.semestre))
 			return "Semestre inválido";
+
+		u.daysoff = parseInt(u.daysoff as any);
+		if (isNaN(u.daysoff) || u.daysoff < 0 || u.daysoff > 99)
+			return "Quantidade de days off inválida";
 
 		u.endereco = (u.endereco || "").normalize().trim();
 		if (u.endereco.length < 3 || u.endereco.length > 100)
@@ -301,7 +306,7 @@ export = class Usuario {
 		let lista: Usuario[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select u.idusuario, u.login, u.nome, u.versao, p.nome perfil, u.idcargo, c.nome cargo, u.idcurso, s.nome curso, u.semestre, u.telefone, date_format(u.nascimento, '%d/%m/%Y') nascimento, date_format(u.criacao, '%d/%m/%Y') criacao from usuario u inner join perfil p on p.idperfil = u.idperfil inner join cargo c on c.idcargo = u.idcargo inner join curso s on s.idcurso = u.idcurso order by u.login asc") as Usuario[];
+			lista = await sql.query("select u.idusuario, u.login, u.nome, u.versao, p.nome perfil, u.idcargo, c.nome cargo, u.idcurso, s.nome curso, u.semestre, u.daysoff, u.telefone, date_format(u.nascimento, '%d/%m/%Y') nascimento, date_format(u.criacao, '%d/%m/%Y') criacao from usuario u inner join perfil p on p.idperfil = u.idperfil inner join cargo c on c.idcargo = u.idcargo inner join curso s on s.idcurso = u.idcurso order by u.login asc") as Usuario[];
 		});
 
 		return (lista || []);
@@ -311,7 +316,7 @@ export = class Usuario {
 		let lista: Usuario[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select idusuario, login, nome, idperfil, idcargo, idcurso, semestre, endereco, telefone, date_format(nascimento, '%Y-%m-%d') nascimento, date_format(criacao, '%d/%m/%Y') criacao from usuario where idusuario = ?", [idusuario]) as Usuario[];
+			lista = await sql.query("select idusuario, login, nome, idperfil, idcargo, idcurso, semestre, daysoff, endereco, telefone, date_format(nascimento, '%Y-%m-%d') nascimento, date_format(criacao, '%d/%m/%Y') criacao from usuario where idusuario = ?", [idusuario]) as Usuario[];
 		});
 
 		return ((lista && lista[0]) || null);
@@ -327,7 +332,7 @@ export = class Usuario {
 			try {
 				await sql.beginTransaction();
 
-				await sql.query("insert into usuario (login, nome, idperfil, versao, idcargo, idcurso, semestre, endereco, telefone, nascimento, criacao ) values (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, u.idcargo, u.idcurso, u.semestre, u.endereco, u.telefone, u.nascimento]);
+				await sql.query("insert into usuario (login, nome, idperfil, versao, idcargo, idcurso, semestre, daysoff, endereco, telefone, nascimento, criacao ) values (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, u.idcargo, u.idcurso, u.semestre, u.daysoff, u.endereco, u.telefone, u.nascimento]);
 				u.idusuario = await sql.scalar("select last_insert_id()") as number;
 
 				// @@@ Ficha médica...
@@ -361,11 +366,8 @@ export = class Usuario {
 		if ((res = Usuario.validar(u)))
 			return res;
 
-		if (u.idusuario === Usuario.IdAdmin)
-			return "Não é possível editar o usuário administrador principal";
-
 		await Sql.conectar(async (sql: Sql) => {
-			await sql.query("update usuario set nome = ?, idperfil = ?, idcargo = ?, idcurso = ?, semestre = ?, endereco = ?, telefone = ?, nascimento = ? where idusuario = ?", [u.nome, u.idperfil, u.idcargo, u.idcurso, u.semestre, u.endereco, u.telefone, u.nascimento, u.idusuario]);
+			await sql.query("update usuario set nome = ?, idperfil = ?, idcargo = ?, idcurso = ?, semestre = ?, daysoff = ?, endereco = ?, telefone = ?, nascimento = ? where idusuario = ?", [u.nome, u.idperfil, u.idcargo, u.idcurso, u.semestre, u.daysoff, u.endereco, u.telefone, u.nascimento, u.idusuario]);
 			res = sql.linhasAfetadas.toString();
 
 			// @@@ Ficha médica...

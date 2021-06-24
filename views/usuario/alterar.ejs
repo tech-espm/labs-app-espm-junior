@@ -31,20 +31,30 @@
                         <% } %>
                     </select>
                 </div>
-				<div class="form-group">
-					<label for="idcurso">Curso</label>
-					<select id="idcurso" name="idcurso" class="form-control" size="1">
-						<option value="">Selecione...</option>
-						<% for (let i = 0; i < cursos.length; i++) { %>
-						<option value="<%= cursos[i].idcurso %>" <%-((item && item.idcurso === cursos[i].idcurso) ? 'selected="selected"' : '') %>><%= cursos[i].nome %></option>
-						<% } %>
-					</select>
+				<div class="row">
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="idcurso">Curso</label>
+							<select id="idcurso" name="idcurso" class="form-control" size="1">
+								<option value="">Selecione...</option>
+								<% for (let i = 0; i < cursos.length; i++) { %>
+								<option value="<%= cursos[i].idcurso %>" <%-((item && item.idcurso === cursos[i].idcurso) ? 'selected="selected"' : '') %>><%= cursos[i].nome %></option>
+								<% } %>
+							</select>
+						</div>
+					</div>
+					<div class="col-sm-6">
+						<div class="form-group">
+							<label for="semestre">Semestre</label>
+							<input id="semestre" name="semestre" class="form-control" type="number" min="1" max="8" value="<%=(item ? item.semestre : '') %>" />
+						</div>
+					</div>
 				</div>
 				<div class="row">
 					<div class="col-sm-6">
 						<div class="form-group">
-							<label for="semestre">Semestre</label>
-							<input id="semestre" name="semestre" class="form-control" type="number" min="1" max="8" spellcheck="false" value="<%=(item ? item.semestre : '') %>" />
+							<label for="daysoff">Quantidade de days off</label>
+							<input id="daysoff" name="daysoff" class="form-control" type="number" min="0" max="99" value="<%=(item ? item.daysoff : '') %>" />
 						</div>
 					</div>
 					<div class="col-sm-6">
@@ -75,6 +85,8 @@
 	//<![CDATA[
 	"use strict";
 
+	maskMobilePhone("#telefone");
+
 	$("#form").validate({
 		rules: {
 			login: {
@@ -85,7 +97,7 @@
 			},
 			nome: {
 				required: true,
-				minlength: 3,
+				minlength: 2,
 				maxlength: 100
 			},
 			idperfil: {
@@ -102,6 +114,12 @@
 				number: true,
 				min: 1,
 				max: 8
+			},
+			daysoff: {
+				required: true,
+				number: true,
+				min: 0,
+				max: 99
 			},
 			endereco: {
 				required: true,

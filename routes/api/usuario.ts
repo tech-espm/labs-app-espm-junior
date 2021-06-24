@@ -43,13 +43,14 @@ router.post("/alterar", wrap(async (req: express.Request, res: express.Response)
 	let u = await Usuario.cookie(req, res, true);
 	if (!u)
 		return;
-	let idusuario = u.idusuario;
+	const idusuario = u.idusuario,
+		idperfil = u.idperfil;
 	u = req.body as Usuario;
 	if (u) {
 		u.idusuario = parseInt(req.body.idusuario);
-		u.idperfil = parseInt(req.body.idperfil);
+		u.idperfil = ((idusuario === u.idusuario) ? idperfil : parseInt(req.body.idperfil));
 	}
-	jsonRes(res, 400, (u && !isNaN(u.idusuario)) ? (idusuario === u.idusuario ? "Um usuário não pode alterar a si próprio" : await Usuario.alterar(u)) : "Dados inválidos");
+	jsonRes(res, 400, (u && !isNaN(u.idusuario)) ? await Usuario.alterar(u) : "Dados inválidos");
 }));
 
 router.get("/excluir", wrap(async (req: express.Request, res: express.Response) => {

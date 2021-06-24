@@ -38,7 +38,7 @@
 		order: [[2, "asc"]],
 		deferRender: true,
 		columns: [
-			{ title: "", "class": "col-min", searchable: false, orderable: false, data: "idusuario", render: function (v, type, row) { return "<a target=\"_blank\" title=\"Editar\" href=\"<%- root %>/usuario/alterar?idusuario=" + row.idusuario + "\" class=\"btn btn-outline btn-primary\"><i class=\"fa fa-nomargin fa-edit\"></i></a> <button title=\"Excluir\" type=\"button\" data-excluir=\"1\" class=\"btn btn-outline btn-danger\"><i class=\"fa fa-nomargin fa-times\"></i></button>"; } },
+			{ title: "", "class": "col-min", searchable: false, orderable: false, data: "idusuario", render: function (v, type, row) { return "<a title=\"Editar\" href=\"<%- root %>/usuario/alterar?idusuario=" + row.idusuario + "\" class=\"btn btn-outline btn-primary\"><i class=\"fa fa-nomargin fa-edit\"></i></a> <button title=\"Excluir\" type=\"button\" data-excluir=\"1\" class=\"btn btn-outline btn-danger\"><i class=\"fa fa-nomargin fa-times\"></i></button>"; } },
 			{ title: " ", "class": "col-min", render: function (v, type, row) { return (v ? ('<img class="profile-img" style="margin: 0;" width="40" height="40" src="<%- root %>/imagens/perfil/' + row.idusuario + '.jpg?' + v + '" alt="Imagem de perfil" />') : '<img class="profile-img" style="margin: 0;" width="40" height="40" src="<%- root %>/imagens/user.png" alt="Imagem de perfil" />'); }, searchable: false, orderable: false, data: "versao" },
 			{ title: "Login", "class": "col-25", render: encode, data: "login" },
 			{ title: "Nome", "class": "col-50", render: encode, data: "nome" },

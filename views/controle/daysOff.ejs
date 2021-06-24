@@ -126,7 +126,7 @@
 
 			JsonWebApi.postFormData("<%- root %>/api/dayOff/sincronizar?ano=" + encodeURIComponent($("#ano").val()) + "&semestre=" + encodeURIComponent($("#semestre").val()), form, function (response) {
 				if (response.success)
-					Notification.success("Days Off sincronizados com sucesso! " + emoji.happy);
+					Notification.success("Days off sincronizados com sucesso! " + emoji.happy);
 				else
 					Notification.error(response.value + " " + emoji.sad, true);
 			});

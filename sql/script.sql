@@ -51,6 +51,7 @@ CREATE TABLE usuario (
   idcargo int NOT NULL,
   idcurso int NOT NULL,
   semestre int NOT NULL,
+  daysoff tinyint NOT NULL,
   endereco varchar(100) NOT NULL,
   telefone varchar(20) NOT NULL,
   nascimento datetime NOT NULL,

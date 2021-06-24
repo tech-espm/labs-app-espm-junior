@@ -2,7 +2,6 @@ import Sql = require("../infra/sql");
 import DataUtil = require("../utils/dataUtil");
 
 export = class DayOff {
-	public static readonly QuantidadeMaxima = 3;
 	private static readonly RegExp = /[\/\-\:\s]/g;
 
 	public iddayoff: number;
@@ -48,7 +47,9 @@ export = class DayOff {
 
 	public static async sincronizar(ano: number, semestre: number, idusuario: number, daysOff: string[]): Promise<string> {
 		if (!daysOff)
-			return "Dados inválidos";
+			daysOff = [];
+		else if (!Array.isArray(daysOff))
+			daysOff = [ daysOff as any ];
 
 		const infoAtual = DayOff.infoAtual(),
 			regexp = DayOff.RegExp,
@@ -56,9 +57,15 @@ export = class DayOff {
 			anoAtual = infoAtual.anoAtual,
 			semestreAtual = infoAtual.semestreAtual;
 
+		if (ano !== anoAtual)
+			return "Não é permitido sincronizar days off de um ano diferente do atual";
+
+		if (semestre !== semestreAtual)
+			return "Não é permitido sincronizar days off de um semestre diferente do atual";
+
 		for (let i = daysOff.length - 1; i >= 0; i--) {
 			if (!daysOff[i])
-				return "Dados inválidos";
+				return "Day off em branco";
 
 			if (!(daysOff[i] = DataUtil.converterDataISO(daysOff[i])))
 				return "Data inválida";
@@ -68,16 +75,22 @@ export = class DayOff {
 				mesData = ((data / 100) | 0) % 100,
 				semestreData = (mesData < 7 ? 1 : 2);
 
-			if (ano !== anoAtual || ano !== anoData)
+			if (anoData !== anoAtual)
 				return "Não é permitido sincronizar days off de um ano diferente do atual";
 
-			if (semestre !== semestreAtual || semestre !== semestreData)
+			if (semestreData !== semestreAtual)
 				return "Não é permitido sincronizar days off de um semestre diferente do atual";
 		}
 
 		let res: string = null;
 
 		await Sql.conectar(async (sql: Sql) => {
+			const quantidadeMaxima = await sql.scalar("select daysoff from usuario where idusuario = ?", [idusuario]) as number;
+			if (!quantidadeMaxima) {
+				res = "Usuário não tem permissão para pedir days off";
+				return;
+			}
+
 			const antigos: DayOff[] = await sql.query("select iddayoff, date_format(data, '%Y-%m-%d') data from dayoff where ano = ? and semestre = ? and idusuario = ?", [anoAtual, semestreAtual, idusuario]);
 			const adicionar = daysOff;
 
@@ -96,8 +109,8 @@ export = class DayOff {
 				}
 			}
 
-			if ((existentes + adicionar.length) > DayOff.QuantidadeMaxima) {
-				res = "Não é permitido pedir mais de " + DayOff.QuantidadeMaxima + " days off por semestre";
+			if ((existentes + adicionar.length) > quantidadeMaxima) {
+				res = "Não é permitido pedir mais de " + quantidadeMaxima + " days off por semestre";
 				return;
 			}
 
