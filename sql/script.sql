@@ -38,7 +38,7 @@ CREATE TABLE curso (
   UNIQUE KEY nome_UN (nome)
 );
 
-INSERT INTO curso (nome) VALUES ('Nenhum'), ('ADM'), ('RI'), ('PP'), ('CISO'), ('TECH');
+INSERT INTO curso (nome) VALUES ('Nenhum'), ('ADM'), ('RI'), ('PP'), ('CISO'), ('SI');
 
 -- DROP TABLE IF EXISTS usuario;
 CREATE TABLE usuario (
