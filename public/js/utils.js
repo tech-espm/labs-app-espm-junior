@@ -25,6 +25,7 @@ function converterEventos(ocorrencias) {
 		ocorrencias[i].borderColor = "#3788d8";
 		ocorrencias[i].textColor = "#fff";
 		ocorrencias[i].title = ocorrencias[i].nome_evento;
+		ocorrencias[i].desc_departamento = ocorrencias[i].desc_departamento;
 		ocorrencias[i].url = ocorrencias[i].desc_evento || "/";
 		ocorrencias[i].start = data;
 		ocorrencias[i].end = data;

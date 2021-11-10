@@ -9,26 +9,6 @@
 	</div>
 </div>
 
-<div class="modal fade" tabindex="-1" role="dialog" id="modalExcluir">
-	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal" aria-label="Fechar"><span aria-hidden="true">&times;</span></button>
-				<h4 class="modal-title">Oops...</h4>
-			</div>
-			<div class="modal-body">
-				<p>
-					Tem certeza que deseja excluir o usuário <span id="lblNome"></span>? Esta operação <b class="col-h">NÃO</b> pode ser desfeita!
-				</p>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-danger" onclick="excluir()"><i class="fa fa-check"></i>Excluir</button>
-				<button type="button" class="btn btn-outline btn-default" data-dismiss="modal"><i class="fa fa-times"></i>Cancelar</button>
-			</div>
-		</div>
-	</div>
-</div>
-
 <%- contentFor("scripts") %>
 <script type="text/javascript">
 	//<![CDATA[
@@ -40,9 +20,12 @@
 		columns: [
 			{ title: "", "class": "col-min", searchable: false, orderable: false, data: "idusuario", render: function (v, type, row) { return "<a title=\"Editar\" href=\"<%- root %>/usuario/alterar?idusuario=" + row.idusuario + "\" class=\"btn btn-outline btn-primary\"><i class=\"fa fa-nomargin fa-edit\"></i></a> <button title=\"Excluir\" type=\"button\" data-excluir=\"1\" class=\"btn btn-outline btn-danger\"><i class=\"fa fa-nomargin fa-times\"></i></button>"; } },
 			{ title: " ", "class": "col-min", render: function (v, type, row) { return (v ? ('<img class="profile-img" style="margin: 0;" width="40" height="40" src="<%- root %>/imagens/perfil/' + row.idusuario + '.jpg?' + v + '" alt="Imagem de perfil" />') : '<img class="profile-img" style="margin: 0;" width="40" height="40" src="<%- root %>/imagens/user.png" alt="Imagem de perfil" />'); }, searchable: false, orderable: false, data: "versao" },
-			{ title: "Login", "class": "col-25", render: encode, data: "login" },
-			{ title: "Nome", "class": "col-50", render: encode, data: "nome" },
-			{ title: "Perfil", "class": "col-25", render: encode, data: "perfil" },
+			{ title: "Login", render: encode, data: "login" },
+			{ title: "Nome", render: encode, data: "nome" },
+			{ title: "Perfil", render: encode, data: "perfil" },
+			{ title: "Departamento", render: encode, data: "desc_departamento" },
+			{ title: "Cargo", render: encode, data: "cargo" },
+			{ title: "Curso", render: encode, data: "curso" },
 			{ title: "Criação", "class": "col-min text-right", "type": "customdateint", data: "criacao" }
 		],
 		data: <%- lista %>,

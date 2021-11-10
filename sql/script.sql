@@ -40,6 +40,14 @@ CREATE TABLE curso (
 
 INSERT INTO curso (nome) VALUES ('Nenhum'), ('ADM'), ('RI'), ('PP'), ('CISO'), ('SI');
 
+CREATE TABLE departamento (
+	id_departamento int PRIMARY KEY AUTO_INCREMENT, 
+  desc_departamento varchar(45),
+  UNIQUE KEY desc_departamento_UN (desc_departamento)
+);
+
+INSERT INTO departamento (desc_departamento) VALUES ('Administração'), ('Comercial'), ('RH'), ('Projetos'), ('Marketing');
+
 -- DROP TABLE IF EXISTS usuario;
 CREATE TABLE usuario (
   idusuario int NOT NULL AUTO_INCREMENT,
@@ -50,6 +58,7 @@ CREATE TABLE usuario (
   token char(32) DEFAULT NULL,
   idcargo int NOT NULL,
   idcurso int NOT NULL,
+  id_departamento int NOT NULL,
   semestre int NOT NULL,
   daysoff tinyint NOT NULL,
   endereco varchar(100) NOT NULL,
@@ -63,12 +72,14 @@ CREATE TABLE usuario (
   KEY usuario_idperfil_FK_idx (idperfil),
   KEY usuario_idcargo_FK_idx (idcargo),
   KEY usuario_idcurso_FK_idx (idcurso),
+  KEY usuario_id_departamento_FK_idx (id_departamento),
   CONSTRAINT usuario_idperfil_FK FOREIGN KEY (idperfil) REFERENCES perfil (idperfil) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT usuario_idcargo_FK FOREIGN KEY (idcargo) REFERENCES cargo (idcargo) ON DELETE RESTRICT ON UPDATE RESTRICT,
-  CONSTRAINT usuario_idcurso_FK FOREIGN KEY (idcurso) REFERENCES curso (idcurso) ON DELETE RESTRICT ON UPDATE RESTRICT
+  CONSTRAINT usuario_idcurso_FK FOREIGN KEY (idcurso) REFERENCES curso (idcurso) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT usuario_id_departamento_FK FOREIGN KEY (id_departamento) REFERENCES departamento (id_departamento) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 
-INSERT INTO usuario (login, nome, idperfil, versao, token, idcargo, idcurso, semestre, endereco, telefone, nascimento, criacao) VALUES ('admin@espm.br', 'Administrador', 1, 0, NULL, 1, 1, 1, '', '', NOW(), NOW());
+INSERT INTO usuario (login, nome, idperfil, versao, token, idcargo, idcurso, id_departamento, semestre, daysoff, endereco, telefone, nascimento, criacao) VALUES ('admin@espm.br', 'Administrador', 1, 0, NULL, 1, 1, 1, 1, 0, '', '', NOW(), NOW());
 
 -- DROP TABLE IF EXISTS dayoff;
 CREATE TABLE dayoff (
@@ -142,11 +153,6 @@ CREATE TABLE evento_sala (
   FOREIGN KEY(id_evento) REFERENCES evento(id_evento),
   FOREIGN KEY(id_sala) REFERENCES sala(id_sala),
   PRIMARY KEY (id_evento, id_sala)
-);
-
-CREATE TABLE departamento (
-	id_departamento int PRIMARY KEY AUTO_INCREMENT, 
-  desc_departamento varchar(45)
 );
 
 CREATE TABLE evento_departamento (

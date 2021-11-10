@@ -62,12 +62,14 @@
 <div class="row">
 	<div class="col-lg-12">
 		<div class="panel panel-default">
-			<div class="panel-body text-center">
-				<h2 class="no-margin-top col-xs-space-bottom"><i class="fa fa-calendar"></i>Resumo do Mês</h2>
-				<ul class="nav nav-pills" role="tablist" id="tabPills">
-					<li role="presentation" class="active"><a id="pillCalendario" href="#tabCalendario" aria-controls="tabCalendario" role="tab" data-toggle="pill">Calendário</a></li>
-					<li role="presentation"><a href="#tabTabela" aria-controls="tabTabela" role="tab" data-toggle="pill">Tabela</a></li>
-				</ul>
+			<div class="panel-body">
+				<div class="text-center">
+					<h2 class="no-margin-top col-xs-space-bottom"><i class="fa fa-calendar"></i>Resumo do Mês</h2>
+					<ul class="nav nav-pills" role="tablist" id="tabPills">
+						<li role="presentation" class="active"><a id="pillCalendario" href="#tabCalendario" aria-controls="tabCalendario" role="tab" data-toggle="pill">Calendário</a></li>
+						<li role="presentation"><a href="#tabTabela" aria-controls="tabTabela" role="tab" data-toggle="pill">Tabela</a></li>
+					</ul>
+				</div>
 				<div class="tab-content">
 					<div role="tabpanel" class="tab-pane fade in active" id="tabCalendario"><div class="col-xs-space-top" id="calendario_container"></div></div>
 					<div role="tabpanel" class="tab-pane fade" id="tabTabela"><div class="col-xs-space-top" id="tabela_container"></div></div>
@@ -164,6 +166,7 @@
 			columns: [
 				{ title: "Data", "class": "col-min", "type": "customdatetimeint", data: "dataptbr" },
 				{ title: "Tipo", "class": "col-min", data: function (row, type, set, meta) { return ((row.url == "#dayOff") ? "Day Off" : "Evento"); } },
+				{ title: "Departamento", "class": "text-left", render: encode, data: "desc_departamento" },
 				{ title: "Nome", "class": "text-left", render: encode, data: "title" },
 				{ title: "Link / URL", "class": "text-left", data: function (row, type, set, meta) { return ((!row.url || row.url == "/" || row.url == "#dayOff") ? '' : ('<a target="_blank" href="' + row.url + '">' + row.url + '</a>')); } },
 			],
@@ -193,6 +196,7 @@
 					borderColor: "#ffa453",
 					textColor: "#000",
 					title: daysOff[i].nome,
+					desc_departamento: daysOff[i].desc_departamento,
 					url: "#dayOff",
 					start: daysOff[i].data,
 					end: daysOff[i].data
@@ -222,11 +226,13 @@
 			eventClick: function(info) {
 				info.jsEvent.preventDefault();
 				if (info.event.url == "#dayOff") {
-					Notification.info(info.event.title, "Day Off");
+					Notification.info({
+						html: encode(info.event.title) + "<br/><br/>Departamento: " + encode(info.event.extendedProps.desc_departamento)
+					}, "Day Off");
 				} else {
 					Notification.info((info.event.url && info.event.url !== "/") ? {
-						html: '<a target="_blank" href="' + info.event.url + '">' + info.event.url + '</a>'
-					} : null, info.event.title);
+						html: '<a target="_blank" href="' + info.event.url + '">' + info.event.url + '</a><br/><br/>Departamento: ' + encode(info.event.extendedProps.desc_departamento)
+					} : ("Departamento: " + info.event.extendedProps.desc_departamento), info.event.title);
 				}
 			}
 		};

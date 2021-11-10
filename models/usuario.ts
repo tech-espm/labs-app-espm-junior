@@ -26,6 +26,7 @@ export = class Usuario {
 	public versao: number;
 	public idcargo: number;
 	public idcurso: number;
+	public id_departamento: number;
 	public semestre: number;
 	public daysoff: number;
 	public endereco: string;
@@ -53,7 +54,7 @@ export = class Usuario {
 			let usuario: Usuario = null;
 
 			await Sql.conectar(async (sql: Sql) => {
-				let rows = await sql.query("select idusuario, login, nome, idperfil, versao, token from usuario where idusuario = ?", [idusuario]);
+				let rows = await sql.query("select idusuario, login, nome, idperfil, id_departamento, versao, token from usuario where idusuario = ?", [idusuario]);
 				let row: any;
 
 				if (!rows || !rows.length || !(row = rows[0]))
@@ -69,6 +70,7 @@ export = class Usuario {
 				u.login = row.login as string;
 				u.nome = row.nome as string;
 				u.idperfil = row.idperfil as number;
+				u.id_departamento = row.id_departamento as number;
 				u.versao = row.versao as number;
 				u.admin = (u.idperfil === Usuario.IdPerfilAdmin);
 
@@ -134,7 +136,7 @@ export = class Usuario {
 
 				json.dados.emailAcademico = (json.dados.emailAcademico || "").trim().toLowerCase();
 
-				let rows = await sql.query("select idusuario, nome, idperfil, versao from usuario where login = ?", [json.dados.emailAcademico]);
+				let rows = await sql.query("select idusuario, nome, idperfil, id_departamento, versao from usuario where login = ?", [json.dados.emailAcademico]);
 				let row: any;
 				let ok: boolean;
 	
@@ -152,6 +154,7 @@ export = class Usuario {
 				u.login = json.dados.emailAcademico;
 				u.nome = row.nome as string;
 				u.idperfil = row.idperfil as number;
+				u.id_departamento = row.id_departamento as number;
 				u.versao = row.versao as number;
 				u.admin = (u.idperfil === Usuario.IdPerfilAdmin);
 	
@@ -270,6 +273,10 @@ export = class Usuario {
 		if (isNaN(u.idcurso))
 			return "Curso inválido";
 
+		u.id_departamento = parseInt(u.id_departamento as any);
+		if (isNaN(u.id_departamento))
+			return "Departamento inválido";
+
 		u.semestre = parseInt(u.semestre as any);
 		if (isNaN(u.semestre))
 			return "Semestre inválido";
@@ -306,7 +313,7 @@ export = class Usuario {
 		let lista: Usuario[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select u.idusuario, u.login, u.nome, u.versao, p.nome perfil, u.idcargo, c.nome cargo, u.idcurso, s.nome curso, u.semestre, u.daysoff, u.telefone, date_format(u.nascimento, '%d/%m/%Y') nascimento, date_format(u.criacao, '%d/%m/%Y') criacao from usuario u inner join perfil p on p.idperfil = u.idperfil inner join cargo c on c.idcargo = u.idcargo inner join curso s on s.idcurso = u.idcurso order by u.login asc") as Usuario[];
+			lista = await sql.query("select u.idusuario, u.login, u.nome, u.versao, p.nome perfil, u.idcargo, c.nome cargo, u.idcurso, s.nome curso, u.id_departamento, d.desc_departamento, u.semestre, u.daysoff, u.telefone, date_format(u.nascimento, '%d/%m/%Y') nascimento, date_format(u.criacao, '%d/%m/%Y') criacao from usuario u inner join perfil p on p.idperfil = u.idperfil inner join cargo c on c.idcargo = u.idcargo inner join curso s on s.idcurso = u.idcurso inner join departamento d on d.id_departamento = u.id_departamento order by u.login asc") as Usuario[];
 		});
 
 		return (lista || []);
@@ -316,7 +323,7 @@ export = class Usuario {
 		let lista: Usuario[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select idusuario, login, nome, idperfil, idcargo, idcurso, semestre, daysoff, endereco, telefone, date_format(nascimento, '%Y-%m-%d') nascimento, date_format(criacao, '%d/%m/%Y') criacao from usuario where idusuario = ?", [idusuario]) as Usuario[];
+			lista = await sql.query("select idusuario, login, nome, idperfil, idcargo, idcurso, id_departamento, semestre, daysoff, endereco, telefone, date_format(nascimento, '%Y-%m-%d') nascimento, date_format(criacao, '%d/%m/%Y') criacao from usuario where idusuario = ?", [idusuario]) as Usuario[];
 		});
 
 		return ((lista && lista[0]) || null);
@@ -332,7 +339,7 @@ export = class Usuario {
 			try {
 				await sql.beginTransaction();
 
-				await sql.query("insert into usuario (login, nome, idperfil, versao, idcargo, idcurso, semestre, daysoff, endereco, telefone, nascimento, criacao ) values (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, u.idcargo, u.idcurso, u.semestre, u.daysoff, u.endereco, u.telefone, u.nascimento]);
+				await sql.query("insert into usuario (login, nome, idperfil, versao, idcargo, idcurso, id_departamento, semestre, daysoff, endereco, telefone, nascimento, criacao ) values (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, u.idcargo, u.idcurso, u.id_departamento, u.semestre, u.daysoff, u.endereco, u.telefone, u.nascimento]);
 				u.idusuario = await sql.scalar("select last_insert_id()") as number;
 
 				// @@@ Ficha médica...
@@ -367,7 +374,7 @@ export = class Usuario {
 			return res;
 
 		await Sql.conectar(async (sql: Sql) => {
-			await sql.query("update usuario set nome = ?, idperfil = ?, idcargo = ?, idcurso = ?, semestre = ?, daysoff = ?, endereco = ?, telefone = ?, nascimento = ? where idusuario = ?", [u.nome, u.idperfil, u.idcargo, u.idcurso, u.semestre, u.daysoff, u.endereco, u.telefone, u.nascimento, u.idusuario]);
+			await sql.query("update usuario set nome = ?, idperfil = ?, idcargo = ?, idcurso = ?, id_departamento = ?, semestre = ?, daysoff = ?, endereco = ?, telefone = ?, nascimento = ? where idusuario = ?", [u.nome, u.idperfil, u.idcargo, u.idcurso, u.id_departamento, u.semestre, u.daysoff, u.endereco, u.telefone, u.nascimento, u.idusuario]);
 			res = sql.linhasAfetadas.toString();
 
 			// @@@ Ficha médica...

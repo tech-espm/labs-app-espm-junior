@@ -6,7 +6,7 @@
 				<input type="hidden" id="id_departamento" name="id_departamento" value="<%=(item ? item.id_departamento : 0) %>" />
 				<div class="form-group">
 					<label for="desc_departamento">Nome</label>
-					<input id="desc_departamento" name="desc_departamento" maxlength="100" class="form-control" type="text" spellcheck="false" value="<%=(item ? item.desc_departamento : '') %>" />
+					<input id="desc_departamento" name="desc_departamento" maxlength="45" class="form-control" type="text" spellcheck="false" value="<%=(item ? item.desc_departamento : '') %>" />
 				</div>
 			</div>
 			<div class="panel-footer">
@@ -26,7 +26,7 @@
 			desc_departamento: {
 				required: true,
 				minlength: 2,
-				maxlength: 100
+				maxlength: 45
 			}
 		},
 

@@ -25,7 +25,7 @@ router.all("/", wrap(async (req: express.Request, res: express.Response) => {
 			usuario: u,
 			anoAtual: infoAtual.anoAtual,
 			mesAtual: infoAtual.mesAtual,
-			daysOff: await DayOff.listar(infoAtual.anoAtual, infoAtual.semestreAtual),
+			daysOff: await DayOff.listar(infoAtual.anoAtual, infoAtual.semestreAtual, 0, u.admin ? 0 : u.id_departamento),
 			lista: await Evento.listarOcorrencias(0, 0, infoAtual.anoAtual, infoAtual.mesAtual),
 			hoje: DataUtil.hojeISO(),
 			departamentos: await Departamento.listar(),

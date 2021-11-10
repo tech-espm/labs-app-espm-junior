@@ -5,6 +5,7 @@ import Usuario = require("../models/usuario");
 import Cargo = require("../models/cargo");
 import Curso = require("../models/curso");
 import appsettings = require("../appsettings");
+import Departamento = require("../models/departamento");
 
 const router = express.Router();
 
@@ -13,7 +14,7 @@ router.all("/criar", wrap(async (req: express.Request, res: express.Response) =>
 	if (!u || !u.admin)
 		res.redirect(appsettings.root + "/acesso");
 	else
-		res.render("usuario/alterar", { titulo: "Criar Usuário", usuario: u, item: null, perfis: await Perfil.listar(), cargos: await Cargo.listar(), cursos: await Curso.listar() });
+		res.render("usuario/alterar", { titulo: "Criar Usuário", usuario: u, item: null, perfis: await Perfil.listar(), cargos: await Cargo.listar(), cursos: await Curso.listar(), departamentos: await Departamento.listar() });
 }));
 
 router.all("/alterar", wrap(async (req: express.Request, res: express.Response) => {
@@ -26,7 +27,7 @@ router.all("/alterar", wrap(async (req: express.Request, res: express.Response) 
 		if (isNaN(idusuario) || !(item = await Usuario.obter(idusuario)))
 			res.render("home/nao-encontrado", { usuario: u });
 		else
-			res.render("usuario/alterar", { titulo: "Editar Usuário", usuario: u, item: item, perfis: await Perfil.listar(), cargos: await Cargo.listar(), cursos: await Curso.listar() });
+			res.render("usuario/alterar", { titulo: "Editar Usuário", usuario: u, item: item, perfis: await Perfil.listar(), cargos: await Cargo.listar(), cursos: await Curso.listar(), departamentos: await Departamento.listar() });
 	}
 }));
 

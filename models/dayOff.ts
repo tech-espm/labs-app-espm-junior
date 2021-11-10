@@ -25,7 +25,7 @@ export = class DayOff {
 		};
 	}
 
-	public static async listar(ano?: number, semestre?: number, idusuario?: number): Promise<{ nome: string, data: string }[]> {
+	public static async listar(ano?: number, semestre?: number, idusuario?: number, id_departamento?: number): Promise<{ nome: string, data: string, id_departamento: number, desc_departamento: string }[]> {
 		if (!ano || !semestre) {
 			const infoAtual = DayOff.infoAtual();
 
@@ -36,10 +36,10 @@ export = class DayOff {
 				semestre = infoAtual.semestreAtual;
 		}
 
-		let lista: { nome: string, data: string }[] = null;
+		let lista: { nome: string, data: string, id_departamento: number, desc_departamento: string }[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select u.nome, date_format(d.data, '%Y-%m-%d') data from dayoff d inner join usuario u on u.idusuario = d.idusuario where d.ano = ? and d.semestre = ?" + (idusuario ? (" and d.idusuario = ? order by d.data asc") : ""), idusuario ? [ano, semestre, idusuario] : [ano, semestre]);
+			lista = await sql.query("select u.nome, date_format(d.data, '%Y-%m-%d') data, u.id_departamento, dp.desc_departamento from dayoff d inner join usuario u on u.idusuario = d.idusuario inner join departamento dp on dp.id_departamento = u.id_departamento where d.ano = ? and d.semestre = ?" + (idusuario ? (" and d.idusuario = ? order by d.data asc") : (id_departamento ? " and u.id_departamento = ?" : "")), (idusuario || id_departamento) ? [ano, semestre, idusuario || id_departamento] : [ano, semestre]);
 		});
 
 		return lista || [];

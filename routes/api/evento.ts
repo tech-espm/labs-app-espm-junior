@@ -32,14 +32,16 @@ router.get("/listarOcorrenciasEDaysOff", wrap(async (req: express.Request, res: 
 		return;
 	}
 
+	const id_departamento = parseInt(req.query["id_departamento"] as string);
+
 	res.json({
 		ocorrencias: await Evento.listarOcorrencias(
-			parseInt(req.query["id_departamento"] as string),
+			id_departamento,
 			parseInt(req.query["id_sala"] as string),
 			ano,
 			mes),
 
-		daysOff: await DayOff.listar(ano, mes < 7 ? 1 : 2)
+		daysOff: ((u.admin || !id_departamento || id_departamento === u.id_departamento) ? await DayOff.listar(ano, mes < 7 ? 1 : 2, 0, id_departamento) : [])
 	});
 }));
 

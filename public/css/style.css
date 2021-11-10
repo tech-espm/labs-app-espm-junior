@@ -28,3 +28,7 @@
 .swal2-cancel {
 	margin-left: 8px;
 }
+
+.fc .fc-popover {
+	z-index: 1059;
+}

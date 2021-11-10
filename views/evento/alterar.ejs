@@ -40,6 +40,12 @@
 									<option value="<%=salas[i].id_sala %>" <%=((item && item.id_sala == salas[i].id_sala) ? 'selected="selected"' : '')%>><%=salas[i].desc_sala %></option>
 								<% } %>
 							</select>
+							<script type="text/javascript">
+								//<![CDATA[
+								"use strict";
+								prepareCbSearch(document.getElementById("id_sala"));
+								//]]>
+							</script>
 						</div>
 					</div>
 
@@ -52,6 +58,12 @@
 									<option value="<%=departamentos[i].id_departamento %>" <%=((item && item.id_departamento == departamentos[i].id_departamento) ? 'selected="selected"' : '')%>><%=departamentos[i].desc_departamento %></option>
 								<% } %>
 							</select>
+							<script type="text/javascript">
+								//<![CDATA[
+								"use strict";
+								prepareCbSearch(document.getElementById("id_departamento"));
+								//]]>
+							</script>
 						</div>
 					</div>
 				</div>
