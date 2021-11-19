@@ -235,6 +235,9 @@ export = class Evento {
 				await sql.query(" insert into evento_departamento(id_departamento, id_evento) values (?, ?)", [evento.id_departamento, id_evento]);
 				await sql.query(" insert into evento_sala(id_sala, id_evento) values (?, ?)", [evento.id_sala, id_evento]);
 
+				if (!evento.ocorrencias.length)
+					evento.ocorrencias.push(evento.inicio_evento);
+
 				for (let i = 0; i < evento.ocorrencias.length; i++)
 					await sql.query("insert into evento_ocorrencia (id_evento, inicio_ocorrencia) values (?, ?)", [id_evento, evento.ocorrencias[i]]);
 
