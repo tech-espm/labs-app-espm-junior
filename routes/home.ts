@@ -18,14 +18,14 @@ router.all("/", wrap(async (req: express.Request, res: express.Response) => {
 	if (!u) {
 		res.redirect(appsettings.root + "/login");
 	} else {
-		const infoAtual = DayOff.infoAtual();
+		const infoAtual = await DayOff.infoAtual();
 
 		let opcoes = {
 			titulo: "Calendário",
 			usuario: u,
 			anoAtual: infoAtual.anoAtual,
 			mesAtual: infoAtual.mesAtual,
-			daysOff: await DayOff.listar(infoAtual.anoAtual, infoAtual.semestreAtual, 0, u.admin ? 0 : u.id_departamento),
+			daysOff: await DayOff.listar(infoAtual.anoAtual, infoAtual.cicloAtual, 0, u.admin ? 0 : u.id_departamento),
 			lista: await Evento.listarOcorrencias(0, 0, infoAtual.anoAtual, infoAtual.mesAtual),
 			hoje: DataUtil.hojeISO(),
 			departamentos: await Departamento.listar(),

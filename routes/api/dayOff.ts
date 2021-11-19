@@ -13,14 +13,14 @@ router.get("/listar", wrap(async (req: express.Request, res: express.Response) =
 		return;
 
 	const ano = parseInt(req.query["ano"] as string),
-		semestre = parseInt(req.query["semestre"] as string);
+		ciclo = parseInt(req.query["ciclo"] as string);
 
-	if (!ano || !semestre || ano < 0 || semestre < 1 || semestre > 2) {
+	if (!ano || !ciclo || ano < 0 || ciclo < 1 || ciclo > 2) {
 		res.status(400).json("Dados inválidos");
 		return;
 	}
 
-	res.json(await DayOff.listar(ano, semestre, u.idusuario));
+	res.json(await DayOff.listar(ano, ciclo, u.idusuario));
 }));
 
 router.get("/listarGeral", wrap(async (req: express.Request, res: express.Response) => {
@@ -29,14 +29,14 @@ router.get("/listarGeral", wrap(async (req: express.Request, res: express.Respon
 		return;
 
 	const ano = parseInt(req.query["ano"] as string),
-		semestre = parseInt(req.query["semestre"] as string);
+		ciclo = parseInt(req.query["ciclo"] as string);
 
-	if (!ano || !semestre || ano < 0 || semestre < 1 || semestre > 2) {
+	if (!ano || !ciclo || ano < 0 || ciclo < 1 || ciclo > 2) {
 		res.status(400).json("Dados inválidos");
 		return;
 	}
 
-	res.json(await DayOff.listar(ano, semestre));
+	res.json(await DayOff.listar(ano, ciclo));
 }));
 
 router.post("/sincronizar", wrap(async (req: express.Request, res: express.Response) => {
@@ -45,14 +45,28 @@ router.post("/sincronizar", wrap(async (req: express.Request, res: express.Respo
 		return;
 
 	const ano = parseInt(req.query["ano"] as string),
-		semestre = parseInt(req.query["semestre"] as string);
+		ciclo = parseInt(req.query["ciclo"] as string);
 
-	if (!ano || !semestre || ano < 0 || semestre < 1 || semestre > 2) {
+	if (!ano || !ciclo || ano < 0 || ciclo < 1 || ciclo > 2) {
 		res.status(400).json("Dados inválidos");
 		return;
 	}
 
-	const erro = await DayOff.sincronizar(ano, semestre, u.idusuario, req.body.daysOff);
+	const erro = await DayOff.sincronizar(ano, ciclo, u.idusuario, req.body.daysOff);
+
+	if (erro) {
+		res.status(400).json(erro);
+	} else {
+		res.json(true);
+	}
+}));
+
+router.post("/atualizarCicloAtual", wrap(async (req: express.Request, res: express.Response) => {
+	let u = await Usuario.cookie(req, res, true);
+	if (!u)
+		return;
+
+	const erro = await DayOff.atualizarCicloAtual(req.body);
 
 	if (erro) {
 		res.status(400).json(erro);

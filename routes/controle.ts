@@ -13,7 +13,7 @@ router.all("/listarPonto", wrap(async (req: express.Request, res: express.Respon
 	if (!u || !u.admin) {
 		res.redirect(appsettings.root + "/acesso");
 	} else {
-		const infoAtual = DayOff.infoAtual();
+		const infoAtual = DayOff.infoAtualSemCiclo();
 		res.render("controle/listarPonto", {
 			titulo: "Gerenciar Ponto",
 			usuario: u,
@@ -55,14 +55,28 @@ router.all("/daysOff", wrap(async (req: express.Request, res: express.Response) 
 	if (!u) {
 		res.redirect(appsettings.root + "/acesso");
 	} else {
-		const infoAtual = DayOff.infoAtual();
+		const infoAtual = await DayOff.infoAtual();
 
 		res.render("controle/daysOff", {
 			titulo: "Days Off",
 			usuario: u,
 			anoAtual: infoAtual.anoAtual,
-			semestreAtual: infoAtual.semestreAtual,
-			daysOff: await DayOff.listar(infoAtual.anoAtual, infoAtual.semestreAtual, u.idusuario)
+			cicloAtual: infoAtual.cicloAtual,
+			daysOff: await DayOff.listar(infoAtual.anoAtual, infoAtual.cicloAtual, u.idusuario)
+		});
+	}
+}));
+
+router.get("/gerenciarCicloAtual", wrap(async (req: express.Request, res: express.Response) => {
+	let u = await Usuario.cookie(req);
+	if (!u || !u.admin) {
+		res.redirect(appsettings.root + "/acesso");
+	} else {
+		const infoAtual = await DayOff.infoAtual();
+		res.render("controle/gerenciarCicloAtual", {
+			titulo: "Gerenciar Ciclo Atual",
+			usuario: u,
+			infoAtual
 		});
 	}
 }));

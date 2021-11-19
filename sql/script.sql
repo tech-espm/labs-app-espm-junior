@@ -1,14 +1,19 @@
 CREATE DATABASE IF NOT EXISTS espmjunior DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_0900_ai_ci;
 USE espmjunior;
 
--- DROP TABLE IF EXISTS tokenqr;
-CREATE TABLE tokenqr (
+-- DROP TABLE IF EXISTS config;
+CREATE TABLE config (
   token char(64) NOT NULL,
   qr1 char(16) NOT NULL,
-  qr2 char(16) NOT NULL
+  qr2 char(16) NOT NULL,
+  cicloatual tinyint NOT NULL,
+  mesinicialciclo tinyint NOT NULL,
+  anoinicialciclo smallint NOT NULL,
+  mesfinalciclo tinyint NOT NULL,
+  anofinalciclo smallint NOT NULL
 );
 
-INSERT INTO tokenqr (token, qr1, qr2) VALUES ('', '', '');
+INSERT INTO config (token, qr1, qr2, cicloatual, mesinicialciclo, anoinicialciclo, mesfinalciclo, anofinalciclo) VALUES ('', '', '', 1, 0, 0, 0, 0);
 
 -- DROP TABLE IF EXISTS perfil;
 CREATE TABLE perfil (
@@ -86,11 +91,11 @@ CREATE TABLE dayoff (
   iddayoff int NOT NULL AUTO_INCREMENT,
   idusuario int NOT NULL,
   ano smallint NOT NULL,
-  semestre tinyint NOT NULL,
+  ciclo tinyint NOT NULL,
   data datetime NOT NULL,
   criacao datetime NOT NULL,
   PRIMARY KEY (iddayoff),
-  KEY dayoff_ano_semestre_idusuario_idx (ano, semestre, idusuario),
+  KEY dayoff_ano_ciclo_idusuario_idx (ano, ciclo, idusuario),
   KEY dayoff_idusuario_FK_idx (idusuario),
   CONSTRAINT dayoff_idusuario_FK FOREIGN KEY (idusuario) REFERENCES usuario (idusuario) ON DELETE CASCADE ON UPDATE RESTRICT
 );

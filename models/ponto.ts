@@ -31,7 +31,7 @@ export = class Ponto {
 
 		await Sql.conectar(async (sql: Sql) => {
 			if (!online) {
-				const valido = await sql.scalar("select token from tokenqr where qr1 = ? or qr2 = ?", [qr, qr]);
+				const valido = await sql.scalar("select token from config where qr1 = ? or qr2 = ?", [qr, qr]);
 				if (!valido) {
 					res = "Código QR inválido";
 					return;
@@ -55,7 +55,7 @@ export = class Ponto {
 
 		await Sql.conectar(async (sql: Sql) => {
 			if (!online) {
-				const valido = await sql.scalar("select token from tokenqr where qr1 = ? or qr2 = ?", [qr, qr]);
+				const valido = await sql.scalar("select token from config where qr1 = ? or qr2 = ?", [qr, qr]);
 				if (!valido) {
 					res = "Código QR inválido";
 					return;

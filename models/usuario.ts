@@ -99,7 +99,7 @@ export = class Usuario {
 		let token = randomBytes(32).toString("hex");
 
 		await Sql.conectar(async (sql) => {
-			await sql.query("update tokenqr set token = ?", [token]);
+			await sql.query("update config set token = ?", [token]);
 		});
 
 		return token;
@@ -109,10 +109,10 @@ export = class Usuario {
 		let qr: string = null;
 
 		await Sql.conectar(async (sql) => {
-			const tokenAtual = await sql.scalar("select token from tokenqr") as string;
+			const tokenAtual = await sql.scalar("select token from config") as string;
 			if (token && token === tokenAtual) {
 				qr = randomBytes(8).toString("hex").toLowerCase();
-				await sql.query("update tokenqr set qr2 = qr1, qr1 = ?", [qr]);
+				await sql.query("update config set qr2 = qr1, qr1 = ?", [qr]);
 			}
 		});
 

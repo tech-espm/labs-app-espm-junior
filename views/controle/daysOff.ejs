@@ -13,10 +13,10 @@
 
 					<div class="col-xs-6">
 						<div class="form-group no-margin-bottom">
-							<label for="semestre">Semestre</label>
-							<select size="1" id="semestre" name="semestre" class="form-control" onchange="atualizarDaysOff()">
-								<option value="1" <%- ((semestreAtual === 1) ? 'selected="selected"' : '') %>>1</option>
-								<option value="2" <%- ((semestreAtual === 2) ? 'selected="selected"' : '') %>>2</option>
+							<label for="ciclo">Ciclo</label>
+							<select size="1" id="ciclo" name="ciclo" class="form-control" onchange="atualizarDaysOff()">
+								<option value="1" <%- ((cicloAtual === 1) ? 'selected="selected"' : '') %>>1</option>
+								<option value="2" <%- ((cicloAtual === 2) ? 'selected="selected"' : '') %>>2</option>
 							</select>
 						</div>
 					</div>
@@ -98,7 +98,7 @@
 				Notification.hide();
 
 				if (!response.value || !response.value.length) {
-					bodyDaysOff.innerHTML = '<tr><td class="text-center">Não há days off cadastrados para ' + $("#ano").val() + '-' + $("#semestre").val() + '</td></tr>';
+					bodyDaysOff.innerHTML = '<tr><td class="text-center">Não há days off cadastrados para ' + $("#ano").val() + '-' + $("#ciclo").val() + '</td></tr>';
 				} else {
 					for (var i = 0; i < response.value.length; i++) {
 						$("#bodyDaysOff").append('<tr><td class="col-min"><button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerDayOff(this)"><i class="fa fa-nomargin fa-times"></i></button></td><td><input name="daysOff" class="form-control" type="date" value="' + response.value[i].data + '" /></td></tr>');
@@ -108,7 +108,7 @@
 				bodyDaysOff.innerHTML = '<tr><td class="text-center">Ocorreu um erro na atualização</td></tr>';
 				Notification.error(response.value + " " + emoji.sad, true);
 			}
-		}, "ano", $("#ano").val(), "semestre", $("#semestre").val());
+		}, "ano", $("#ano").val(), "ciclo", $("#ciclo").val());
 	}
 
 	$("#form").validate({
@@ -124,7 +124,7 @@
 
 			Notification.wait();
 
-			JsonWebApi.postFormData("<%- root %>/api/dayOff/sincronizar?ano=" + encodeURIComponent($("#ano").val()) + "&semestre=" + encodeURIComponent($("#semestre").val()), form, function (response) {
+			JsonWebApi.postFormData("<%- root %>/api/dayOff/sincronizar?ano=" + encodeURIComponent($("#ano").val()) + "&ciclo=" + encodeURIComponent($("#ciclo").val()), form, function (response) {
 				if (response.success)
 					Notification.success("Days off sincronizados com sucesso! " + emoji.happy);
 				else

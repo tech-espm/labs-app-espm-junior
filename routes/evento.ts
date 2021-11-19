@@ -49,7 +49,7 @@ router.get("/listar", wrap(async (req: express.Request, res: express.Response) =
 	if (!u || !u.admin)
 		res.redirect(appsettings.root + "/acesso");
 	else{
-		const infoAtual = DayOff.infoAtual();
+		const infoAtual = DayOff.infoAtualSemCiclo();
 
 		res.render("evento/listar", {
 			titulo: "Gerenciar Eventos",
@@ -83,7 +83,7 @@ router.all("/download/:iddepartamento", wrap(async (req: express.Request, res: e
 	if (!u || !u.admin)
 		res.redirect(appsettings.root + "/acesso");
 	else{
-		const infoAtual = DayOff.infoAtual();
+		const infoAtual = DayOff.infoAtualSemCiclo();
 		
 		res.render("evento/download", {
 			layout: "layout-vazio",

@@ -1,9 +1,9 @@
 .navbar-default {
-	background-color: #001f33;
+	background-color: #001f32;
 }
 
 .sidebar {
-	background: #001f33;
+	background: #001f32;
 }
 
 .sidebar .nav-second-level li {
@@ -13,11 +13,11 @@
 
 @media(min-width:768px) {
 	.sidebar-safari {
-		background: #001f33;
+		background: #001f32;
 	}
 
 	.sidebar-fake-bg {
-		background: #001f33;
+		background: #001f32;
 	}
 }
 
