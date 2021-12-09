@@ -29,7 +29,18 @@
 							</select>
 						</div>
 					</div>
-					<div class="col-sm-6">
+					<div class="col-sm-3">
+						<div class="form-group">
+							<label for="departamento">Departamento</label>
+							<select size="1" id="departamento" class="form-control" onchange="atualizar()">
+								<option value="0">Todos</option>
+								<% for (let i = 0; i < departamentos.length; i++) { %>
+									<option value="<%- departamentos[i].id_departamento %>"><%= departamentos[i].desc_departamento %></option>
+								<% } %>
+							</select>
+						</div>
+					</div>
+					<div class="col-sm-3">
 						<div class="form-group">
 							<label for="usuario">Usuário</label>
 							<select size="1" id="usuario" class="form-control" onchange="atualizar()">
@@ -86,10 +97,11 @@
 <script type="text/javascript">
 	"use strict";
 
+	prepareCbSearch(document.getElementById("departamento"));
 	prepareCbSearch(document.getElementById("usuario"));
 	prepareCbSearch(document.getElementById("mes"));
 
-	var usuarioAtual = 0, mesAtual = <%- mesAtual %>, anoAtual = <%- anoAtual %>;
+	var departamentoAtual = 0, usuarioAtual = 0, mesAtual = <%- mesAtual %>, anoAtual = <%- anoAtual %>;
 
 	var ocorrencias = <%- JSON.stringify(lista) %>, calendario = null;
 
@@ -116,6 +128,7 @@
 			columns: [
 				{ title: "Data", "class": "col-min", "type": "customdatetimeint", data: "dataptbr" },
 				{ title: "Entrada", "class": "col-min", data: "entrada" },
+				{ title: "Departamento", "class": "text-left", render: encode, data: "desc_departamento" },
 				{ title: "Nome", "class": "text-left", render: encode, data: "nome" },
 			],
 			data: dados,
@@ -166,11 +179,12 @@
 	}
 
 	function atualizar() {
+		var departamento = parseInt($("#departamento").val());
 		var usuario = parseInt($("#usuario").val());
 		var ano = (parseInt($("#ano").val()) || 0);
 		var mes = (parseInt($("#mes").val()) || 0);
 
-		if ((usuario === usuarioAtual && ano === anoAtual && mes === mesAtual) || JsonWebApi.active)
+		if ((departamento === departamentoAtual && usuario === usuarioAtual && ano === anoAtual && mes === mesAtual) || JsonWebApi.active)
 			return;
 
 		Notification.wait();
@@ -178,6 +192,7 @@
 		JsonWebApi.get("<%- root %>/api/controle/listarPonto", function (response) {
 			if (response.success) {
 				Notification.hide();
+				departamentoAtual = departamento;
 				usuarioAtual = usuario;
 				anoAtual = ano;
 				mesAtual = mes;
@@ -187,7 +202,7 @@
 			} else {
 				Notification.error(response.value + " " + emoji.sad, true);
 			}
-		}, "ano", ano, "mes", mes, "idusuario", usuario);
+		}, "ano", ano, "mes", mes, "idusuario", usuario, "id_departamento", departamento);
 	}
 
 	desenharCalendario();

@@ -412,7 +412,7 @@ window.prepareDataTableMain = (function () {
 								shiftKey: true
 							}));
 						} else if (("createEvent" in document) &&
-							(a = document.createEvent("MouseEvent")) &&
+							(a = document.createEvent("MouseEvents")) &&
 							("initMouseEvent" in a)) {
 							a.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, true, false, 0, null);
 							ul[0].dispatchEvent(a);
@@ -736,7 +736,7 @@ window.validateEmail = function (email) {
 		at2 = email.lastIndexOf("@"),
 		dot = email.lastIndexOf(".");
 
-	return (at > 0 && dot > (at + 1) && dot !== (email.length - 1) && at2 === at);
+	return (email.indexOf(":") < 0 && at > 0 && dot > (at + 1) && dot !== (email.length - 1) && at2 === at);
 };
 window.createItem = function (parent, icon, className, text, badge, clickHandler, name0, value0) {
 	var i, btn = document.createElement("button"), c = (className || "btn-outline btn-default");
@@ -1106,6 +1106,27 @@ window.capitalizarFrase = function (s, classe, tag) {
 
 			return sendRequest(true, "get", (arguments.length > 2) ? buildFullUrl(url, arguments, 2) : url, callback);
 		},
+		deleteSync: function (url, name0, value0) {
+			if (!url)
+				throw JsonWebApi.messages.invalidURL;
+
+			if (!(arguments.length & 1))
+				throw JsonWebApi.messages.invalidArgumentCount;
+
+			return sendRequest(false, "delete", (arguments.length > 1) ? buildFullUrl(url, arguments, 1) : url, null);
+		},
+		delete: function (url, callback, name0, value0) {
+			if (!url)
+				throw JsonWebApi.messages.invalidURL;
+
+			if (!callback)
+				throw JsonWebApi.messages.invalidCallback;
+
+			if ((arguments.length & 1))
+				throw JsonWebApi.messages.invalidArgumentCount;
+
+			return sendRequest(true, "delete", (arguments.length > 2) ? buildFullUrl(url, arguments, 2) : url, callback);
+		},
 		postSync: function (url, bodyObject, name0, value0) {
 			if (!url)
 				throw JsonWebApi.messages.invalidURL;
@@ -1422,7 +1443,14 @@ window.BlobDownloader = {
 		BlobDownloader.blobURL = URL.createObjectURL(blob);
 		a.href = BlobDownloader.blobURL;
 		a.download = filename;
-		if (document.createEvent && (window.MouseEvent || window.MouseEvents)) {
+		if (("MouseEvent" in window)) {
+			try {
+				a.dispatchEvent(new MouseEvent("click"));
+				return;
+			} catch (ex) {
+			}
+		}
+		if (("createEvent" in document)) {
 			try {
 				evt = document.createEvent("MouseEvents");
 				evt.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
@@ -1441,12 +1469,19 @@ window.BlobDownloader = {
 
 	function cbSearch_SetValue(select, value) {
 		select.value = value;
-		if ("createEvent" in document) {
+		if (("Event" in window)) {
+			select.dispatchEvent(new Event("change", {
+				bubbles: false,
+				cancelable: true
+			}));
+		} else if (("createEvent" in document)) {
 			var evt = document.createEvent("HTMLEvents");
 			evt.initEvent("change", false, true);
 			select.dispatchEvent(evt);
-		} else {
+		} else if (("fireEvent" in select)) {
 			select.fireEvent("onchange");
+		} else if (select.onchange) {
+			select.onchange();
 		}
 	}
 
@@ -1462,11 +1497,11 @@ window.BlobDownloader = {
 		var i, opt = this.selectedOptions, v;
 		if (opt) {
 			opt = opt[0];
-			this.cbSearchInput.value = ((opt && opt.value && parseInt(opt.value)) ? opt.textContent : "");
+			this.cbSearchInput.value = ((opt && opt.value && opt.value != "0") ? opt.textContent : "");
 		} else {
 			opt = this.options;
 			v = this.value;
-			if (v && parseInt(v)) {
+			if (v && v != "0") {
 				for (i = opt.length - 1; i >= 0; i--) {
 					if (opt[i].value == v) {
 						this.cbSearchInput.value = opt[i].textContent;
@@ -1481,7 +1516,7 @@ window.BlobDownloader = {
 	function cbSearch_MouseDown(e) {
 		if (e.button)
 			return;
-		if (e.offsetX < 38) { //(this.offsetWidth - 25)) {
+		if (e.offsetX >= 0 && e.offsetX < 38 && e.offsetY >= 0 && (!e.target || e.target.tagName !== "OPTION")) { //(this.offsetWidth - 25)) {
 			this.cbSearchFocusByMouse = false;
 			this.cbSearchInput.focus();
 			if (this.cbSearchInput.setSelectionRange)
@@ -1531,8 +1566,8 @@ window.BlobDownloader = {
 			$(this.cbSearchInput).addClass("forced-focus");
 			if (this.cbSearchFocusByMouse)
 				this.cbSearchFocusByMouse = false;
-			else
-				this.cbSearchInput.focus();
+			//else
+			//	this.cbSearchInput.focus();
 		}
 	}
 
@@ -1631,6 +1666,10 @@ window.BlobDownloader = {
 			case 27: // escape
 				if (data.menuVisible) {
 					data.close();
+					return cancelEvent(e);
+				} else if (this.cbSearchSelect) {
+					this.cbSearchSelect.cbSearchFocusByMouse = true;
+					this.cbSearchSelect.focus();
 					return cancelEvent(e);
 				}
 				break;
@@ -1763,7 +1802,7 @@ window.BlobDownloader = {
 
 		for (i = 0; i < list.length; i++) {
 			li = list[i];
-			if (!(value = li.value) || !parseInt(value))
+			if (!(value = li.value) || value == "0")
 				continue;
 			txt = li.textContent;
 			norm = li.cbSearchNormalized;
@@ -1842,16 +1881,7 @@ window.BlobDownloader = {
 	window.setCbSearch = function (select, value) {
 		if (!select)
 			return;
-		select.value = value;
-		if (("createEvent" in document)) {
-			var e = document.createEvent("HTMLEvents");
-			e.initEvent("change", false, true);
-			select.dispatchEvent(e);
-		} else if (("fireEvent" in select)) {
-			select.fireEvent("onchange");
-		} else if (select.onchange) {
-			select.onchange();
-		}
+		cbSearch_SetValue(select, value);
 		if (select.cbSearchChange)
 			select.cbSearchChange();
 	};
@@ -1951,7 +1981,7 @@ window.BlobDownloader = {
 
 		parent.appendChild(outerdiv);
 
-		if (select.value && parseInt(select.value))
+		if (select.value && select.value != "0")
 			cbSearch_Change.apply(select);
 	};
 

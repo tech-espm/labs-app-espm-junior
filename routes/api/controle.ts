@@ -16,10 +16,11 @@ router.get("/listarPonto", wrap(async (req: express.Request, res: express.Respon
 
 	const ano = parseInt(req.query["ano"] as string),
 		mes = parseInt(req.query["mes"] as string),
-		idusuario = parseInt(req.query["idusuario"] as string);
+		idusuario = parseInt(req.query["idusuario"] as string),
+		id_departamento = parseInt(req.query["id_departamento"] as string);
 
-	if (ano > 0 && mes >= 1 && mes <= 12 && !isNaN(idusuario))
-		res.json(await Ponto.listar(ano, mes, idusuario));
+	if (ano > 0 && mes >= 1 && mes <= 12 && !isNaN(idusuario) && !isNaN(id_departamento))
+		res.json(await Ponto.listar(ano, mes, idusuario, id_departamento));
 	else
 		res.status(400).json("Dados inválidos");
 }));

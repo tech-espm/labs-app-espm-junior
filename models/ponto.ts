@@ -6,7 +6,7 @@ export = class Ponto {
 	public entrada: string;
 	public saida: string;
 
-	public static async listar(ano: number, mes: number, idusuario?: number): Promise<{ idusuario: number, nome: string, data: string }[]> {
+	public static async listar(ano: number, mes: number, idusuario?: number, id_departamento?: number): Promise<{ idusuario: number, nome: string, data: string }[]> {
 		let lista: { idusuario: number, nome: string, data: string }[] = null,
 			proximo_ano = ano,
 			proximo_mes = mes + 1;
@@ -20,7 +20,20 @@ export = class Ponto {
 			fim = `${proximo_ano}-${proximo_mes}-01`;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select p.idusuario, u.nome, date_format(p.entrada, '%Y-%m-%d %H:%i') data from ponto p inner join usuario u on u.idusuario = p.idusuario where p.entrada >= ? and p.entrada < ?" + (idusuario ? " and p.idusuario = ?" : ""), idusuario ? [inicio, fim, idusuario] : [inicio, fim]);
+			const params: any[] = [inicio, fim];
+			let where = "";
+
+			if (idusuario) {
+				params.push(idusuario);
+				where += " and p.idusuario = ?";
+			}
+
+			if (id_departamento) {
+				params.push(id_departamento);
+				where += " and u.id_departamento = ?";
+			}
+
+			lista = await sql.query("select p.idusuario, u.nome, d.desc_departamento, date_format(p.entrada, '%Y-%m-%d %H:%i') data from ponto p inner join usuario u on u.idusuario = p.idusuario inner join departamento d on d.id_departamento = u.id_departamento where p.entrada >= ? and p.entrada < ?" + where, params);
 		});
 
 		return lista || [];
