@@ -18,7 +18,7 @@ router.all("/", wrap(async (req: express.Request, res: express.Response) => {
 	if (!u) {
 		res.redirect(appsettings.root + "/login");
 	} else {
-		const hoje = DataUtil.horarioDeBrasiliaUTC(),
+		const hoje = DataUtil.horarioDeBrasiliaComoDateUTC(),
 			anoAtual = hoje.getFullYear(),
 			mesAtual = hoje.getMonth() + 1;
 
@@ -27,9 +27,9 @@ router.all("/", wrap(async (req: express.Request, res: express.Response) => {
 			usuario: u,
 			anoAtual,
 			mesAtual,
-			daysOff: await DayOff.listarTudoPorMes(anoAtual, mesAtual, 0, u.admin ? 0 : u.id_departamento),
+			daysOff: await DayOff.listarDaysOffEHorasPorMes(anoAtual, mesAtual, 0, u.admin ? 0 : u.id_departamento),
 			lista: await Evento.listarOcorrencias(0, 0, anoAtual, mesAtual),
-			hoje: DataUtil.hojeISO(),
+			hoje: DataUtil.horarioDeBrasiliaISO(),
 			departamentos: await Departamento.listar(),
 			salas: await Sala.listar()
 		};

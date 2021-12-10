@@ -1,0 +1,153 @@
+﻿<div class="row">
+	<div class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
+		<form id="form" class="panel panel-default" action="#">
+			<div class="panel-heading">Filtro de Horas Pessoais</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-xs-6">
+						<div class="form-group no-margin-bottom">
+							<label for="ano">Ano</label>
+							<input type="number" id="ano" name="ano" class="form-control" value="<%- anoAtual %>" onchange="atualizarHorasPessoais()" />
+						</div>
+					</div>
+
+					<div class="col-xs-6">
+						<div class="form-group no-margin-bottom">
+							<label for="ciclo">Ciclo</label>
+							<select size="1" id="ciclo" name="ciclo" class="form-control" onchange="atualizarHorasPessoais()">
+								<option value="1" <%- ((cicloAtual === 1) ? 'selected="selected"' : '') %>>1</option>
+								<option value="2" <%- ((cicloAtual === 2) ? 'selected="selected"' : '') %>>2</option>
+							</select>
+						</div>
+					</div>
+				</div>
+
+				<hr />
+
+				<div class="text-right col-xs-space-bottom">
+					<button class="btn btn-primary" type="button" onclick="adicionarHoraPessoal()"><i class="fa fa-plus"></i>Adicionar Hora Pessoal</button>
+				</div>
+
+				<div class="table-responsive">
+					<table class="table table-striped table-hover no-margin-bottom">
+						<tbody id="bodyHorasPessoais">
+							<% if (horasPessoais && horasPessoais.length) { for (let i = 0; i < horasPessoais.length; i++) { %>
+								<tr>
+									<td class="col-min">
+										<button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerHoraPessoal(this)"><i class="fa fa-nomargin fa-times"></i></button>
+									</td>
+									<td>
+										<input class="form-control" type="date" name="horasPessoaisDatas" value="<%- horasPessoais[i].data %>" />
+									</td>
+									<td style="min-width: 100px; max-width: 150px;">
+										<select class="form-control" name="horasPessoaisMinutos">
+											<option value="">Horas...</option>
+											<option value="30" <%- (horasPessoais[i].minutos === 30 ? 'selected="selected"' : '') %>>00:30</option>
+											<option value="60" <%- (horasPessoais[i].minutos === 60 ? 'selected="selected"' : '') %>>01:00</option>
+											<option value="90" <%- (horasPessoais[i].minutos === 90 ? 'selected="selected"' : '') %>>01:30</option>
+											<option value="120" <%- (horasPessoais[i].minutos === 120 ? 'selected="selected"' : '') %>>02:00</option>
+											<option value="150" <%- (horasPessoais[i].minutos === 150 ? 'selected="selected"' : '') %>>02:30</option>
+											<option value="180" <%- (horasPessoais[i].minutos === 180 ? 'selected="selected"' : '') %>>03:00</option>
+											<option value="210" <%- (horasPessoais[i].minutos === 210 ? 'selected="selected"' : '') %>>03:30</option>
+										</select>
+									</td>
+								</tr>
+							<% } } else { %>
+								<tr><td class="text-center">Não há horas pessoais cadastradas para <%- anoAtual %>-<%- cicloAtual %></td></tr>
+							<% } %>
+						</tbody>
+					</table>
+				</div>
+
+			</div>
+
+			<div class="panel-footer">
+				<input value="Sincronizar Horas Pessoais" class="btn btn-primary btn-lg btn-block" type="submit" />
+			</div>
+		</form>
+
+		
+	</div>
+</div>
+
+<%- contentFor("styles") %>
+<style type="text/css">
+	.fa-plus:before {
+		color: inherit;
+	}
+</style>
+
+<%- contentFor("scripts") %>
+<script type="text/javascript">
+	//<![CDATA[
+	"use strict";
+
+	function adicionarHoraPessoal() {
+		var bodyHorasPessoais = document.getElementById("bodyHorasPessoais");
+		if (!bodyHorasPessoais.getElementsByTagName("input").length) {
+			$("#bodyHorasPessoais").empty();
+		}
+		$("#bodyHorasPessoais").append('<tr><td class="col-min"><button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerHoraPessoal(this)"><i class="fa fa-nomargin fa-times"></i></button></td><td><input class="form-control" type="date" name="horasPessoaisDatas" /></td><td style="min-width: 100px; max-width: 150px;"><select class="form-control" name="horasPessoaisMinutos"><option value="">Horas...</option><option value="30">00:30</option><option value="60">01:00</option><option value="90">01:30</option><option value="120">02:00</option><option value="150">02:30</option><option value="180">03:00</option><option value="210">03:30</option></select></td></tr>');
+	}
+
+	function removerHoraPessoal(button) {
+		var bodyHorasPessoais = document.getElementById("bodyHorasPessoais");
+		bodyHorasPessoais.removeChild(button.parentNode.parentNode);
+		if (!bodyHorasPessoais.getElementsByTagName("tr").length) {
+			bodyHorasPessoais.innerHTML = '<tr><td class="text-center">Não há horas pessoais cadastradas para ' + $("#ano").val() + '-' + $("#ciclo").val() + '</td></tr>';
+		}
+	}
+
+	function atualizarHorasPessoais() {
+		if (JsonWebApi.active)
+			return;
+
+		Notification.wait();
+
+		JsonWebApi.get("<%- root %>/api/dayOff/listarHoras", function (response) {
+			var bodyHorasPessoais = document.getElementById("bodyHorasPessoais");
+			$("#bodyHorasPessoais").empty();
+
+			if (response.success) {
+				Notification.hide();
+
+				if (!response.value || !response.value.length) {
+					bodyHorasPessoais.innerHTML = '<tr><td class="text-center">Não há horas pessoais cadastradas para ' + $("#ano").val() + '-' + $("#ciclo").val() + '</td></tr>';
+				} else {
+					for (var i = 0; i < response.value.length; i++) {
+						$("#bodyHorasPessoais").append('<tr><td class="col-min"><button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerHoraPessoal(this)"><i class="fa fa-nomargin fa-times"></i></button></td><td><input class="form-control" type="date" name="horasPessoaisDatas" value="' + response.value[i].data + '" /></td><td style="min-width: 100px; max-width: 150px;"><select class="form-control" name="horasPessoaisMinutos"><option value="">Horas...</option><option value="30" ' + ((response.value[i].minutos === 30) ? 'selected="selected"' : '') + '>00:30</option><option value="60" ' + ((response.value[i].minutos === 60) ? 'selected="selected"' : '') + '>01:00</option><option value="90" ' + ((response.value[i].minutos === 90) ? 'selected="selected"' : '') + '>01:30</option><option value="120" ' + ((response.value[i].minutos === 120) ? 'selected="selected"' : '') + '>02:00</option><option value="150" ' + ((response.value[i].minutos === 150) ? 'selected="selected"' : '') + '>02:30</option><option value="180" ' + ((response.value[i].minutos === 180) ? 'selected="selected"' : '') + '>03:00</option><option value="210" ' + ((response.value[i].minutos === 210) ? 'selected="selected"' : '') + '>03:30</option></select></td></tr>');
+					}
+				}
+			} else {
+				bodyHorasPessoais.innerHTML = '<tr><td class="text-center">Ocorreu um erro na atualização</td></tr>';
+				Notification.error(response.value + " " + emoji.sad, true);
+			}
+		}, "ano", $("#ano").val(), "ciclo", $("#ciclo").val());
+	}
+
+	$("#form").validate({
+		rules: {
+			horasPessoaisDatas: {
+				required: true
+			},
+			horasPessoaisMinutos: {
+				required: true
+			}
+		},
+
+		submitHandler: function (form) {
+			if (JsonWebApi.active)
+				return;
+
+			Notification.wait();
+
+			JsonWebApi.postFormData("<%- root %>/api/dayOff/sincronizarHoras?ano=" + encodeURIComponent($("#ano").val()) + "&ciclo=" + encodeURIComponent($("#ciclo").val()), form, function (response) {
+				if (response.success)
+					Notification.success("Horas pessoais sincronizadas com sucesso! " + emoji.happy);
+				else
+					Notification.error(response.value + " " + emoji.sad, true);
+			});
+		}
+	});
+	//]]>
+</script>

@@ -20,7 +20,7 @@ router.all("/listarPonto", wrap(async (req: express.Request, res: express.Respon
 			usuario: u,
 			anoAtual: infoAtual.anoAtual,
 			mesAtual: infoAtual.mesAtual,
-			hoje: DataUtil.hojeISO(),
+			hoje: DataUtil.horarioDeBrasiliaISO(),
 			departamentos: await Departamento.listar(),
 			usuarios: await Usuario.listarDropDown(),
 			lista: await Ponto.listar(infoAtual.anoAtual, infoAtual.mesAtual)
@@ -81,7 +81,7 @@ router.all("/horasPessoais", wrap(async (req: express.Request, res: express.Resp
 			usuario: u,
 			anoAtual: infoAtual.anoAtual,
 			cicloAtual: infoAtual.cicloAtual,
-			daysOff: await DayOff.listarHoras(infoAtual.anoAtual, infoAtual.cicloAtual, u.idusuario)
+			horasPessoais: await DayOff.listarHoras(infoAtual.anoAtual, infoAtual.cicloAtual, u.idusuario)
 		});
 	}
 }));

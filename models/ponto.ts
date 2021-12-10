@@ -1,4 +1,5 @@
 import Sql = require("../infra/sql"); 
+import DataUtil = require("../utils/dataUtil");
 
 export = class Ponto {
 	public idponto: number;
@@ -51,13 +52,16 @@ export = class Ponto {
 				}
 			}
 
-			const idponto = await sql.scalar("select idponto from ponto where date(entrada) = curdate() and idusuario = ?", [idusuario]) as number;
+			const agora = DataUtil.horarioDeBrasiliaISOComHorario(),
+				hoje = DataUtil.removerHorarioISO(agora);
+
+			const idponto = await sql.scalar("select idponto from ponto where date(entrada) = ? and idusuario = ?", [hoje, idusuario]) as number;
 			if (idponto) {
 				res = "Já existe um ponto aberto para a data atual";
 				return;
 			}
 
-			await sql.query("insert into ponto (idusuario, entrada) values (?, now())", [idusuario]);
+			await sql.query("insert into ponto (idusuario, entrada) values (?, ?)", [idusuario, agora]);
 		});
 
 		return res;
@@ -75,13 +79,16 @@ export = class Ponto {
 				}
 			}
 
-			const idponto = await sql.scalar("select idponto from ponto where date(entrada) = curdate() and idusuario = ?", [idusuario]) as number;
+			const agora = DataUtil.horarioDeBrasiliaISOComHorario(),
+				hoje = DataUtil.removerHorarioISO(agora);
+
+			const idponto = await sql.scalar("select idponto from ponto where date(entrada) = ? and idusuario = ?", [hoje, idusuario]) as number;
 			if (!idponto) {
 				res = "Não existe um ponto aberto para a data atual";
 				return;
 			}
 
-			await sql.query("update ponto set saida = now() where idponto = ? and saida is null", [idponto]);
+			await sql.query("update ponto set saida = ? where idponto = ? and saida is null", [agora, idponto]);
 
 			if (sql.linhasAfetadas === 0)
 				res = "Já foi marcada a saída para a data atual";

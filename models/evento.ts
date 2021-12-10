@@ -12,8 +12,8 @@ export = class Evento {
 	public ocorrencias: string[];
 
 	public static async listarHoje(): Promise<Evento[]> {
-		let inicioDiaHoje = DataUtil.hojeISOInicioDoDia();
-		let fimDiaHoje = DataUtil.hojeISOFimDoDia();
+		let inicioDiaHoje = DataUtil.horarioDeBrasiliaISOInicioDoDia();
+		let fimDiaHoje = DataUtil.horarioDeBrasiliaISOFimDoDia();
 
 		let lista: Evento[] = null;
 

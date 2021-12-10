@@ -25,6 +25,11 @@ interface HoraPessoal {
 	criacao: string;
 }
 
+interface ItemListaIndividual {
+	data: string;
+	minutos?: number;
+}
+
 interface ItemLista {
 	nome: string;
 	data: string;
@@ -32,6 +37,7 @@ interface ItemLista {
 	id_departamento: number;
 	desc_departamento: string;
 }
+
 
 export = class DayOff {
 	private static readonly RegExp = /[\/\-\:\s]/g;
@@ -44,7 +50,7 @@ export = class DayOff {
 	public criacao: string;
 
 	public static infoAtualSemCiclo(): InfoAtualSemCiclo {
-		const hoje = parseInt(DataUtil.hojeISO().replace(DayOff.RegExp, "")),
+		const hoje = parseInt(DataUtil.horarioDeBrasiliaISO().replace(DayOff.RegExp, "")),
 			anoAtual = (hoje / 10000) | 0,
 			mesAtual = ((hoje / 100) | 0) % 100;
 
@@ -57,7 +63,7 @@ export = class DayOff {
 
 	public static infoAtual(): Promise<InfoAtual> {
 		return Sql.conectar(async (sql) => {
-			const hoje = parseInt(DataUtil.hojeISO().replace(DayOff.RegExp, "")),
+			const hoje = parseInt(DataUtil.horarioDeBrasiliaISO().replace(DayOff.RegExp, "")),
 				anoAtual = (hoje / 10000) | 0,
 				mesAtual = ((hoje / 100) | 0) % 100,
 				info = await sql.query("select cicloatual, mesinicialciclo, anoinicialciclo, mesfinalciclo, anofinalciclo from config") as any[];
@@ -121,39 +127,22 @@ export = class DayOff {
 			return (mesData >= infoAtual.mesInicialCiclo && mesData <= 12 && anoData === infoAtual.anoInicialCiclo) || (mesData >= 1 && mesData <= infoAtual.mesFinalCiclo && anoData === infoAtual.anoFinalCiclo);
 	}
 
-	public static listarDaysOff(ano?: number, ciclo?: number, idusuario?: number, id_departamento?: number): Promise<ItemLista[]> {
-		return DayOff.listar(true, false, ano, ciclo, idusuario, id_departamento);
-	}
-
-	public static listarHoras(ano?: number, ciclo?: number, idusuario?: number, id_departamento?: number): Promise<ItemLista[]> {
-		return DayOff.listar(false, true, ano, ciclo, idusuario, id_departamento);
-	}
-
-	public static listarTudo(ano?: number, ciclo?: number, idusuario?: number, id_departamento?: number): Promise<ItemLista[]> {
-		return DayOff.listar(true, true, ano, ciclo, idusuario, id_departamento);
-	}
-
-	private static async listar(daysOff: boolean, horasPessoais: boolean, ano?: number, ciclo?: number, idusuario?: number, id_departamento?: number): Promise<ItemLista[]> {
-		if (!ano || !ciclo) {
-			const infoAtual = await DayOff.infoAtual();
-
-			if (!ano)
-				ano = infoAtual.anoAtual;
-
-			if (!ciclo)
-				ciclo = infoAtual.cicloAtual;
-		}
-
-		let lista: ItemLista[] = null;
-		let lista2: ItemLista[] = null;
-
-		await Sql.conectar(async (sql: Sql) => {
-			if (daysOff)
-				lista = await sql.query("select u.nome, date_format(d.data, '%Y-%m-%d') data, u.id_departamento, dp.desc_departamento from dayoff d inner join usuario u on u.idusuario = d.idusuario inner join departamento dp on dp.id_departamento = u.id_departamento where d.ano = ? and d.ciclo = ?" + (idusuario ? (" and d.idusuario = ? order by d.data asc") : (id_departamento ? " and u.id_departamento = ?" : "")), (idusuario || id_departamento) ? [ano, ciclo, idusuario || id_departamento] : [ano, ciclo]);
-
-			if (horasPessoais)
-				lista2 = await sql.query("select u.nome, date_format(h.data, '%Y-%m-%d') data, h.minutos, u.id_departamento, dp.desc_departamento from horapessoal h inner join usuario u on u.idusuario = h.idusuario inner join departamento dp on dp.id_departamento = u.id_departamento where h.ano = ? and h.ciclo = ?" + (idusuario ? (" and h.idusuario = ? order by h.data asc") : (id_departamento ? " and u.id_departamento = ?" : "")), (idusuario || id_departamento) ? [ano, ciclo, idusuario || id_departamento] : [ano, ciclo]);
+	public static listarDaysOff(ano: number, ciclo: number, idusuario: number): Promise<ItemListaIndividual[]> {
+		return Sql.conectar(async (sql: Sql) => {
+			return await sql.query("select date_format(data, '%Y-%m-%d') data from dayoff where ano = ? and ciclo = ? and idusuario = ? order by data asc", [ano, ciclo, idusuario]);
 		});
+	}
+
+	public static listarHoras(ano: number, ciclo: number, idusuario: number): Promise<ItemListaIndividual[]> {
+		return Sql.conectar(async (sql: Sql) => {
+			return await sql.query("select date_format(data, '%Y-%m-%d') data, minutos from horapessoal where ano = ? and ciclo = ? and idusuario = ? order by data asc", [ano, ciclo, idusuario]);
+		});
+	}
+
+	private static async listar(daysOff: boolean, horasPessoais: boolean, ano: number, ciclo: number, idusuario: number): Promise<ItemListaIndividual[]> {
+		let lista: ItemListaIndividual[] = null;
+		let lista2: ItemListaIndividual[] = null;
+
 
 		if (!lista || !lista.length)
 			return (lista2 || []);
@@ -164,7 +153,7 @@ export = class DayOff {
 		return lista;
 	}
 
-	public static async listarTudoPorMes(ano: number, mes: number, idusuario?: number, id_departamento?: number): Promise<ItemLista[]> {
+	public static async listarDaysOffEHorasPorMes(ano: number, mes: number, idusuario?: number, id_departamento?: number): Promise<ItemLista[]> {
 		let lista: ItemLista[] = null;
 		let lista2: ItemLista[] = null;
 
@@ -228,21 +217,24 @@ export = class DayOff {
 		await Sql.conectar(async (sql: Sql) => {
 			const quantidadeMaxima = await sql.scalar("select daysoff from usuario where idusuario = ?", [idusuario]) as number;
 			if (!quantidadeMaxima) {
-				res = "Usuário não tem permissão para pedir days off";
+				res = "Usuário não tem permissão para tirar days off";
 				return;
 			}
 
 			const antigos: DayOff[] = await sql.query("select iddayoff, date_format(data, '%Y-%m-%d') data from dayoff where ano = ? and ciclo = ? and idusuario = ?", [anoInicialCiclo, cicloAtual, idusuario]);
 			const adicionar = daysOff;
+			const atualizar: DayOff[] = [];
+			const datasUtilizadas: any = {};
 
-			let existentes = 0;
+			let daysOffTotais = 0;
 
 			for (let i = antigos.length - 1; i >= 0; i--) {
 				const data = antigos[i].data;
 
 				for (let j = adicionar.length - 1; j >= 0; j--) {
 					if (adicionar[j] === data) {
-						existentes++;
+						datasUtilizadas[data] = true;
+						daysOffTotais++;
 						antigos.splice(i, 1);
 						adicionar.splice(j, 1);
 						break;
@@ -250,32 +242,66 @@ export = class DayOff {
 				}
 			}
 
-			if ((existentes + adicionar.length) > quantidadeMaxima) {
-				res = "Não é permitido pedir mais de " + quantidadeMaxima + " days off por ciclo";
+			for (let i = adicionar.length - 1; i >= 0; i--) {
+				const data = adicionar[i];
+
+				if (datasUtilizadas[data]) {
+					res = "Não é permitido adicionar days off mais de uma vez na mesma data (" + DataUtil.converterDataISO(data, true) + ")";
+					return;
+				}
+
+				datasUtilizadas[data] = true;
+
+				daysOffTotais++;
+			}
+
+			if (daysOffTotais > quantidadeMaxima) {
+				res = "Não é permitido tirar mais de " + quantidadeMaxima + " days off por ciclo";
 				return;
 			}
 
 			for (let i = antigos.length - 1; i >= 0; i--) {
 				if (parseInt(antigos[i].data.replace(regexp, "")) < hoje) {
-					res = "Não é permitido excluir um day off de uma data passada";
+					res = "Não é permitido editar ou excluir days off de uma data passada (" + DataUtil.converterDataISO(antigos[i].data, true) + ")";
 					return;
 				}
 			}
 
 			for (let i = adicionar.length - 1; i >= 0; i--) {
 				if (parseInt(adicionar[i].replace(regexp, "")) < hoje) {
-					res = "Não é permitido adicionar um day off em uma data passada";
+					res = "Não é permitido adicionar days off em uma data passada (" + DataUtil.converterDataISO(adicionar[i], true) + ")";
+					return;
+				}
+
+				if (await sql.scalar("select 1 from horapessoal where idusuario = ? and data = ?", [idusuario, adicionar[i]])) {
+					res = "Não é permitido adicionar um day off na data " + DataUtil.converterDataISO(adicionar[i], true) + " porque já existem horas pessoais nessa data";
 					return;
 				}
 			}
+
+			for (let i = adicionar.length - 1; i >= 0; i--) {
+				if (!antigos.length)
+					break;
+
+				// Tenta reutilizar registros existentes
+				const reutilizar = antigos.pop();
+				reutilizar.data = adicionar[i];
+				adicionar.splice(i, 1);
+				atualizar.push(reutilizar);
+			}
+
+			const agora = DataUtil.horarioDeBrasiliaISOComHorario();
 
 			await sql.beginTransaction();
 
 			for (let i = antigos.length - 1; i >= 0; i--)
 				await sql.query("delete from dayoff where iddayoff = ?", [antigos[i].iddayoff]);
 
+			for (let i = atualizar.length - 1; i >= 0; i--)
+				await sql.query("update dayoff set data = ?, criacao = ? where iddayoff = ?", [atualizar[i].data, agora, atualizar[i].iddayoff]);
+
 			for (let i = adicionar.length - 1; i >= 0; i--)
-				await sql.query("insert into dayoff (idusuario, ano, ciclo, data, criacao) values (?, ?, ?, ?, now())", [idusuario, anoInicialCiclo, cicloAtual, adicionar[i]]);
+				await sql.query("insert into dayoff (idusuario, ano, ciclo, data, criacao) values (?, ?, ?, ?, ?)", [idusuario, anoInicialCiclo, cicloAtual, adicionar[i], agora]);
 
 			await sql.commit();
 		});
@@ -283,11 +309,26 @@ export = class DayOff {
 		return res;
 	}
 
-	public static async sincronizarHoras(ano: number, ciclo: number, idusuario: number, horasPessoais: HoraPessoal[]): Promise<string> {
-		if (!horasPessoais)
-			horasPessoais = [];
-		else if (!Array.isArray(horasPessoais))
-			horasPessoais = [ horasPessoais as any ];
+	public static async sincronizarHoras(ano: number, ciclo: number, idusuario: number, horasPessoaisDatas: string[], horasPessoaisMinutos: number[]): Promise<string> {
+		if (!horasPessoaisDatas)
+			horasPessoaisDatas = [];
+		else if (!Array.isArray(horasPessoaisDatas))
+			horasPessoaisDatas = [ horasPessoaisDatas as any ];
+
+		if (!horasPessoaisMinutos)
+			horasPessoaisMinutos = [];
+		else if (!Array.isArray(horasPessoaisMinutos))
+			horasPessoaisMinutos = [ horasPessoaisMinutos as any ];
+
+		if (horasPessoaisDatas.length !== horasPessoaisMinutos.length)
+			return "Quantidade de datas diferente da quantidade de minutos";
+
+		const horasPessoais: HoraPessoal[] = new Array(horasPessoaisDatas.length);
+		for (let i = horasPessoaisDatas.length - 1; i >= 0; i--)
+			horasPessoais[i] = {
+				data: horasPessoaisDatas[i],
+				minutos: horasPessoaisMinutos[i]
+			} as any;
 
 		const infoAtual = await DayOff.infoAtual(),
 			regexp = DayOff.RegExp,
@@ -329,6 +370,7 @@ export = class DayOff {
 		await Sql.conectar(async (sql: Sql) => {
 			const antigos: HoraPessoal[] = await sql.query("select idhorapessoal, minutos, date_format(data, '%Y-%m-%d') data from horapessoal where ano = ? and ciclo = ? and idusuario = ?", [anoInicialCiclo, cicloAtual, idusuario]);
 			const adicionar = horasPessoais;
+			const atualizar: HoraPessoal[] = [];
 			const datasUtilizadas: any = {};
 
 			let minutosTotais = 0;
@@ -352,7 +394,7 @@ export = class DayOff {
 					minutos = adicionar[i].minutos;
 
 				if (datasUtilizadas[data]) {
-					res = "Não é permitido pedir horas pessoais mais de uma vez por dia";
+					res = "Não é permitido tirar horas pessoais mais de uma vez na mesma data (" + DataUtil.converterDataISO(data, true) + ")";
 					return;
 				}
 
@@ -362,31 +404,53 @@ export = class DayOff {
 			}
 
 			if (minutosTotais > (12 * 60)) {
-				res = "Não é permitido pedir mais de 12 horas pessoais por ciclo";
+				res = "Não é permitido tirar mais de 12 horas pessoais por ciclo";
 				return;
 			}
 
 			for (let i = antigos.length - 1; i >= 0; i--) {
 				if (parseInt(antigos[i].data.replace(regexp, "")) < hoje) {
-					res = "Não é permitido excluir o pedido por horas pessoais de uma data passada";
+					res = "Não é permitido editar ou excluir horas pessoais de uma data passada (" + DataUtil.converterDataISO(antigos[i].data, true) + ")";
 					return;
 				}
 			}
 
 			for (let i = adicionar.length - 1; i >= 0; i--) {
 				if (parseInt(adicionar[i].data.replace(regexp, "")) < hoje) {
-					res = "Não é permitido pedir horas pessoais para uma data passada";
+					res = "Não é permitido adicionar horas pessoais em uma data passada (" + DataUtil.converterDataISO(adicionar[i].data, true) + ")";
+					return;
+				}
+
+				if (await sql.scalar("select 1 from dayoff where idusuario = ? and data = ?", [idusuario, adicionar[i].data])) {
+					res = "Não é permitido adicionar horas pessoais na data " + DataUtil.converterDataISO(adicionar[i].data, true) + " porque já existe um day off nessa data";
 					return;
 				}
 			}
+
+			for (let i = adicionar.length - 1; i >= 0; i--) {
+				if (!antigos.length)
+					break;
+
+				// Tenta reutilizar registros existentes
+				const reutilizar = antigos.pop();
+				reutilizar.data = adicionar[i].data;
+				reutilizar.minutos = adicionar[i].minutos;
+				adicionar.splice(i, 1);
+				atualizar.push(reutilizar);
+			}
+
+			const agora = DataUtil.horarioDeBrasiliaISOComHorario();
 
 			await sql.beginTransaction();
 
 			for (let i = antigos.length - 1; i >= 0; i--)
 				await sql.query("delete from horapessoal where idhorapessoal = ?", [antigos[i].idhorapessoal]);
 
+			for (let i = atualizar.length - 1; i >= 0; i--)
+				await sql.query("update horapessoal set minutos = ?, data = ?, criacao = ? where idhorapessoal = ?", [atualizar[i].minutos, atualizar[i].data, agora, atualizar[i].idhorapessoal]);
+
 			for (let i = adicionar.length - 1; i >= 0; i--)
-				await sql.query("insert into horapessoal (idusuario, ano, ciclo, minutos, data, criacao) values (?, ?, ?, ?, ?, now())", [idusuario, anoInicialCiclo, cicloAtual, adicionar[i].minutos, adicionar[i].data]);
+				await sql.query("insert into horapessoal (idusuario, ano, ciclo, minutos, data, criacao) values (?, ?, ?, ?, ?, ?)", [idusuario, anoInicialCiclo, cicloAtual, adicionar[i].minutos, adicionar[i].data, agora]);
 
 			await sql.commit();
 		});

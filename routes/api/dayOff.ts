@@ -74,7 +74,7 @@ router.post("/sincronizarHoras", wrap(async (req: express.Request, res: express.
 		return;
 	}
 
-	const erro = await DayOff.sincronizarHoras(ano, ciclo, u.idusuario, req.body.horasPessoais);
+	const erro = await DayOff.sincronizarHoras(ano, ciclo, u.idusuario, req.body.horasPessoaisDatas, req.body.horasPessoaisMinutos);
 
 	if (erro) {
 		res.status(400).json(erro);

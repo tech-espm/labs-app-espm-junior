@@ -40,7 +40,7 @@
 								</td>
 							</tr>
 						<% } } else { %>
-							<tr><td class="text-center">Não há days off cadastrados</td></tr>
+							<tr><td class="text-center">Não há days off cadastrados para <%- anoAtual %>-<%- cicloAtual %></td></tr>
 						<% } %>
 					</tbody>
 				</table>
@@ -80,7 +80,7 @@
 		var bodyDaysOff = document.getElementById("bodyDaysOff");
 		bodyDaysOff.removeChild(button.parentNode.parentNode);
 		if (!bodyDaysOff.getElementsByTagName("tr").length) {
-			bodyDaysOff.innerHTML = '<tr><td class="text-center">Não há days off cadastrados</td></tr>';
+			bodyDaysOff.innerHTML = '<tr><td class="text-center">Não há days off cadastrados para ' + $("#ano").val() + '-' + $("#ciclo").val() + '</td></tr>';
 		}
 	}
 

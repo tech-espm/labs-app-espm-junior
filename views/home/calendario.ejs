@@ -165,7 +165,8 @@
 			deferRender: true,
 			columns: [
 				{ title: "Data", "class": "col-min", "type": "customdatetimeint", data: "dataptbr" },
-				{ title: "Tipo", "class": "col-min", data: function (row, type, set, meta) { return ((row.url == "#dayOff") ? "Day Off" : "Evento"); } },
+				{ title: "Tipo", "class": "col-min", data: function (row, type, set, meta) { return ((row.url == "#dayOff") ? (row.minutos ? "Horas Pessoais" : "Day Off") : "Evento"); } },
+				{ title: "Horas", "class": "col-min", data: function (row, type, set, meta) { return ((row.url == "#dayOff" && row.minutos) ? (format2((row.minutos / 60) | 0) + ":" + format2(row.minutos % 60)) : ""); } },
 				{ title: "Departamento", "class": "text-left", render: encode, data: "desc_departamento" },
 				{ title: "Nome", "class": "text-left", render: encode, data: "title" },
 				{ title: "Link / URL", "class": "text-left", data: function (row, type, set, meta) { return ((!row.url || row.url == "/" || row.url == "#dayOff") ? '' : ('<a target="_blank" href="' + row.url + '">' + row.url + '</a>')); } },
@@ -192,11 +193,12 @@
 
 				// https://fullcalendar.io/docs/event-object
 				ocorrencias.push({
-					backgroundColor: "#ffa453",
-					borderColor: "#ffa453",
+					backgroundColor: (daysOff[i].minutos ? "#afe988" : "#ffa453"),
+					borderColor: (daysOff[i].minutos ? "#afe988" : "#ffa453"),
 					textColor: "#000",
 					title: daysOff[i].nome,
 					desc_departamento: daysOff[i].desc_departamento,
+					minutos: daysOff[i].minutos,
 					url: "#dayOff",
 					start: daysOff[i].data,
 					end: daysOff[i].data
@@ -226,9 +228,10 @@
 			eventClick: function(info) {
 				info.jsEvent.preventDefault();
 				if (info.event.url == "#dayOff") {
+					var minutos = info.event.extendedProps.minutos;
 					Notification.info({
-						html: encode(info.event.title) + "<br/><br/>Departamento: " + encode(info.event.extendedProps.desc_departamento)
-					}, "Day Off");
+						html: encode(info.event.title) + (minutos ? ("<br/>" + format2((minutos / 60) | 0) + ":" + format2(minutos % 60)) : "") + "<br/><br/>Departamento: " + encode(info.event.extendedProps.desc_departamento)
+					}, minutos ? "Horas Pessoais" : "Day Off");
 				} else {
 					Notification.info((info.event.url && info.event.url !== "/") ? {
 						html: '<a target="_blank" href="' + info.event.url + '">' + info.event.url + '</a><br/><br/>Departamento: ' + encode(info.event.extendedProps.desc_departamento)

@@ -1,14 +1,22 @@
 
 export = class DataUtil {
+	public static formatarBr(ano: number, mes: number, dia: number): string {
+		return ((dia < 10) ? ("0" + dia) : dia) + "/" + ((mes < 10) ? ("0" + mes) : mes) + "/" + ano;
+	}
+
+	public static formatarBrComHorario(ano: number, mes: number, dia: number, hora: number, minuto: number, segundo: number): string {
+		return ((dia < 10) ? ("0" + dia) : dia) + "/" + ((mes < 10) ? ("0" + mes) : mes) + "/" + ano + " " + ((hora < 10) ? ("0" + hora) : hora) + ":" + ((minuto < 10) ? ("0" + minuto) : minuto) + ":" + ((segundo < 10) ? ("0" + segundo) : segundo);
+	}
+
 	public static formatar(ano: number, mes: number, dia: number): string {
 		return ano + "-" + ((mes < 10) ? ("0" + mes) : mes) + "-" + ((dia < 10) ? ("0" + dia) : dia);
 	}
 
 	public static formatarComHorario(ano: number, mes: number, dia: number, hora: number, minuto: number, segundo: number): string {
-		return ano + "-" + ((mes < 10) ? ("0" + mes) : mes) + "-" + ((dia < 10) ? ("0" + dia) : dia) + "T" + ((hora < 10) ? ("0" + hora) : hora) + ":" + ((minuto < 10) ? ("0" + minuto) : minuto) + ":" + ((segundo < 10) ? ("0" + segundo) : segundo);
+		return ano + "-" + ((mes < 10) ? ("0" + mes) : mes) + "-" + ((dia < 10) ? ("0" + dia) : dia) + " " + ((hora < 10) ? ("0" + hora) : hora) + ":" + ((minuto < 10) ? ("0" + minuto) : minuto) + ":" + ((segundo < 10) ? ("0" + segundo) : segundo);
 	}
 
-	public static converterDataISO(dataComOuSemHorario: string): string {
+	public static converterDataISO(dataComOuSemHorario: string | null, formatoBr?: boolean): string | null {
 		if (!dataComOuSemHorario || !(dataComOuSemHorario = dataComOuSemHorario.trim()))
 			return null;
 		let b1 = dataComOuSemHorario.indexOf("/");
@@ -53,60 +61,71 @@ export = class DataUtil {
 		if (sepHorario < 0)
 			sepHorario = dataComOuSemHorario.indexOf("T");
 		if (sepHorario >= 0) {
-			const horario = dataComOuSemHorario.substr(sepHorario + 1);
+			const horario = dataComOuSemHorario.substring(sepHorario + 1);
 			const sepMinuto = horario.indexOf(":");
 			if (sepMinuto >= 0) {
 				const hora = parseInt(horario);
-				const minuto = parseInt(horario.substr(sepMinuto + 1));
+				const minuto = parseInt(horario.substring(sepMinuto + 1));
 				if (hora >= 0 && hora <= 23 && minuto >= 0 && minuto <= 59)
-					return DataUtil.formatarComHorario(ano, mes, dia, hora, minuto, 0);
+					return (formatoBr ?
+						DataUtil.formatarBrComHorario(ano, mes, dia, hora, minuto, 0) :
+						DataUtil.formatarComHorario(ano, mes, dia, hora, minuto, 0));
 			}
 			return null;
 		}
-		return DataUtil.formatar(ano, mes, dia);
+		return (formatoBr ?
+			DataUtil.formatarBr(ano, mes, dia) :
+			DataUtil.formatar(ano, mes, dia));
 	}
 
-	public static converterDateISO(data: Date): string {
-		return DataUtil.formatar(data.getFullYear(), data.getMonth() + 1, data.getDate())
+	public static removerHorarioISO(dataISOComHorario: string): string {
+		return dataISOComHorario.substring(0, 10);
 	}
 
-	public static converterDateISOComHorario(data: Date): string {
-		return DataUtil.formatarComHorario(data.getFullYear(), data.getMonth() + 1, data.getDate(), data.getHours(), data.getMinutes(), data.getSeconds());
+	public static dateUTC(deltaSegundos?: number): Date {
+		return (deltaSegundos ? new Date((new Date()).getTime() + (deltaSegundos * 1000)) : new Date());
 	}
 
-	public static converterDateISOInicioDoDia(data: Date): string {
-		return DataUtil.formatarComHorario(data.getFullYear(), data.getMonth() + 1, data.getDate(), 0, 0, 0);
+	public static horarioDeBrasiliaComoDateUTC(deltaSegundos?: number): Date {
+		let time = (new Date()).getTime();
+		if (deltaSegundos)
+			time += (deltaSegundos * 1000);
+		return new Date(time - (180 * 60000));
 	}
 
-	public static converterDateISOFimDoDia(data: Date): string {
-		return DataUtil.formatarComHorario(data.getFullYear(), data.getMonth() + 1, data.getDate(), 23, 59, 59);
-	}
-
-	public static horarioDeBrasiliaUTC(): Date {
-		return new Date((new Date()).getTime() - (180 * 60000));
-	}
-
-	public static hojeISO(): string {
-		const hoje = new Date((new Date()).getTime() - (180 * 60000));
+	public static horarioDeBrasiliaISO(deltaSegundos?: number): string {
+		const hoje = DataUtil.horarioDeBrasiliaComoDateUTC(deltaSegundos);
 
 		return DataUtil.formatar(hoje.getUTCFullYear(), hoje.getUTCMonth() + 1, hoje.getUTCDate());
 	}
 
-	public static hojeISOComHorario(): string {
-		const hoje = new Date((new Date()).getTime() - (180 * 60000));
+	public static horarioDeBrasiliaISOComHorario(deltaSegundos?: number): string {
+		const hoje = DataUtil.horarioDeBrasiliaComoDateUTC(deltaSegundos);
 
 		return DataUtil.formatarComHorario(hoje.getUTCFullYear(), hoje.getUTCMonth() + 1, hoje.getUTCDate(), hoje.getUTCHours(), hoje.getUTCMinutes(), hoje.getUTCSeconds());
 	}
 
-	public static hojeISOInicioDoDia(): string {
-		const hoje = new Date((new Date()).getTime() - (180 * 60000));
+	public static horarioDeBrasiliaISOInicioDoDia(deltaSegundos?: number): string {
+		const hoje = DataUtil.horarioDeBrasiliaComoDateUTC(deltaSegundos);
 
 		return DataUtil.formatarComHorario(hoje.getUTCFullYear(), hoje.getUTCMonth() + 1, hoje.getUTCDate(), 0, 0, 0);
 	}
 
-	public static hojeISOFimDoDia(): string {
-		const hoje = new Date((new Date()).getTime() - (180 * 60000));
+	public static horarioDeBrasiliaISOFimDoDia(deltaSegundos?: number): string {
+		const hoje = DataUtil.horarioDeBrasiliaComoDateUTC(deltaSegundos);
 
 		return DataUtil.formatarComHorario(hoje.getUTCFullYear(), hoje.getUTCMonth() + 1, hoje.getUTCDate(), 23, 59, 59);
 	}
-}
+
+	public static horarioUTCISO(deltaSegundos?: number): string {
+		const hoje = DataUtil.dateUTC(deltaSegundos);
+
+		return DataUtil.formatar(hoje.getUTCFullYear(), hoje.getUTCMonth() + 1, hoje.getUTCDate());
+	}
+
+	public static horarioUTCISOComHorario(deltaSegundos?: number): string {
+		const hoje = DataUtil.dateUTC(deltaSegundos);
+
+		return DataUtil.formatarComHorario(hoje.getUTCFullYear(), hoje.getUTCMonth() + 1, hoje.getUTCDate(), hoje.getUTCHours(), hoje.getUTCMinutes(), hoje.getUTCSeconds());
+	}
+};

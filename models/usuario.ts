@@ -337,9 +337,11 @@ export = class Usuario {
 
 		await Sql.conectar(async (sql: Sql) => {
 			try {
+				const agora = DataUtil.horarioDeBrasiliaISOComHorario();
+
 				await sql.beginTransaction();
 
-				await sql.query("insert into usuario (login, nome, idperfil, versao, idcargo, idcurso, id_departamento, semestre, daysoff, endereco, telefone, nascimento, criacao ) values (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, now())", [u.login, u.nome, u.idperfil, u.idcargo, u.idcurso, u.id_departamento, u.semestre, u.daysoff, u.endereco, u.telefone, u.nascimento]);
+				await sql.query("insert into usuario (login, nome, idperfil, versao, idcargo, idcurso, id_departamento, semestre, daysoff, endereco, telefone, nascimento, criacao) values (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [u.login, u.nome, u.idperfil, u.idcargo, u.idcurso, u.id_departamento, u.semestre, u.daysoff, u.endereco, u.telefone, u.nascimento, agora]);
 				u.idusuario = await sql.scalar("select last_insert_id()") as number;
 
 				// @@@ Ficha médica...
