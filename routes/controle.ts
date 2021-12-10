@@ -64,7 +64,24 @@ router.all("/daysOff", wrap(async (req: express.Request, res: express.Response) 
 			usuario: u,
 			anoAtual: infoAtual.anoAtual,
 			cicloAtual: infoAtual.cicloAtual,
-			daysOff: await DayOff.listar(infoAtual.anoAtual, infoAtual.cicloAtual, u.idusuario)
+			daysOff: await DayOff.listarDaysOff(infoAtual.anoAtual, infoAtual.cicloAtual, u.idusuario)
+		});
+	}
+}));
+
+router.all("/horasPessoais", wrap(async (req: express.Request, res: express.Response) => {
+	let u = await Usuario.cookie(req);
+	if (!u) {
+		res.redirect(appsettings.root + "/acesso");
+	} else {
+		const infoAtual = await DayOff.infoAtual();
+
+		res.render("controle/horasPessoais", {
+			titulo: "Horas Pessoais",
+			usuario: u,
+			anoAtual: infoAtual.anoAtual,
+			cicloAtual: infoAtual.cicloAtual,
+			daysOff: await DayOff.listarHoras(infoAtual.anoAtual, infoAtual.cicloAtual, u.idusuario)
 		});
 	}
 }));

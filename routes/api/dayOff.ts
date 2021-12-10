@@ -20,10 +20,10 @@ router.get("/listar", wrap(async (req: express.Request, res: express.Response) =
 		return;
 	}
 
-	res.json(await DayOff.listar(ano, ciclo, u.idusuario));
+	res.json(await DayOff.listarDaysOff(ano, ciclo, u.idusuario));
 }));
 
-router.get("/listarGeral", wrap(async (req: express.Request, res: express.Response) => {
+router.get("/listarHoras", wrap(async (req: express.Request, res: express.Response) => {
 	let u = await Usuario.cookie(req, res);
 	if (!u)
 		return;
@@ -36,7 +36,7 @@ router.get("/listarGeral", wrap(async (req: express.Request, res: express.Respon
 		return;
 	}
 
-	res.json(await DayOff.listar(ano, ciclo));
+	res.json(await DayOff.listarHoras(ano, ciclo, u.idusuario));
 }));
 
 router.post("/sincronizar", wrap(async (req: express.Request, res: express.Response) => {
@@ -52,7 +52,29 @@ router.post("/sincronizar", wrap(async (req: express.Request, res: express.Respo
 		return;
 	}
 
-	const erro = await DayOff.sincronizar(ano, ciclo, u.idusuario, req.body.daysOff);
+	const erro = await DayOff.sincronizarDaysOff(ano, ciclo, u.idusuario, req.body.daysOff);
+
+	if (erro) {
+		res.status(400).json(erro);
+	} else {
+		res.json(true);
+	}
+}));
+
+router.post("/sincronizarHoras", wrap(async (req: express.Request, res: express.Response) => {
+	let u = await Usuario.cookie(req, res);
+	if (!u)
+		return;
+
+	const ano = parseInt(req.query["ano"] as string),
+		ciclo = parseInt(req.query["ciclo"] as string);
+
+	if (!ano || !ciclo || ano < 0 || ciclo < 1 || ciclo > 2) {
+		res.status(400).json("Dados inválidos");
+		return;
+	}
+
+	const erro = await DayOff.sincronizarHoras(ano, ciclo, u.idusuario, req.body.horasPessoais);
 
 	if (erro) {
 		res.status(400).json(erro);

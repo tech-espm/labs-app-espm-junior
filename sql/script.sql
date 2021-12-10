@@ -96,8 +96,27 @@ CREATE TABLE dayoff (
   criacao datetime NOT NULL,
   PRIMARY KEY (iddayoff),
   KEY dayoff_ano_ciclo_idusuario_idx (ano, ciclo, idusuario),
+  KEY dayoff_data_idx (data),
+  KEY dayoff_idusuario_data_idx (idusuario, data),
   KEY dayoff_idusuario_FK_idx (idusuario),
   CONSTRAINT dayoff_idusuario_FK FOREIGN KEY (idusuario) REFERENCES usuario (idusuario) ON DELETE CASCADE ON UPDATE RESTRICT
+);
+
+-- DROP TABLE IF EXISTS horapessoal;
+CREATE TABLE horapessoal (
+  idhorapessoal int NOT NULL AUTO_INCREMENT,
+  idusuario int NOT NULL,
+  ano smallint NOT NULL,
+  ciclo tinyint NOT NULL,
+  minutos smallint NOT NULL,
+  data datetime NOT NULL,
+  criacao datetime NOT NULL,
+  PRIMARY KEY (idhorapessoal),
+  KEY horapessoal_ano_ciclo_idusuario_idx (ano, ciclo, idusuario),
+  KEY horapessoal_data_idx (data),
+  KEY horapessoal_idusuario_data_idx (idusuario, data),
+  KEY horapessoal_idusuario_FK_idx (idusuario),
+  CONSTRAINT horapessoal_idusuario_FK FOREIGN KEY (idusuario) REFERENCES usuario (idusuario) ON DELETE CASCADE ON UPDATE RESTRICT
 );
 
 -- DROP TABLE IF EXISTS ficha_medica;

@@ -41,7 +41,7 @@ router.get("/listarOcorrenciasEDaysOff", wrap(async (req: express.Request, res: 
 			ano,
 			mes),
 
-		daysOff: ((u.admin || !id_departamento || id_departamento === u.id_departamento) ? await DayOff.listar(ano, mes < 7 ? 1 : 2, 0, u.admin ? id_departamento : u.id_departamento) : [])
+		daysOff: ((u.admin || !id_departamento || id_departamento === u.id_departamento) ? await DayOff.listarTudoPorMes(ano, mes, 0, u.admin ? id_departamento : u.id_departamento) : [])
 	});
 }));
 

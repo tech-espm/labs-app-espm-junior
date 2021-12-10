@@ -82,6 +82,10 @@ export = class DataUtil {
 		return DataUtil.formatarComHorario(data.getFullYear(), data.getMonth() + 1, data.getDate(), 23, 59, 59);
 	}
 
+	public static horarioDeBrasiliaUTC(): Date {
+		return new Date((new Date()).getTime() - (180 * 60000));
+	}
+
 	public static hojeISO(): string {
 		const hoje = new Date((new Date()).getTime() - (180 * 60000));
 
