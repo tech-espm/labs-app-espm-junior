@@ -167,3 +167,11 @@ CREATE TABLE evento_departamento (
   FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento),
   PRIMARY KEY (id_evento, id_departamento)
 );
+
+CREATE TABLE link (
+  id_link int NOT NULL AUTO_INCREMENT,
+  nome_link varchar(100) NOT NULL,
+  desc_link varchar(200) NOT NULL,
+  url_link varchar(250) NOT NULL,
+  PRIMARY KEY (id_link)
+);

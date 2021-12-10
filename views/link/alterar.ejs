@@ -1,0 +1,78 @@
+﻿
+<div class="row">
+	<div class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
+		<form id="form" class="panel panel-default" action="#">
+			<div class="panel-heading">Informações do Link</div>
+			<div class="panel-body no-bottom">
+				<input type="hidden" id="id_link" name="id_link" value="<%=(item ? item.id_link : 0) %>" />
+				<div class="form-group">
+					<label for="nome_link">Nome</label>
+					<input id="nome_link" name="nome_link" maxlength="100" class="form-control" type="text" spellcheck="false" value="<%=(item ? item.nome_link : '') %>" />
+				</div>
+				<div class="form-group">
+					<label for="desc_link">Descrição</label>
+					<input id="desc_link" name="desc_link" maxlength="200" class="form-control" type="text" spellcheck="true" value="<%=(item ? item.desc_link : '') %>" />
+				</div>
+				<div class="form-group">
+					<label for="url_link">URL <small>(deve iniciar com http ou https)</small></label>
+					<input id="url_link" name="url_link" maxlength="250" class="form-control" type="url" spellcheck="false" value="<%=(item ? item.url_link : '') %>" />
+				</div>
+			</div>
+			<div class="panel-footer">
+				<input value="<%=(item ? 'Salvar Alterações' : 'Criar Link') %>" class="btn btn-primary btn-lg btn-block" type="submit" />
+			</div>
+		</form>
+	</div>
+</div>
+
+<%- contentFor("scripts") %>
+<script type="text/javascript">
+	//<![CDATA[
+	"use strict";
+
+	$("#form").validate({
+		rules: {
+			nome_link: {
+				required: true,
+				maxlength: 100
+			},
+			desc_link: {
+				maxlength: 200
+			},
+			url_link: {
+				required: true,
+				maxlength: 250
+			}
+		},
+
+		submitHandler: function (form) {
+			if (JsonWebApi.active)
+				return;
+
+			Notification.wait();
+
+			//<% if (item) { %>
+
+			JsonWebApi.postFormData("<%- root %>/api/link/alterar", form, function (response) {
+				if (response.success)
+					Notification.success("Link alterado com sucesso! " + emoji.happy);
+				else
+					Notification.error(response.value + " " + emoji.sad, true);
+			});
+
+			//<% } else { %>
+
+			JsonWebApi.postFormData("<%- root %>/api/link/criar", form, function (response) {
+				if (response.success) {
+					resetForm("#form");
+					Notification.success("Link criado com sucesso! " + emoji.happy);
+				} else {
+					Notification.error(response.value + " " + emoji.sad, true);
+				}
+			});
+
+			//<% } %>
+		}
+	});
+	//]]>
+</script>
