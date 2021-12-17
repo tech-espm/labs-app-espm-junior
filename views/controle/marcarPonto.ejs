@@ -209,7 +209,7 @@
 	}
 
 	function mostrarAlerta(mensagem, erro) {
-		$("#modalAlertaBody").html('<div class="no-margin-bottom alert alert-' + (erro ? 'danger' : 'success') + '">' + mensagem + '</div>');
+		$("#modalAlertaBody").html('<div class="mb-0 alert alert-' + (erro ? 'danger' : 'success') + '">' + mensagem + '</div>');
 		$("#modalAlerta").modal({
 			backdrop: "static",
 			keyboard: false

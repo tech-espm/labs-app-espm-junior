@@ -5,14 +5,14 @@
 			<div class="panel-body">
 				<div class="row">
 					<div class="col-xs-6">
-						<div class="form-group no-margin-bottom">
+						<div class="form-group mb-0">
 							<label for="ano">Ano</label>
 							<input type="number" id="ano" name="ano" class="form-control" value="<%- anoAtual %>" onchange="atualizarHorasPessoais()" />
 						</div>
 					</div>
 
 					<div class="col-xs-6">
-						<div class="form-group no-margin-bottom">
+						<div class="form-group mb-0">
 							<label for="ciclo">Ciclo</label>
 							<select size="1" id="ciclo" name="ciclo" class="form-control" onchange="atualizarHorasPessoais()">
 								<option value="1" <%- ((cicloAtual === 1) ? 'selected="selected"' : '') %>>1</option>
@@ -24,12 +24,12 @@
 
 				<hr />
 
-				<div class="text-right col-xs-space-bottom">
+				<div class="text-right mb-3">
 					<button class="btn btn-primary" type="button" onclick="adicionarHoraPessoal()"><i class="fa fa-plus"></i>Adicionar Hora Pessoal</button>
 				</div>
 
 				<div class="table-responsive">
-					<table class="table table-striped table-hover no-margin-bottom">
+					<table class="table table-striped table-hover mb-0">
 						<tbody id="bodyHorasPessoais">
 							<% if (horasPessoais && horasPessoais.length) { for (let i = 0; i < horasPessoais.length; i++) { %>
 								<tr>

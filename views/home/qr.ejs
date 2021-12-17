@@ -1,8 +1,8 @@
 ﻿<form id="form">
 	<div style="max-width: 400px; margin: 0 auto; padding: 5% 15px 50px;">
-		<div class="panel panel-default no-margin-bottom">
+		<div class="panel panel-default mb-0">
 			<div class="panel-body" id="panelBody">
-				<div class="col-xs-space-bottom">
+				<div class="mb-3">
 					<img alt="ESPM Júnior" src="<%- root %>/imagens/logo.png" style="max-width: 100%;" />
 				</div>
 				<hr />
@@ -78,7 +78,7 @@
 			}
 
 			if (erro) {
-				$("#panelBody").html('<h1 class="col-h no-margin-top no-margin-bottom">' + erro + '</h1>');
+				$("#panelBody").html('<h1 class="col-h my-0">' + erro + '</h1>');
 			}
 
 			setTimeout(gerarQR, 30000);

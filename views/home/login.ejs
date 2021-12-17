@@ -1,12 +1,12 @@
 ﻿<div style="max-width: 400px; margin: 0 auto; padding: 5% 15px 50px;">
-	<div class="panel panel-default no-margin-bottom">
+	<div class="panel panel-default mb-0">
 		<div class="panel-body text-center">
-			<div class="col-xs-space-bottom">
+			<div class="mb-3">
 				<img alt="ESPM Júnior" src="<%- root %>/imagens/logo.png" style="max-width: 100%;" />
 			</div>
 			<hr />
 			<% if (mensagem) { %>
-			<div class="alert alert-danger col-xs-space-bottom"><%= mensagem %></div>
+			<div class="alert alert-danger mb-3"><%= mensagem %></div>
 			<% } %>
 			<a href="<%- ssoRedir %>" class="btn btn-primary btn-lg btn-block"><i class="fa fa-lock fa-nomargin"></i><br>Acessar área administrativa com minhas credenciais da ESPM</a>
 		</div>
