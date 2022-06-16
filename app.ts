@@ -24,11 +24,26 @@ import cookieParser = require("cookie-parser"); // https://stackoverflow.com/a/1
 import path = require("path");
 import appsettings = require("./appsettings");
 
-// @@@ Configura o cache, para armazenar as 200 últimas páginas
+// Configura o cache, para armazenar as 200 últimas páginas
 // já processadas, por ordem de uso
 import ejs = require("ejs");
+
 import LRU = require("lru-cache");
-ejs.cache = new LRU(200);
+const cache: any = new LRU({
+	max: 200
+});
+// Ver comentários no pacote https://github.com/tech-espm/labs-teem :)
+if (!("remove" in cache)) {
+	if (("delete" in cache))
+		cache.remove = cache.delete;
+	else if (("del" in cache))
+		cache.remove = cache.delete;
+}
+if (!("reset" in cache)) {
+	if (("clear" in cache))
+		cache.reset = cache.clear;
+}
+ejs.cache = cache;
 
 const app = express();
 
