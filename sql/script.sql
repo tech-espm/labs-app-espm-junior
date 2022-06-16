@@ -59,6 +59,7 @@ CREATE TABLE usuario (
   login varchar(100) NOT NULL,
   nome varchar(100) NOT NULL,
   idperfil int NOT NULL,
+  idciclo int NOT NULL,
   versao int NOT NULL,
   token char(32) DEFAULT NULL,
   idcargo int NOT NULL,
@@ -86,37 +87,48 @@ CREATE TABLE usuario (
 
 INSERT INTO usuario (login, nome, idperfil, versao, token, idcargo, idcurso, id_departamento, semestre, daysoff, endereco, telefone, nascimento, criacao) VALUES ('admin@espm.br', 'Administrador', 1, 0, NULL, 1, 1, 1, 1, 0, '', '', NOW(), NOW());
 
+-- DROP TABLE IF EXISTS ciclo;
+CREATE TABLE ciclo (
+  idciclo int NOT NULL AUTO_INCREMENT,
+  idusuario int NOT NULL,
+  nome varchar(50) NOT NULL,
+  inicio datetime NOT NULL,
+  termino datetime NULL,
+  PRIMARY KEY (idciclo),
+  KEY ciclo_idusuario_inicio_termino_idx (idusuario, inicio, termino),
+  KEY ciclo_idusuario_termino_idx (idusuario, termino),
+  CONSTRAINT ciclo_idusuario_FK FOREIGN KEY (idusuario) REFERENCES usuario (idusuario) ON DELETE CASCADE ON UPDATE RESTRICT
+);
+
 -- DROP TABLE IF EXISTS dayoff;
 CREATE TABLE dayoff (
   iddayoff int NOT NULL AUTO_INCREMENT,
   idusuario int NOT NULL,
-  ano smallint NOT NULL,
-  ciclo tinyint NOT NULL,
+  idciclo int NOT NULL,
   data datetime NOT NULL,
   criacao datetime NOT NULL,
   PRIMARY KEY (iddayoff),
-  KEY dayoff_ano_ciclo_idusuario_idx (ano, ciclo, idusuario),
   KEY dayoff_data_idx (data),
-  KEY dayoff_idusuario_data_idx (idusuario, data),
-  KEY dayoff_idusuario_FK_idx (idusuario),
-  CONSTRAINT dayoff_idusuario_FK FOREIGN KEY (idusuario) REFERENCES usuario (idusuario) ON DELETE CASCADE ON UPDATE RESTRICT
+  KEY dayoff_idusuario_idciclo_FK_idx (idusuario, idciclo),
+  KEY dayoff_idciclo_FK_idx (idciclo),
+  CONSTRAINT dayoff_idusuario_FK FOREIGN KEY (idusuario) REFERENCES usuario (idusuario) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT dayoff_idciclo_FK FOREIGN KEY (idciclo) REFERENCES ciclo (idciclo) ON DELETE CASCADE ON UPDATE RESTRICT
 );
 
 -- DROP TABLE IF EXISTS horapessoal;
 CREATE TABLE horapessoal (
   idhorapessoal int NOT NULL AUTO_INCREMENT,
   idusuario int NOT NULL,
-  ano smallint NOT NULL,
-  ciclo tinyint NOT NULL,
+  idciclo int NOT NULL,
   minutos smallint NOT NULL,
   data datetime NOT NULL,
   criacao datetime NOT NULL,
   PRIMARY KEY (idhorapessoal),
-  KEY horapessoal_ano_ciclo_idusuario_idx (ano, ciclo, idusuario),
   KEY horapessoal_data_idx (data),
-  KEY horapessoal_idusuario_data_idx (idusuario, data),
-  KEY horapessoal_idusuario_FK_idx (idusuario),
-  CONSTRAINT horapessoal_idusuario_FK FOREIGN KEY (idusuario) REFERENCES usuario (idusuario) ON DELETE CASCADE ON UPDATE RESTRICT
+  KEY horapessoal_idusuario_idciclo_FK_idx (idusuario, idciclo),
+  KEY horapessoal_idciclo_FK_idx (idciclo),
+  CONSTRAINT horapessoal_idusuario_FK FOREIGN KEY (idusuario) REFERENCES usuario (idusuario) ON DELETE CASCADE ON UPDATE RESTRICT,
+  CONSTRAINT horapessoal_idciclo_FK FOREIGN KEY (idciclo) REFERENCES ciclo (idciclo) ON DELETE CASCADE ON UPDATE RESTRICT
 );
 
 -- DROP TABLE IF EXISTS ficha_medica;
