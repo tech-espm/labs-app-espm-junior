@@ -1,5 +1,11 @@
 
 export = class DataUtil {
+	public static converterISOParaNumero(dataISO: string | null): number {
+		return (dataISO && dataISO.length >= 10) ? (((10000 * parseInt(dataISO.substring(0, 4))) +
+				(100 * parseInt(dataISO.substring(5, 7))) +
+				parseInt(dataISO.substring(8, 10))) | 0) : 0;
+	}
+
 	public static formatarBr(ano: number, mes: number, dia: number): string {
 		return ((dia < 10) ? ("0" + dia) : dia) + "/" + ((mes < 10) ? ("0" + mes) : mes) + "/" + ano;
 	}
@@ -91,6 +97,18 @@ export = class DataUtil {
 		if (deltaSegundos)
 			time += (deltaSegundos * 1000);
 		return new Date(time - (180 * 60000));
+	}
+
+	public static horarioDeBrasiliaBr(deltaSegundos?: number): string {
+		const hoje = DataUtil.horarioDeBrasiliaComoDateUTC(deltaSegundos);
+
+		return DataUtil.formatarBr(hoje.getUTCFullYear(), hoje.getUTCMonth() + 1, hoje.getUTCDate());
+	}
+
+	public static horarioDeBrasiliaBrComHorario(deltaSegundos?: number): string {
+		const hoje = DataUtil.horarioDeBrasiliaComoDateUTC(deltaSegundos);
+
+		return DataUtil.formatarComHorario(hoje.getUTCFullYear(), hoje.getUTCMonth() + 1, hoje.getUTCDate(), hoje.getUTCHours(), hoje.getUTCMinutes(), hoje.getUTCSeconds());
 	}
 
 	public static horarioDeBrasiliaISO(deltaSegundos?: number): string {
