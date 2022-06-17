@@ -1,25 +1,16 @@
 import Sql = require("../infra/sql"); 
 import DataUtil = require("../utils/dataUtil");
+import Ciclo = require("./ciclo");
 
-interface InfoAtualSemCiclo {
-	hoje: number;
-	anoAtual: number;
-	mesAtual: number;
-}
-
-interface InfoAtual extends InfoAtualSemCiclo {
-	cicloAtual: number;
-	mesInicialCiclo: number;
-	anoInicialCiclo: number;
-	mesFinalCiclo: number;
-	anoFinalCiclo: number;
+interface AnoMes {
+	ano: number;
+	mes: number;
 }
 
 interface HoraPessoal {
 	idhorapessoal: number;
 	idusuario: number;
-	ano: number;
-	ciclo: number;
+	idciclo: number;
 	minutos: number;
 	data: string;
 	criacao: string;
@@ -38,119 +29,39 @@ interface ItemLista {
 	desc_departamento: string;
 }
 
-
 export = class DayOff {
-	private static readonly RegExp = /[\/\-\:\s]/g;
+	public static readonly HorarioLimiteAlteracoesHoje = 13;
 
 	public iddayoff: number;
 	public idusuario: number;
-	public ano: number;
-	public ciclo: number;
+	public idciclo: number;
 	public data: string;
 	public criacao: string;
 
-	public static infoAtualSemCiclo(): InfoAtualSemCiclo {
-		const hoje = parseInt(DataUtil.horarioDeBrasiliaISO().replace(DayOff.RegExp, "")),
-			anoAtual = (hoje / 10000) | 0,
-			mesAtual = ((hoje / 100) | 0) % 100;
-
+	public static anoMesAtual(): AnoMes {
+		const d = new Date();
 		return {
-			hoje,
-			anoAtual,
-			mesAtual
+			ano: d.getFullYear(),
+			mes: d.getMonth() + 1
 		};
 	}
 
-	public static infoAtual(): Promise<InfoAtual> {
-		return Sql.conectar(async (sql) => {
-			const hoje = parseInt(DataUtil.horarioDeBrasiliaISO().replace(DayOff.RegExp, "")),
-				anoAtual = (hoje / 10000) | 0,
-				mesAtual = ((hoje / 100) | 0) % 100,
-				info = await sql.query("select cicloatual, mesinicialciclo, anoinicialciclo, mesfinalciclo, anofinalciclo from config") as any[];
-
-			return {
-				hoje,
-				anoAtual,
-				mesAtual,
-				cicloAtual: info[0].cicloatual,
-				mesInicialCiclo: info[0].mesinicialciclo,
-				anoInicialCiclo: info[0].anoinicialciclo,
-				mesFinalCiclo: info[0].mesfinalciclo,
-				anoFinalCiclo: info[0].anofinalciclo
-			};
-		});
-	}
-
-	public static async atualizarCicloAtual(infoAtual: InfoAtual): Promise<string> {
-		if (!infoAtual)
-			return "Dados inválidos";
-
-		const { anoAtual } = DayOff.infoAtualSemCiclo();
-
-		if (isNaN(infoAtual.cicloAtual = parseInt(infoAtual.cicloAtual as any)) || infoAtual.cicloAtual < 1 || infoAtual.cicloAtual > 2)
-			return "Ciclo atual inválido";
-
-		if (isNaN(infoAtual.mesInicialCiclo = parseInt(infoAtual.mesInicialCiclo as any)) || infoAtual.mesInicialCiclo < 1 || infoAtual.mesInicialCiclo > 12)
-			return "Mês inicial do ciclo atual inválido";
-
-		if (isNaN(infoAtual.anoInicialCiclo = parseInt(infoAtual.anoInicialCiclo as any)) || Math.abs(anoAtual - infoAtual.anoInicialCiclo) > 1)
-			return `Ano inicial do ciclo atual inválido (deve ser ${anoAtual - 1}, ${anoAtual} ou ${anoAtual + 1})`;
-
-		if (isNaN(infoAtual.mesFinalCiclo = parseInt(infoAtual.mesFinalCiclo as any)) || infoAtual.mesFinalCiclo < 1 || infoAtual.mesFinalCiclo > 12)
-			return "Mês final do ciclo atual inválido";
-
-		if (isNaN(infoAtual.anoFinalCiclo = parseInt(infoAtual.anoFinalCiclo as any)) || Math.abs(anoAtual - infoAtual.anoFinalCiclo) > 1)
-			return `Ano final do ciclo atual inválido (deve ser ${anoAtual - 1}, ${anoAtual} ou ${anoAtual + 1})`;
-
-		if (infoAtual.cicloAtual === 1) {
-			if (infoAtual.mesInicialCiclo >= infoAtual.mesFinalCiclo)
-				return "O mês inicial do ciclo 1 deve ser menor que o mês final";
-
-			if (infoAtual.anoInicialCiclo !== infoAtual.anoFinalCiclo)
-				return "O ciclo 1 deve iniciar e terminar no mesmo ano";
-		} else {
-			if (infoAtual.mesInicialCiclo <= infoAtual.mesFinalCiclo)
-				return "O mês inicial do ciclo 2 deve ser maior que o mês final";
-		}
-
-		await Sql.conectar(async (sql) => {
-			await sql.query("update config set cicloatual = ?, mesinicialciclo = ?, anoinicialciclo = ?, mesfinalciclo = ?, anofinalciclo = ?", [infoAtual.cicloAtual, infoAtual.mesInicialCiclo, infoAtual.anoInicialCiclo, infoAtual.mesFinalCiclo, infoAtual.anoFinalCiclo]);
-		});
-
-		return null;
-	}
-
-	public static dataPertenceAoCiclo(mesData: number, anoData: number, infoAtual: InfoAtual): boolean {
-		if (infoAtual.cicloAtual === 1)
-			return (mesData >= infoAtual.mesInicialCiclo && mesData <= infoAtual.mesFinalCiclo && anoData === infoAtual.anoInicialCiclo);
-		else
-			return (mesData >= infoAtual.mesInicialCiclo && mesData <= 12 && anoData === infoAtual.anoInicialCiclo) || (mesData >= 1 && mesData <= infoAtual.mesFinalCiclo && anoData === infoAtual.anoFinalCiclo);
-	}
-
-	public static listarDaysOff(ano: number, ciclo: number, idusuario: number): Promise<ItemListaIndividual[]> {
+	public static listarDaysOff(idusuario: number, idciclo?: number): Promise<ItemListaIndividual[]> {
 		return Sql.conectar(async (sql: Sql) => {
-			return await sql.query("select date_format(data, '%Y-%m-%d') data from dayoff where ano = ? and ciclo = ? and idusuario = ? order by data asc", [ano, ciclo, idusuario]);
+			if (!idciclo)
+				idciclo = await Ciclo.obterIdAtual(idusuario, sql);
+
+			return await sql.query("select date_format(data, '%Y-%m-%d') data from dayoff where idusuario = ? and idciclo = ? order by data asc", [idusuario, idciclo]);
 		});
 	}
 
-	public static listarHoras(ano: number, ciclo: number, idusuario: number): Promise<ItemListaIndividual[]> {
+	public static listarHoras(idusuario: number, idciclo?: number): Promise<ItemListaIndividual[]> {
 		return Sql.conectar(async (sql: Sql) => {
-			return await sql.query("select date_format(data, '%Y-%m-%d') data, minutos from horapessoal where ano = ? and ciclo = ? and idusuario = ? order by data asc", [ano, ciclo, idusuario]);
+			if (!idciclo)
+				idciclo = await Ciclo.obterIdAtual(idusuario, sql);
+
+			return await sql.query("select date_format(data, '%Y-%m-%dT%H:%i:%s') data, minutos from horapessoal where idusuario = ? and idciclo = ? order by data asc", [idusuario, idciclo]);
 		});
-	}
-
-	private static async listar(daysOff: boolean, horasPessoais: boolean, ano: number, ciclo: number, idusuario: number): Promise<ItemListaIndividual[]> {
-		let lista: ItemListaIndividual[] = null;
-		let lista2: ItemListaIndividual[] = null;
-
-
-		if (!lista || !lista.length)
-			return (lista2 || []);
-
-		if (lista2 && lista2.length)
-			lista.push.apply(lista, lista2);
-
-		return lista;
 	}
 
 	public static async listarDaysOffEHorasPorMes(ano: number, mes: number, idusuario?: number, id_departamento?: number): Promise<ItemLista[]> {
@@ -170,7 +81,7 @@ export = class DayOff {
 
 			lista = await sql.query("select u.nome, date_format(d.data, '%Y-%m-%d') data, u.id_departamento, dp.desc_departamento from dayoff d inner join usuario u on u.idusuario = d.idusuario inner join departamento dp on dp.id_departamento = u.id_departamento where d.data >= ? and d.data < ?" + (idusuario ? (" and d.idusuario = ? order by d.data asc") : (id_departamento ? " and u.id_departamento = ?" : "")), (idusuario || id_departamento) ? [dataInicial, dataFinal, idusuario || id_departamento] : [dataInicial, dataFinal]);
 
-			lista2 = await sql.query("select u.nome, date_format(h.data, '%Y-%m-%d') data, h.minutos, u.id_departamento, dp.desc_departamento from horapessoal h inner join usuario u on u.idusuario = h.idusuario inner join departamento dp on dp.id_departamento = u.id_departamento where h.data >= ? and h.data < ?" + (idusuario ? (" and h.idusuario = ? order by h.data asc") : (id_departamento ? " and u.id_departamento = ?" : "")), (idusuario || id_departamento) ? [dataInicial, dataFinal, idusuario || id_departamento] : [dataInicial, dataFinal]);
+			lista2 = await sql.query("select u.nome, date_format(h.data, '%Y-%m-%d') data, date_format(h.data, '%H:%i') inicio, h.minutos, u.id_departamento, dp.desc_departamento from horapessoal h inner join usuario u on u.idusuario = h.idusuario inner join departamento dp on dp.id_departamento = u.id_departamento where h.data >= ? and h.data < ?" + (idusuario ? (" and h.idusuario = ? order by h.data asc") : (id_departamento ? " and u.id_departamento = ?" : "")), (idusuario || id_departamento) ? [dataInicial, dataFinal, idusuario || id_departamento] : [dataInicial, dataFinal]);
 		});
 
 		if (!lista || !lista.length)
@@ -182,19 +93,23 @@ export = class DayOff {
 		return lista;
 	}
 
-	public static async sincronizarDaysOff(ano: number, ciclo: number, idusuario: number, daysOff: string[]): Promise<string> {
+	public static async sincronizarDaysOff(idusuario: number, idciclo: number, daysOff: string[]): Promise<string> {
 		if (!daysOff)
 			daysOff = [];
 		else if (!Array.isArray(daysOff))
 			daysOff = [ daysOff as any ];
 
-		const infoAtual = await DayOff.infoAtual(),
-			regexp = DayOff.RegExp,
-			hoje = infoAtual.hoje,
-			anoInicialCiclo = infoAtual.anoInicialCiclo,
-			cicloAtual = infoAtual.cicloAtual;
+		const cicloAtual = await Ciclo.obterAtual(idusuario),
+			hoje = DataUtil.horarioDeBrasiliaISO(),
+			horaAtual = DataUtil.horarioDeBrasiliaComoDateUTC().getUTCHours();
 
-		if (ano !== anoInicialCiclo || ciclo !== cicloAtual)
+		if (!cicloAtual)
+			return "Usuário não tem um ciclo atual";
+
+		if (cicloAtual.termino)
+			return "O ciclo atual do usuário está encerrado";
+
+		if (idciclo !== cicloAtual.idciclo)
 			return "Não é permitido sincronizar days off de um ciclo diferente do atual";
 
 		for (let i = daysOff.length - 1; i >= 0; i--) {
@@ -204,12 +119,8 @@ export = class DayOff {
 			if (!(daysOff[i] = DataUtil.converterDataISO(daysOff[i])))
 				return "Data inválida";
 
-			const data = parseInt(daysOff[i].replace(regexp, "")),
-				anoData = (data / 10000) | 0,
-				mesData = ((data / 100) | 0) % 100;
-
-			if (!DayOff.dataPertenceAoCiclo(mesData, anoData, infoAtual))
-				return "Não é permitido sincronizar days off de um mês/ano fora do mês/ano do ciclo atual";
+			if (!Ciclo.dataPertenceAoCiclo(daysOff[i], cicloAtual))
+				return "Não é permitido sincronizar days off de uma data fora do ciclo atual";
 		}
 
 		let res: string = null;
@@ -221,7 +132,7 @@ export = class DayOff {
 				return;
 			}
 
-			const antigos: DayOff[] = await sql.query("select iddayoff, date_format(data, '%Y-%m-%d') data from dayoff where ano = ? and ciclo = ? and idusuario = ?", [anoInicialCiclo, cicloAtual, idusuario]);
+			const antigos: DayOff[] = await sql.query("select iddayoff, date_format(data, '%Y-%m-%d') data from dayoff where idusuario = ? and idciclo = ?", [idusuario, cicloAtual.idciclo]);
 			const adicionar = daysOff;
 			const atualizar: DayOff[] = [];
 			const datasUtilizadas: any = {};
@@ -255,25 +166,47 @@ export = class DayOff {
 				daysOffTotais++;
 			}
 
+			for (let i = adicionar.length - 1; i >= 0; i--) {
+				const data = adicionar[i];
+
+				const diaAnterior = DataUtil.removerHorarioISO((new Date(new Date(data).getTime() - (24 * 60 * 60 * 1000))).toISOString()),
+					diaSeguinte = DataUtil.removerHorarioISO((new Date(new Date(data).getTime() + (24 * 60 * 60 * 1000))).toISOString());
+
+				if (datasUtilizadas[diaAnterior] || datasUtilizadas[diaSeguinte]) {
+					res = "Não é permitido tirar days off em dias consecutivos (" + DataUtil.converterDataISO(data, true) + ")";
+					return;
+				}
+			}
+
 			if (daysOffTotais > quantidadeMaxima) {
 				res = "Não é permitido tirar mais de " + quantidadeMaxima + " days off por ciclo";
 				return;
 			}
 
 			for (let i = antigos.length - 1; i >= 0; i--) {
-				if (parseInt(antigos[i].data.replace(regexp, "")) < hoje) {
+				if (antigos[i].data < hoje) {
 					res = "Não é permitido editar ou excluir days off de uma data passada (" + DataUtil.converterDataISO(antigos[i].data, true) + ")";
+					return;
+				}
+
+				if (antigos[i].data === hoje && horaAtual >= DayOff.HorarioLimiteAlteracoesHoje) {
+					res = "Não é permitido editar ou excluir days off do próprio dia depois das " + DayOff.HorarioLimiteAlteracoesHoje + ":00";
 					return;
 				}
 			}
 
 			for (let i = adicionar.length - 1; i >= 0; i--) {
-				if (parseInt(adicionar[i].replace(regexp, "")) < hoje) {
+				if (adicionar[i] < hoje) {
 					res = "Não é permitido adicionar days off em uma data passada (" + DataUtil.converterDataISO(adicionar[i], true) + ")";
 					return;
 				}
 
-				if (await sql.scalar("select 1 from horapessoal where idusuario = ? and data = ?", [idusuario, adicionar[i]])) {
+				if (adicionar[i] === hoje && horaAtual >= DayOff.HorarioLimiteAlteracoesHoje) {
+					res = "Não é permitido adicionar days off para o próprio dia depois das " + DayOff.HorarioLimiteAlteracoesHoje + ":00";
+					return;
+				}
+
+				if (await sql.scalar("select 1 from horapessoal where idusuario = ? and data >= ? and data <= ?", [idusuario, adicionar[i] + " 00:00:00", adicionar[i] + " 23:59:59"])) {
 					res = "Não é permitido adicionar um day off na data " + DataUtil.converterDataISO(adicionar[i], true) + " porque já existem horas pessoais nessa data";
 					return;
 				}
@@ -301,7 +234,7 @@ export = class DayOff {
 				await sql.query("update dayoff set data = ?, criacao = ? where iddayoff = ?", [atualizar[i].data, agora, atualizar[i].iddayoff]);
 
 			for (let i = adicionar.length - 1; i >= 0; i--)
-				await sql.query("insert into dayoff (idusuario, ano, ciclo, data, criacao) values (?, ?, ?, ?, ?)", [idusuario, anoInicialCiclo, cicloAtual, adicionar[i], agora]);
+				await sql.query("insert into dayoff (idusuario, idciclo, data, criacao) values (?, ?, ?, ?)", [idusuario, cicloAtual.idciclo, adicionar[i], agora]);
 
 			await sql.commit();
 		});
@@ -309,7 +242,7 @@ export = class DayOff {
 		return res;
 	}
 
-	public static async sincronizarHoras(ano: number, ciclo: number, idusuario: number, horasPessoaisDatas: string[], horasPessoaisMinutos: number[]): Promise<string> {
+	public static async sincronizarHoras(idusuario: number, idciclo: number, horasPessoaisDatas: string[], horasPessoaisMinutos: number[]): Promise<string> {
 		if (!horasPessoaisDatas)
 			horasPessoaisDatas = [];
 		else if (!Array.isArray(horasPessoaisDatas))
@@ -330,13 +263,18 @@ export = class DayOff {
 				minutos: horasPessoaisMinutos[i]
 			} as any;
 
-		const infoAtual = await DayOff.infoAtual(),
-			regexp = DayOff.RegExp,
-			hoje = infoAtual.hoje,
-			anoInicialCiclo = infoAtual.anoInicialCiclo,
-			cicloAtual = infoAtual.cicloAtual;
+		const cicloAtual = await Ciclo.obterAtual(idusuario),
+			hoje = DataUtil.horarioDeBrasiliaISO(),
+			hojeMeiaNoite = hoje + " 00:00:00",
+			horaAtual = DataUtil.horarioDeBrasiliaComoDateUTC().getUTCHours();
 
-		if (ano !== anoInicialCiclo || ciclo !== cicloAtual)
+		if (!cicloAtual)
+			return "Usuário não tem um ciclo atual";
+
+		if (cicloAtual.termino)
+			return "O ciclo atual do usuário está encerrado";
+
+		if (idciclo !== cicloAtual.idciclo)
 			return "Não é permitido sincronizar horas pessoais de um ciclo diferente do atual";
 
 		for (let i = horasPessoais.length - 1; i >= 0; i--) {
@@ -346,12 +284,11 @@ export = class DayOff {
 			if (!(horasPessoais[i].data = DataUtil.converterDataISO(horasPessoais[i].data)))
 				return "Data inválida";
 
-			const data = parseInt(horasPessoais[i].data.replace(regexp, "")),
-				anoData = (data / 10000) | 0,
-				mesData = ((data / 100) | 0) % 100;
+			if (horasPessoais[i].data.length !== 19)
+				return "Data sem horário";
 
-			if (!DayOff.dataPertenceAoCiclo(mesData, anoData, infoAtual))
-				return "Não é permitido sincronizar horas pessoais de um mês/ano fora do mês/ano do ciclo atual";
+			if (!Ciclo.dataPertenceAoCiclo(horasPessoais[i].data, cicloAtual))
+				return "Não é permitido sincronizar horas pessoais de uma data fora do ciclo atual";
 
 			horasPessoais[i].minutos = parseInt(horasPessoais[i].minutos as any);
 
@@ -368,7 +305,7 @@ export = class DayOff {
 		let res: string = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			const antigos: HoraPessoal[] = await sql.query("select idhorapessoal, minutos, date_format(data, '%Y-%m-%d') data from horapessoal where ano = ? and ciclo = ? and idusuario = ?", [anoInicialCiclo, cicloAtual, idusuario]);
+			const antigos: HoraPessoal[] = await sql.query("select idhorapessoal, minutos, date_format(data, '%Y-%m-%d %H:%i:%s') data from horapessoal where idusuario = ? and idciclo = ?", [idusuario, cicloAtual.idciclo]);
 			const adicionar = horasPessoais;
 			const atualizar: HoraPessoal[] = [];
 			const datasUtilizadas: any = {};
@@ -381,7 +318,7 @@ export = class DayOff {
 
 				for (let j = adicionar.length - 1; j >= 0; j--) {
 					if (adicionar[j].data === data && adicionar[j].minutos === minutos) {
-						datasUtilizadas[data] = true;
+						datasUtilizadas[DataUtil.removerHorarioISO(data)] = true;
 						minutosTotais += minutos;
 						antigos.splice(i, 1);
 						adicionar.splice(j, 1);
@@ -391,14 +328,15 @@ export = class DayOff {
 
 			for (let i = adicionar.length - 1; i >= 0; i--) {
 				const data = adicionar[i].data,
+					dataSemHorario = DataUtil.removerHorarioISO(data),
 					minutos = adicionar[i].minutos;
 
-				if (datasUtilizadas[data]) {
+				if (datasUtilizadas[dataSemHorario]) {
 					res = "Não é permitido tirar horas pessoais mais de uma vez na mesma data (" + DataUtil.converterDataISO(data, true) + ")";
 					return;
 				}
 
-				datasUtilizadas[data] = true;
+				datasUtilizadas[dataSemHorario] = true;
 
 				minutosTotais += minutos;
 			}
@@ -409,19 +347,29 @@ export = class DayOff {
 			}
 
 			for (let i = antigos.length - 1; i >= 0; i--) {
-				if (parseInt(antigos[i].data.replace(regexp, "")) < hoje) {
+				if (antigos[i].data < hojeMeiaNoite) {
 					res = "Não é permitido editar ou excluir horas pessoais de uma data passada (" + DataUtil.converterDataISO(antigos[i].data, true) + ")";
+					return;
+				}
+
+				if (DataUtil.removerHorarioISO(antigos[i].data) === hoje && horaAtual >= DayOff.HorarioLimiteAlteracoesHoje) {
+					res = "Não é permitido editar ou excluir horas pessoais do próprio dia depois das " + DayOff.HorarioLimiteAlteracoesHoje + ":00";
 					return;
 				}
 			}
 
 			for (let i = adicionar.length - 1; i >= 0; i--) {
-				if (parseInt(adicionar[i].data.replace(regexp, "")) < hoje) {
+				if (adicionar[i].data < hojeMeiaNoite) {
 					res = "Não é permitido adicionar horas pessoais em uma data passada (" + DataUtil.converterDataISO(adicionar[i].data, true) + ")";
 					return;
 				}
 
-				if (await sql.scalar("select 1 from dayoff where idusuario = ? and data = ?", [idusuario, adicionar[i].data])) {
+				if (DataUtil.removerHorarioISO(adicionar[i].data) === hoje && horaAtual >= DayOff.HorarioLimiteAlteracoesHoje) {
+					res = "Não é permitido adicionar horas pessoais para o próprio dia depois das " + DayOff.HorarioLimiteAlteracoesHoje + ":00";
+					return;
+				}
+
+				if (await sql.scalar("select 1 from dayoff where idusuario = ? and data = ?", [idusuario, DataUtil.removerHorarioISO(adicionar[i].data)])) {
 					res = "Não é permitido adicionar horas pessoais na data " + DataUtil.converterDataISO(adicionar[i].data, true) + " porque já existe um day off nessa data";
 					return;
 				}
@@ -450,7 +398,7 @@ export = class DayOff {
 				await sql.query("update horapessoal set minutos = ?, data = ?, criacao = ? where idhorapessoal = ?", [atualizar[i].minutos, atualizar[i].data, agora, atualizar[i].idhorapessoal]);
 
 			for (let i = adicionar.length - 1; i >= 0; i--)
-				await sql.query("insert into horapessoal (idusuario, ano, ciclo, minutos, data, criacao) values (?, ?, ?, ?, ?, ?)", [idusuario, anoInicialCiclo, cicloAtual, adicionar[i].minutos, adicionar[i].data, agora]);
+				await sql.query("insert into horapessoal (idusuario, idciclo, minutos, data, criacao) values (?, ?, ?, ?, ?)", [idusuario, cicloAtual.idciclo, adicionar[i].minutos, adicionar[i].data, agora]);
 
 			await sql.commit();
 		});

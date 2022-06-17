@@ -3,23 +3,13 @@
 		<form id="form" class="panel panel-default" action="#">
 			<div class="panel-heading">Filtro de Days Off</div>
 			<div class="panel-body">
-				<div class="row">
-					<div class="col-xs-6">
-						<div class="form-group mb-0">
-							<label for="ano">Ano</label>
-							<input type="number" id="ano" name="ano" class="form-control" value="<%- anoAtual %>" onchange="atualizarDaysOff()" />
-						</div>
-					</div>
-
-					<div class="col-xs-6">
-						<div class="form-group mb-0">
-							<label for="ciclo">Ciclo</label>
-							<select size="1" id="ciclo" name="ciclo" class="form-control" onchange="atualizarDaysOff()">
-								<option value="1" <%- ((cicloAtual === 1) ? 'selected="selected"' : '') %>>1</option>
-								<option value="2" <%- ((cicloAtual === 2) ? 'selected="selected"' : '') %>>2</option>
-							</select>
-						</div>
-					</div>
+				<div class="form-group mb-0">
+					<label for="ciclo">Ciclo</label>
+					<select size="1" id="idciclo" name="idciclo" class="form-control" onchange="atualizarDaysOff()">
+						<% for (let i = 0; i < ciclos.length; i++) { %>
+						<option value="<%- ciclos[i].idciclo %>" <%- (!i ? 'selected="selected"' : '') %>><%= ciclos[i].nome %></option>
+						<% } %>
+					</select>
 				</div>
 
 				<hr />
@@ -40,7 +30,7 @@
 								</td>
 							</tr>
 						<% } } else { %>
-							<tr><td class="text-center">Não há days off cadastrados para <%- anoAtual %>-<%- cicloAtual %></td></tr>
+							<tr><td class="text-center">Não há days off cadastrados nesse ciclo</td></tr>
 						<% } %>
 					</tbody>
 				</table>
@@ -80,7 +70,7 @@
 		var bodyDaysOff = document.getElementById("bodyDaysOff");
 		bodyDaysOff.removeChild(button.parentNode.parentNode);
 		if (!bodyDaysOff.getElementsByTagName("tr").length) {
-			bodyDaysOff.innerHTML = '<tr><td class="text-center">Não há days off cadastrados para ' + $("#ano").val() + '-' + $("#ciclo").val() + '</td></tr>';
+			bodyDaysOff.innerHTML = '<tr><td class="text-center">Não há days off cadastrados nesse ciclo</td></tr>';
 		}
 	}
 
@@ -98,7 +88,7 @@
 				Notification.hide();
 
 				if (!response.value || !response.value.length) {
-					bodyDaysOff.innerHTML = '<tr><td class="text-center">Não há days off cadastrados para ' + $("#ano").val() + '-' + $("#ciclo").val() + '</td></tr>';
+					bodyDaysOff.innerHTML = '<tr><td class="text-center">Não há days off cadastrados nesse ciclo</td></tr>';
 				} else {
 					for (var i = 0; i < response.value.length; i++) {
 						$("#bodyDaysOff").append('<tr><td class="col-min"><button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerDayOff(this)"><i class="fa fa-nomargin fa-times"></i></button></td><td><input name="daysOff" class="form-control" type="date" value="' + response.value[i].data + '" /></td></tr>');
@@ -108,7 +98,7 @@
 				bodyDaysOff.innerHTML = '<tr><td class="text-center">Ocorreu um erro na atualização</td></tr>';
 				Notification.error(response.value + " " + emoji.sad, true);
 			}
-		}, "ano", $("#ano").val(), "ciclo", $("#ciclo").val());
+		}, "idciclo", $("#idciclo").val());
 	}
 
 	$("#form").validate({
@@ -124,7 +114,7 @@
 
 			Notification.wait();
 
-			JsonWebApi.postFormData("<%- root %>/api/dayOff/sincronizar?ano=" + encodeURIComponent($("#ano").val()) + "&ciclo=" + encodeURIComponent($("#ciclo").val()), form, function (response) {
+			JsonWebApi.postFormData("<%- root %>/api/dayOff/sincronizar?idciclo=" + encodeURIComponent($("#idciclo").val()), form, function (response) {
 				if (response.success)
 					Notification.success("Days off sincronizados com sucesso! " + emoji.happy);
 				else

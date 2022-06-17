@@ -85,7 +85,7 @@ CREATE TABLE usuario (
   CONSTRAINT usuario_id_departamento_FK FOREIGN KEY (id_departamento) REFERENCES departamento (id_departamento) ON DELETE RESTRICT ON UPDATE RESTRICT
 );
 
-INSERT INTO usuario (login, nome, idperfil, versao, token, idcargo, idcurso, id_departamento, semestre, daysoff, endereco, telefone, nascimento, criacao) VALUES ('admin@espm.br', 'Administrador', 1, 0, NULL, 1, 1, 1, 1, 0, '', '', NOW(), NOW());
+INSERT INTO usuario (login, nome, idperfil, idciclo, versao, token, idcargo, idcurso, id_departamento, semestre, daysoff, endereco, telefone, nascimento, criacao) VALUES ('admin@espm.br', 'Administrador', 1, 0, 0, NULL, 1, 1, 1, 1, 0, '', '', NOW(), NOW());
 
 -- DROP TABLE IF EXISTS ciclo;
 CREATE TABLE ciclo (

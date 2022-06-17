@@ -11,6 +11,7 @@ import FS = require("../infra/fs");
 import JSONRequest = require("../infra/jsonRequest");
 import emailValido = require("../utils/emailValido");
 import DataUtil = require("../utils/dataUtil");
+import Ciclo = require("./ciclo");
 
 export = class Usuario {
 
@@ -23,6 +24,7 @@ export = class Usuario {
 	public login: string;
 	public nome: string;
 	public idperfil: number;
+	public idciclo: number;
 	public versao: number;
 	public idcargo: number;
 	public idcurso: number;
@@ -33,9 +35,13 @@ export = class Usuario {
 	public telefone: string;
 	public nascimento: string;
 	public criacao: string;
-	
+
 	// Utilizados apenas através do cookie
 	public admin: boolean;
+
+	// Utilizados apenas a partir das telas (fica em outra tabela)
+	public nomeciclo?: string;
+	public terminarcicloatual?: number;
 
 	// Não estamos utilizando Usuario.cookie como middleware, porque existem muitas requests
 	// que não precisam validar o usuário logado, e agora, é assíncrono...
@@ -296,6 +302,12 @@ export = class Usuario {
 		if (!(u.nascimento = DataUtil.converterDataISO(u.nascimento)))
 			return "Data de nascimento inválida";
 
+		u.nomeciclo = (u.nomeciclo || "").normalize().trim();
+		if (u.nomeciclo.length < 2 || u.nomeciclo.length > 50)
+			return "Ciclo inválido";
+
+		u.terminarcicloatual = (u.terminarcicloatual == 1 ? 1 : 0);
+
 		return null;
 	}
 
@@ -313,7 +325,7 @@ export = class Usuario {
 		let lista: Usuario[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select u.idusuario, u.login, u.nome, u.versao, p.nome perfil, u.idcargo, c.nome cargo, u.idcurso, s.nome curso, u.id_departamento, d.desc_departamento, u.semestre, u.daysoff, u.telefone, date_format(u.nascimento, '%d/%m/%Y') nascimento, date_format(u.criacao, '%d/%m/%Y') criacao from usuario u inner join perfil p on p.idperfil = u.idperfil inner join cargo c on c.idcargo = u.idcargo inner join curso s on s.idcurso = u.idcurso inner join departamento d on d.id_departamento = u.id_departamento order by u.login asc") as Usuario[];
+			lista = await sql.query("select u.idusuario, u.login, u.nome, u.versao, p.nome perfil, ci.nome nomeciclo, date_format(ci.inicio, '%d/%m/%Y') iniciociclo, u.idcargo, c.nome cargo, u.idcurso, s.nome curso, u.id_departamento, d.desc_departamento, u.semestre, u.daysoff, u.telefone, date_format(u.nascimento, '%d/%m/%Y') nascimento, date_format(u.criacao, '%d/%m/%Y') criacao from usuario u inner join perfil p on p.idperfil = u.idperfil inner join cargo c on c.idcargo = u.idcargo inner join curso s on s.idcurso = u.idcurso inner join departamento d on d.id_departamento = u.id_departamento left join ciclo ci on ci.idciclo = u.idciclo order by u.login asc") as Usuario[];
 		});
 
 		return (lista || []);
@@ -323,7 +335,7 @@ export = class Usuario {
 		let lista: Usuario[] = null;
 
 		await Sql.conectar(async (sql: Sql) => {
-			lista = await sql.query("select idusuario, login, nome, idperfil, idcargo, idcurso, id_departamento, semestre, daysoff, endereco, telefone, date_format(nascimento, '%Y-%m-%d') nascimento, date_format(criacao, '%d/%m/%Y') criacao from usuario where idusuario = ?", [idusuario]) as Usuario[];
+			lista = await sql.query("select u.idusuario, u.login, u.nome, u.idperfil, ci.nome nomeciclo, date_format(ci.inicio, '%d/%m/%Y') iniciociclo, u.idcargo, u.idcurso, u.id_departamento, u.semestre, u.daysoff, u.endereco, u.telefone, date_format(u.nascimento, '%Y-%m-%d') nascimento, date_format(u.criacao, '%d/%m/%Y') criacao from usuario u left join ciclo ci on ci.idciclo = u.idciclo where u.idusuario = ?", [idusuario]) as Usuario[];
 		});
 
 		return ((lista && lista[0]) || null);
@@ -341,8 +353,10 @@ export = class Usuario {
 
 				await sql.beginTransaction();
 
-				await sql.query("insert into usuario (login, nome, idperfil, versao, idcargo, idcurso, id_departamento, semestre, daysoff, endereco, telefone, nascimento, criacao) values (?, ?, ?, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [u.login, u.nome, u.idperfil, u.idcargo, u.idcurso, u.id_departamento, u.semestre, u.daysoff, u.endereco, u.telefone, u.nascimento, agora]);
+				await sql.query("insert into usuario (login, nome, idperfil, idciclo, versao, idcargo, idcurso, id_departamento, semestre, daysoff, endereco, telefone, nascimento, criacao) values (?, ?, ?, 0, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?)", [u.login, u.nome, u.idperfil, u.idcargo, u.idcurso, u.id_departamento, u.semestre, u.daysoff, u.endereco, u.telefone, u.nascimento, agora]);
 				u.idusuario = await sql.scalar("select last_insert_id()") as number;
+
+				u.idciclo = await Ciclo.mudarAtual(u.idusuario, 0, u.nomeciclo, sql);
 
 				// @@@ Ficha médica...
 				await sql.query("insert into ficha_medica (idusuario, tipo_sanguineo, alergia, plano_saude, contato_emergencia, hospital_preferencia) VALUES (?, '', '', '', '', '')", [u.idusuario]);
@@ -375,34 +389,48 @@ export = class Usuario {
 		if ((res = Usuario.validar(u)))
 			return res;
 
-		await Sql.conectar(async (sql: Sql) => {
+		return Sql.conectar(async (sql: Sql) => {
+			await sql.beginTransaction();
+
 			await sql.query("update usuario set nome = ?, idperfil = ?, idcargo = ?, idcurso = ?, id_departamento = ?, semestre = ?, daysoff = ?, endereco = ?, telefone = ?, nascimento = ? where idusuario = ?", [u.nome, u.idperfil, u.idcargo, u.idcurso, u.id_departamento, u.semestre, u.daysoff, u.endereco, u.telefone, u.nascimento, u.idusuario]);
-			res = sql.linhasAfetadas.toString();
+			if (!sql.linhasAfetadas)
+				return "0";
+
+			const cicloAtual = await Ciclo.obterAtual(u.idusuario, sql);
+
+			if (!cicloAtual || u.terminarcicloatual)
+				await Ciclo.mudarAtual(u.idusuario, (cicloAtual && cicloAtual.idciclo) || 0, u.nomeciclo, sql);
+			else
+				await Ciclo.alterarNome(u.idusuario, cicloAtual.idciclo, u.nomeciclo, sql);
 
 			// @@@ Ficha médica...
-		});
 
-		return res;
+			await sql.commit();
+
+			return "1";
+		});
 	}
 
 	public static async excluir(idusuario: number): Promise<string> {
 		if (idusuario === Usuario.IdAdmin)
 			return "Não é possível excluir o usuário administrador principal";
 
-		let res: string = null;
-
-		await Sql.conectar(async (sql: Sql) => {
+		return Sql.conectar(async (sql: Sql) => {
 			await sql.beginTransaction();
 			await sql.query("delete from usuario where idusuario = ?", [idusuario]);
-			res = sql.linhasAfetadas.toString();
+
+			if (!sql.linhasAfetadas)
+				return "0";
+
 			if (sql.linhasAfetadas) {
 				const caminho = Usuario.CaminhoRelativoPerfil + idusuario + ".jpg";
 				if (await FS.existeArquivo(caminho))
 					await FS.excluirArquivo(caminho);
 			}
-			await sql.commit();
-		});
 
-		return res;
+			await sql.commit();
+
+			return "1";
+		});
 	}
 }

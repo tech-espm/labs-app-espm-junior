@@ -6,6 +6,7 @@ import appsettings = require("../appsettings");
 import DayOff = require("../models/dayOff");
 import DataUtil = require("../utils/dataUtil");
 import Departamento = require("../models/departamento");
+import Ciclo = require("../models/ciclo");
 
 const router = express.Router();
 
@@ -14,16 +15,16 @@ router.all("/listarPonto", wrap(async (req: express.Request, res: express.Respon
 	if (!u || !u.admin) {
 		res.redirect(appsettings.root + "/acesso");
 	} else {
-		const infoAtual = DayOff.infoAtualSemCiclo();
+		const anoMesAtual = DayOff.anoMesAtual();
 		res.render("controle/listarPonto", {
 			titulo: "Gerenciar Ponto",
 			usuario: u,
-			anoAtual: infoAtual.anoAtual,
-			mesAtual: infoAtual.mesAtual,
+			anoAtual: anoMesAtual.ano,
+			mesAtual: anoMesAtual.mes,
 			hoje: DataUtil.horarioDeBrasiliaISO(),
 			departamentos: await Departamento.listar(),
 			usuarios: await Usuario.listarDropDown(),
-			lista: await Ponto.listar(infoAtual.anoAtual, infoAtual.mesAtual)
+			lista: await Ponto.listar(anoMesAtual.ano, anoMesAtual.mes)
 		});
 	}
 }));
@@ -57,14 +58,13 @@ router.all("/daysOff", wrap(async (req: express.Request, res: express.Response) 
 	if (!u) {
 		res.redirect(appsettings.root + "/acesso");
 	} else {
-		const infoAtual = await DayOff.infoAtual();
+		const ciclos = await Ciclo.listar(u.idusuario);
 
 		res.render("controle/daysOff", {
 			titulo: "Days Off",
 			usuario: u,
-			anoAtual: infoAtual.anoAtual,
-			cicloAtual: infoAtual.cicloAtual,
-			daysOff: await DayOff.listarDaysOff(infoAtual.anoAtual, infoAtual.cicloAtual, u.idusuario)
+			ciclos,
+			daysOff: ciclos[0] ? await DayOff.listarDaysOff(u.idusuario, ciclos[0].idciclo) : []
 		});
 	}
 }));
@@ -74,28 +74,13 @@ router.all("/horasPessoais", wrap(async (req: express.Request, res: express.Resp
 	if (!u) {
 		res.redirect(appsettings.root + "/acesso");
 	} else {
-		const infoAtual = await DayOff.infoAtual();
+		const ciclos = await Ciclo.listar(u.idusuario);
 
 		res.render("controle/horasPessoais", {
 			titulo: "Horas Pessoais",
 			usuario: u,
-			anoAtual: infoAtual.anoAtual,
-			cicloAtual: infoAtual.cicloAtual,
-			horasPessoais: await DayOff.listarHoras(infoAtual.anoAtual, infoAtual.cicloAtual, u.idusuario)
-		});
-	}
-}));
-
-router.get("/gerenciarCicloAtual", wrap(async (req: express.Request, res: express.Response) => {
-	let u = await Usuario.cookie(req);
-	if (!u || !u.admin) {
-		res.redirect(appsettings.root + "/acesso");
-	} else {
-		const infoAtual = await DayOff.infoAtual();
-		res.render("controle/gerenciarCicloAtual", {
-			titulo: "Gerenciar Ciclo Atual",
-			usuario: u,
-			infoAtual
+			ciclos,
+			horasPessoais: ciclos[0] ? await DayOff.listarHoras(u.idusuario, ciclos[0].idciclo) : []
 		});
 	}
 }));

@@ -47,7 +47,4 @@ router.get("/excluir", wrap(async (req: express.Request, res: express.Response) 
 	jsonRes(res, 400, isNaN(id) ? "Dados inválidos" : await Sala.excluir(id));
 }));
 
-
-
-
 export = router;

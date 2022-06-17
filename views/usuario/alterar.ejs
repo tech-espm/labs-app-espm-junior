@@ -99,6 +99,34 @@
 					<label for="telefone">Telefone</label>
 					<input id="telefone" name="telefone" class="form-control" maxlength="20" type="tel" spellcheck="false" value="<%=(item ? item.telefone : '') %>" />
 				</div>
+
+				<hr />
+
+				<h2 class="mb-4">Ciclo Atual</h2>
+
+				<% if (item) { %>
+				<div class="form-group">
+					<select id="terminarcicloatual" name="terminarcicloatual" class="form-control">
+						<option value="0">Apenas ajustar o nome do ciclo atual</option>
+						<option value="1">Concluir ciclo atual e iniciar um novo ciclo</option>
+					</select>
+				</div>
+
+				<div class="placeholder-chooser text-left mb-3">
+					Quando a opção "<b>Apenas ajustar o nome do ciclo atual</b>" for selecionada, você irá apenas renomear/corrigir o nome do ciclo atual do usuário (days off e horas pessoais <b>não serão</b> renovadas).
+					Contudo, quando a opção "<b>Concluir ciclo atual e iniciar um novo ciclo</b>" for selecionada, o ciclo atual será encerrado, e um novo ciclo será iniciado, mesmo que com o mesmo nome (days off e horas pessoais <b>serão</b> renovadas).
+				</div>
+
+				<div class="form-group">
+					<label for="iniciociclo">Início do Ciclo Atual</label>
+					<input id="iniciociclo" name="iniciociclo" class="form-control" type="text" spellcheck="false" readonly="readonly" value="<%=(item ? item.iniciociclo : '') %>" />
+				</div>
+				<% } %>
+
+				<div class="form-group">
+					<label for="nomeciclo">Nome do Ciclo Atual</label>
+					<input id="nomeciclo" name="nomeciclo" class="form-control" maxlength="50" type="text" spellcheck="false" value="<%=(item ? item.nomeciclo : '') %>" />
+				</div>
 			</div>
 			<div class="panel-footer">
 				<input value="<%=(item ? 'Salvar Alterações' : 'Criar Usuário') %>" class="btn btn-primary btn-lg btn-block" type="submit" />
@@ -158,6 +186,11 @@
 			},
 			nascimento: {
 				required: true
+			},
+			nomeciclo: {
+				required: true,
+				minlength: 2,
+				maxlength: 50
 			}
 		},
 
@@ -165,18 +198,41 @@
 			if (JsonWebApi.active)
 				return;
 
-			Notification.wait();
-
 			//<% if (item) { %>
 
-			JsonWebApi.postFormData("<%- root %>/api/usuario/alterar", form, function (response) {
-				if (response.success)
-					Notification.success("Usuário alterado com sucesso! " + emoji.happy);
-				else
-				Notification.error(response.value + " " + emoji.sad, true);
-			});
+			function concluir(alterarInicioCiclo) {
+				if (JsonWebApi.active)
+					return;
+
+				Notification.wait();
+
+				JsonWebApi.postFormData("<%- root %>/api/usuario/alterar", form, function (response) {
+					if (response.success) {
+						$("#terminarcicloatual").val("0");
+						if (alterarInicioCiclo)
+							$("#iniciociclo").val(DataUtil.horarioDeBrasiliaBr());
+						Notification.success("Usuário alterado com sucesso! " + emoji.happy);
+					} else {
+						Notification.error(response.value + " " + emoji.sad, true);
+					}
+				});
+			}
+
+			if (parseInt($("#terminarcicloatual").val())) {
+				Notification.okcancel("Tem certeza que deseja concluir o ciclo atual do usuário e iniciar outro? Esta operação NÃO pode ser desfeita!", null, true).then(function (result) {
+					if (JsonWebApi.active)
+						return;
+
+					if (result.value)
+						concluir(true);
+				});
+			} else {
+				concluir(false);
+			}
 
 			//<% } else { %>
+
+			Notification.wait();
 
 			JsonWebApi.postFormData("<%- root %>/api/usuario/criar", form, function (response) {
 				if (response.success) {

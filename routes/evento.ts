@@ -49,14 +49,14 @@ router.get("/listar", wrap(async (req: express.Request, res: express.Response) =
 	if (!u || !u.admin)
 		res.redirect(appsettings.root + "/acesso");
 	else{
-		const infoAtual = DayOff.infoAtualSemCiclo();
+		const anoMesAtual = DayOff.anoMesAtual();
 
 		res.render("evento/listar", {
 			titulo: "Gerenciar Eventos",
 			usuario: u,
-			anoAtual: infoAtual.anoAtual,
-			mesAtual: infoAtual.mesAtual,
-			lista: JSON.stringify(await Evento.listar(0, 0, infoAtual.anoAtual, infoAtual.mesAtual)),
+			anoAtual: anoMesAtual.ano,
+			mesAtual: anoMesAtual.mes,
+			lista: JSON.stringify(await Evento.listar(0, 0, anoMesAtual.ano, anoMesAtual.mes)),
 			departamentos: await Departamento.listar(),
 			salas: await Sala.listar()
 		});
@@ -83,14 +83,14 @@ router.all("/download/:iddepartamento", wrap(async (req: express.Request, res: e
 	if (!u || !u.admin)
 		res.redirect(appsettings.root + "/acesso");
 	else{
-		const infoAtual = DayOff.infoAtualSemCiclo();
+		const anoMesAtual = DayOff.anoMesAtual();
 		
 		res.render("evento/download", {
 			layout: "layout-vazio",
 			titulo: "Plano de Eventos",
 			usuario: u,
-			anoAtual: infoAtual.anoAtual,
-			lista: await Evento.listarOcorrencias(parseInt(req.params["iddepartamento"]), 0, infoAtual.anoAtual),
+			anoAtual: anoMesAtual.ano,
+			lista: await Evento.listarOcorrencias(parseInt(req.params["iddepartamento"]), 0, anoMesAtual.ano),
 			departamentos: await Departamento.listar()
 		});	
 	}

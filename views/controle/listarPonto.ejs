@@ -141,7 +141,7 @@
 			ocorrencias = [];
 
 		for (var i = 0; i < ocorrencias.length; i++) {
-			var data = converterDataISO(ocorrencias[i].data);
+			var data = DataUtil.converterDataISO(ocorrencias[i].data);
 			// https://fullcalendar.io/docs/event-object
 			ocorrencias[i].title = ocorrencias[i].nome;
 			ocorrencias[i].start = data;
