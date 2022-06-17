@@ -28,41 +28,39 @@ export = class Evento {
 		//	return [];
 		//}
 
-	
 		return lista || [];
 	}
 
-	public static validar(evento: Evento): string {
-		
-		if(!evento){
+	public static validar(evento: Evento, criacao: boolean): string {
+		if (!evento) {
 			return "Dados inválidos";
 		}
 
 		evento.nome_evento = (evento.nome_evento || "").normalize().trim();
-		if(!evento.nome_evento || evento.nome_evento.length>100){
+		if (!evento.nome_evento || evento.nome_evento.length>100) {
 			return "Nome inválido";
 		}
 
 		evento.desc_evento = (evento.desc_evento || "").normalize().trim();
-		if(evento.desc_evento.length>100){
+		if (evento.desc_evento.length > 100) {
 			return "Link / URL inválida";
 		}
 
 		evento.inicio_evento = DataUtil.converterDataISO(evento.inicio_evento);
-		if(!evento.inicio_evento) {
+		if (!evento.inicio_evento) {
 			//validação de data será aqui?
 			return "Data de Início inválida";
 		}
+		evento.inicio_evento += " 00:00:00";
+
 		evento.termino_evento = DataUtil.converterDataISO(evento.termino_evento);
-		if(!evento.termino_evento) {
+		if (!evento.termino_evento) {
 			//validação de data será aqui?
 			return "Data de Término inválida";
 		}
+		evento.termino_evento += " 23:59:59";
 
-		const regexp = /[\/\-\:\s]/g,
-			inicio = parseInt(evento.inicio_evento.replace(regexp, "")),
-			termino = parseInt(evento.termino_evento.replace(regexp, ""));
-		if (inicio > termino)
+		if (evento.inicio_evento > evento.termino_evento)
 			return "Data de Início deve ser anterior à Data de Término";
 
 		evento.id_departamento = parseInt(evento.id_departamento as any);
@@ -74,7 +72,10 @@ export = class Evento {
 			return "Sala inválida";
 		}
 		if (!evento.ocorrencias) {
-			evento.ocorrencias = [];
+			if (criacao)
+				evento.ocorrencias = [DataUtil.removerHorarioISO(evento.inicio_evento) + " 14:00:00"];
+			else
+				evento.ocorrencias = [];
 		} else {
 			if (!Array.isArray(evento.ocorrencias))
 				evento.ocorrencias = [ evento.ocorrencias as any ];
@@ -82,10 +83,11 @@ export = class Evento {
 			for (let i = evento.ocorrencias.length - 1; i >= 0; i--) {
 				if (!(evento.ocorrencias[i] = DataUtil.converterDataISO(evento.ocorrencias[i])))
 					return "Data da ocorrência inválida";
-				const ocorrencia = parseInt(evento.ocorrencias[i].replace(regexp, ""));
-				if (ocorrencia < inicio)
+				if (evento.ocorrencias[i].length === 10)
+					evento.ocorrencias[i] += " 14:00:00";
+				if (evento.ocorrencias[i] < evento.inicio_evento)
 					return "Data da ocorrência anterior ao início do evento";
-				if (ocorrencia > termino)
+				if (evento.ocorrencias[i] > evento.termino_evento)
 					return "Data da ocorrência posterior ao término do evento";
 			}
 
@@ -100,8 +102,8 @@ export = class Evento {
 	}
 
 	public static async listar(id_departamento?: number, id_sala?: number, ano?: number, mes?: number, dia?: number): Promise<Evento[]>{
-        let lista: Evento[] = null;
-        await Sql.conectar(async (sql) => {
+		let lista: Evento[] = null;
+		await Sql.conectar(async (sql) => {
 			let where = "";
 			let parametros: any[] = [];
 
@@ -155,13 +157,13 @@ export = class Evento {
 					(" where " + where) :
 					""
 				), parametros);
-        });
-        return lista;
+		});
+		return lista;
 	}
 
 	public static async listarOcorrencias(id_departamento?: number, id_sala?: number, ano?: number, mes?: number, dia?: number): Promise<Evento[]>{
-        let lista: Evento[] = null;
-        await Sql.conectar(async (sql) => {
+		let lista: Evento[] = null;
+		await Sql.conectar(async (sql) => {
 			let where = "";
 			let parametros: any[] = [];
 
@@ -206,7 +208,7 @@ export = class Evento {
 				parametros.push(inicio,fim);
 			}
 
-			lista = await sql.query(`select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%d/%m/%Y') inicio_evento, date_format(e.termino_evento, '%d/%m/%Y') termino_evento, date_format(eo.inicio_ocorrencia, '%d/%m/%Y') inicio_ocorrencia, et.id_departamento, t.desc_departamento, es.id_sala, s.desc_sala from evento e 
+			lista = await sql.query(`select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%d/%m/%Y') inicio_evento, date_format(e.termino_evento, '%d/%m/%Y') termino_evento, date_format(eo.inicio_ocorrencia, '%d/%m/%Y %H:%i') inicio_ocorrencia, et.id_departamento, t.desc_departamento, es.id_sala, s.desc_sala from evento e 
 			inner join evento_departamento et on et.id_evento = e.id_evento
 			inner join evento_sala es on es.id_evento = e.id_evento
 			inner join departamento t on t.id_departamento = et.id_departamento
@@ -216,85 +218,80 @@ export = class Evento {
 					(" where " + where) :
 					""
 				), parametros);
-        });
-        return lista;
+		});
+		return lista;
 	}
 
-	public static async criar(evento: Evento): Promise<string>{
-
+	public static async criar(evento: Evento): Promise<string> {
 		let res: string;
-		if ((res = Evento.validar(evento)))
+		if ((res = Evento.validar(evento, true)))
 			return res;
 
-		await Sql.conectar(async (sql: Sql) => {
+		return Sql.conectar(async (sql: Sql) => {
 			try {
 				await sql.beginTransaction();
 
 				await sql.query("insert into evento (nome_evento, desc_evento, inicio_evento, termino_evento) values (?,?,?,?)",[evento.nome_evento, evento.desc_evento, evento.inicio_evento, evento.termino_evento]);
-				const id_evento = await sql.scalar("select last_insert_id()") as number;
-				await sql.query(" insert into evento_departamento(id_departamento, id_evento) values (?, ?)", [evento.id_departamento, id_evento]);
-				await sql.query(" insert into evento_sala(id_sala, id_evento) values (?, ?)", [evento.id_sala, id_evento]);
 
-				if (!evento.ocorrencias.length)
-					evento.ocorrencias.push(evento.inicio_evento);
+				const id_evento: number = await sql.scalar("select last_insert_id()");
+
+				await sql.query("insert into evento_departamento(id_departamento, id_evento) values (?, ?)", [evento.id_departamento, id_evento]);
+
+				await sql.query("insert into evento_sala(id_sala, id_evento) values (?, ?)", [evento.id_sala, id_evento]);
 
 				for (let i = 0; i < evento.ocorrencias.length; i++)
 					await sql.query("insert into evento_ocorrencia (id_evento, inicio_ocorrencia) values (?, ?)", [id_evento, evento.ocorrencias[i]]);
 
 				await sql.commit();
+
+				return null;
 			} catch (e) {
 				if (e.code && e.code === "ER_DUP_ENTRY")
-					res = `O evento ${evento.nome_evento} já existe`; // evento.nome que está no alterar.ejs
+					return `O evento ${evento.nome_evento} já existe`; // evento.nome que está no alterar.ejs
 				else
 					throw e;
 			}
 		});
+	} 
 
-		return res;
-
-
-    } 
-
-	public static async obter(id_evento:number): Promise<Evento>{
-        let evento: Evento = null;
-
-        await Sql.conectar(async(sql)=>{
+	public static obter(id_evento:number): Promise<Evento>{
+		return Sql.conectar(async (sql) => {
 			let lista: Evento[] = await sql.query("select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%Y-%m-%d') inicio_evento, date_format(e.termino_evento, '%Y-%m-%d') termino_evento, et.id_departamento, es.id_sala from evento e inner join evento_departamento et on et.id_evento = e.id_evento inner join evento_sala es on es.id_evento = e.id_evento where e.id_evento = ?",[id_evento]);
-         
-            if(lista && lista.length){
-                evento = lista[0];
+		 
+			if (lista && lista.length){
+				const evento = lista[0];
 
-				let ocorrencias: { inicio_ocorrencia: string }[] = await sql.query("select date_format(inicio_ocorrencia, '%Y-%m-%d') inicio_ocorrencia from evento_ocorrencia where id_evento = ?",[id_evento]);
+				let ocorrencias: { inicio_ocorrencia: string }[] = await sql.query("select date_format(inicio_ocorrencia, '%Y-%m-%dT%H:%i:%s') inicio_ocorrencia from evento_ocorrencia where id_evento = ?",[id_evento]);
 				evento.ocorrencias = new Array(ocorrencias.length);
 				for (let i = ocorrencias.length - 1; i >= 0; i--)
 					evento.ocorrencias[i] = ocorrencias[i].inicio_ocorrencia;
 				evento.ocorrencias.sort();
-            }
-        });
+				return evento;
+			}
 
-        return evento;
-
-    }
+			return null;
+		});
+	}
 
 	public static async alterar(evento: Evento): Promise<string>{
-        let erro: string = Evento.validar(evento);
-        if(erro){
-            return erro;
-        }
-        await Sql.conectar(async(sql)=>{
+		let res: string;
+		if ((res = Evento.validar(evento, false)))
+			return res;
+
+		return Sql.conectar(async (sql) => {
 			await sql.beginTransaction();
 
 			await sql.query("update evento set nome_evento = ?, desc_evento = ?, inicio_evento = ?,  termino_evento = ? where id_evento = ?",[evento.nome_evento, evento.desc_evento, evento.inicio_evento, evento.termino_evento, evento.id_evento]);
-            if(!sql.linhasAfetadas){
-				erro = 'Evento não encontrado';
-				return;
-            }
 
-			await sql.query(" update evento_departamento set id_departamento = ? where id_evento = ?", [evento.id_departamento, evento.id_evento]);
-			await sql.query(" update evento_sala set id_sala = ? where id_evento = ?", [evento.id_sala, evento.id_evento]);
+			if (!sql.linhasAfetadas)
+				return "Evento não encontrado";
+
+			await sql.query("update evento_departamento set id_departamento = ? where id_evento = ?", [evento.id_departamento, evento.id_evento]);
+
+			await sql.query("update evento_sala set id_sala = ? where id_evento = ?", [evento.id_sala, evento.id_evento]);
 
 			let novasOcorrencias = evento.ocorrencias;
-			let ocorrenciasAntigas: { id_ocorrencia: number, inicio_ocorrencia: string }[] = await sql.query("select id_ocorrencia, date_format(inicio_ocorrencia, '%Y-%m-%d') inicio_ocorrencia from evento_ocorrencia where id_evento = ?", [evento.id_evento]);
+			let ocorrenciasAntigas: { id_ocorrencia: number, inicio_ocorrencia: string }[] = await sql.query("select id_ocorrencia, date_format(inicio_ocorrencia, '%Y-%m-%d %H:%i:%s') inicio_ocorrencia from evento_ocorrencia where id_evento = ?", [evento.id_evento]);
 
 			for (let i = ocorrenciasAntigas.length - 1; i >= 0; i--) {
 				const inicio_ocorrencia = ocorrenciasAntigas[i].inicio_ocorrencia;
@@ -315,31 +312,29 @@ export = class Evento {
 				await sql.query("insert into evento_ocorrencia (id_evento, inicio_ocorrencia) values (?, ?)", [evento.id_evento, novasOcorrencias[i]]);
 
 			await sql.commit();
-        });
 
-        return erro;
-    }
+			return null;
+		});
+	}
 
-	public static async excluir(id_evento:number): Promise<string>{
-        let erro: string = null;
-
-        await Sql.conectar(async(sql)=>{
+	public static excluir(id_evento:number): Promise<string> {
+		return Sql.conectar(async (sql) => {
 			await sql.beginTransaction();
-			await sql.query("delete from evento_departamento where id_evento=?;",[id_evento]);
-			await sql.query("delete from evento_sala where id_evento=?;",[id_evento]);
-			await sql.query("delete from evento_ocorrencia where id_evento=?;",[id_evento]);
 
-            let lista = await sql.query("delete from evento where id_evento=?;",[id_evento]);
+			await sql.query("delete from evento_departamento where id_evento = ?", [id_evento]);
 
-            if(!sql.linhasAfetadas){
-                erro = 'Evento não encontrado';
-			}
+			await sql.query("delete from evento_sala where id_evento = ?", [id_evento]);
+
+			await sql.query("delete from evento_ocorrencia where id_evento = ?",[id_evento]);
+
+			let lista = await sql.query("delete from evento where id_evento = ?",[id_evento]);
+
+			if (!sql.linhasAfetadas)
+				return "Evento não encontrado";
 			
 			await sql.commit();
 
-        });
-
-        return erro;
-
+			return null;
+		});
 	}
 }

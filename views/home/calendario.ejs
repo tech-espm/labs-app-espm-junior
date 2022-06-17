@@ -151,12 +151,6 @@
 	});
 
 	function criarTabela(dados) {
-		for (var i = dados.length - 1; i >= 0; i--) {
-			var ocorrencia = dados[i];
-
-			ocorrencia.dataptbr = ocorrencia.start.substr(8, 2) + "/" + ocorrencia.start.substr(5, 2) + "/" + ocorrencia.start.substr(0, 4);
-		}
-
 		$("#tabela_wrapper").remove();
 		$("#tabela_container").append('<table class="table table-striped table-hover" id="tabela"></table>');
 
@@ -181,7 +175,19 @@
 		if (!ocorrencias)
 			ocorrencias = [];
 
-		converterEventos(ocorrencias);
+		for (var i = 0; i < ocorrencias.length; i++) {
+			// https://fullcalendar.io/docs/event-object
+			var data = DataUtil.converterDataISO(ocorrencias[i].inicio_ocorrencia);
+			ocorrencias[i].backgroundColor = "#3788d8";
+			ocorrencias[i].borderColor = "#3788d8";
+			ocorrencias[i].textColor = "#fff";
+			ocorrencias[i].title = ocorrencias[i].nome_evento;
+			ocorrencias[i].desc_departamento = ocorrencias[i].desc_departamento;
+			ocorrencias[i].url = ocorrencias[i].desc_evento || "/";
+			ocorrencias[i].start = data;
+			ocorrencias[i].end = data;
+			ocorrencias[i].inicio = ocorrencias[i].inicio_ocorrencia.substr(11, 5);
+		}
 
 		if (daysOff && daysOff.length) {
 			for (var i = 0; i < daysOff.length; i++) {
@@ -192,6 +198,8 @@
 				if (ano !== anoAtual || mes !== mesAtual)
 					continue;
 
+				var datastr = (daysOff[i].inicio ? (daysOff[i].data + " " + daysOff[i].inicio) : daysOff[i].data);
+
 				// https://fullcalendar.io/docs/event-object
 				ocorrencias.push({
 					backgroundColor: (daysOff[i].minutos ? "#afe988" : "#ffa453"),
@@ -199,13 +207,20 @@
 					textColor: "#000",
 					title: daysOff[i].nome,
 					desc_departamento: daysOff[i].desc_departamento,
+					dataFormatada: DataUtil.converterDataISO(datastr, true),
 					inicio: daysOff[i].inicio,
 					minutos: daysOff[i].minutos,
 					url: "#dayOff",
-					start: daysOff[i].data,
-					end: daysOff[i].data
+					start: datastr,
+					end: datastr
 				});
 			}
+		}
+
+		for (var i = ocorrencias.length - 1; i >= 0; i--) {
+			var ocorrencia = ocorrencias[i];
+
+			ocorrencia.dataptbr = ocorrencia.start.substr(8, 2) + "/" + ocorrencia.start.substr(5, 2) + "/" + ocorrencia.start.substr(0, 4);
 		}
 
 		criarTabela(ocorrencias);
@@ -229,19 +244,23 @@
 			events: ocorrencias,
 			eventClick: function(info) {
 				info.jsEvent.preventDefault();
+
 				if (info.event.url == "#dayOff") {
-					var minutos = info.event.extendedProps.minutos,
-						inicio = info.event.extendedProps.inicio;
+					var dataFormatada = info.event.extendedProps.dataFormatada,
+						minutos = info.event.extendedProps.minutos;
+
 					Notification.info({
-						html: encode(info.event.title) + (minutos ?
-							("<br/>" + format2((minutos / 60) | 0) + ":" + format2(minutos % 60) + " (iniciando às " + inicio + ")")
-							: "") +
+						html: dataFormatada + '<br/><br/>' + encode(info.event.title) +
+							(minutos ? ('<br/><br/>Duração: ' + format2((minutos / 60) | 0) + ":" + format2(minutos % 60)) : "") +
 							"<br/><br/>Departamento: " + encode(info.event.extendedProps.desc_departamento)
 					}, minutos ? "Horas Pessoais" : "Day Off");
 				} else {
-					Notification.info((info.event.url && info.event.url !== "/") ? {
-						html: '<a target="_blank" href="' + info.event.url + '">' + info.event.url + '</a><br/><br/>Departamento: ' + encode(info.event.extendedProps.desc_departamento)
-					} : ("Departamento: " + info.event.extendedProps.desc_departamento), info.event.title);
+					var inicio_ocorrencia = info.event.extendedProps.inicio_ocorrencia;
+
+					Notification.info({
+						html: inicio_ocorrencia + '<br/><br/>' + ((info.event.url && info.event.url !== "/") ? ('<a target="_blank" href="' + info.event.url + '">' + info.event.url + '</a><br/><br/>') : '') +
+						'Departamento: ' + encode(info.event.extendedProps.desc_departamento)
+					}, info.event.title);
 				}
 			}
 		};

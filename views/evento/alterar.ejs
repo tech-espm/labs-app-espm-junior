@@ -87,7 +87,7 @@
 									<button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerOcorrencia(this)"><i class="fa fa-nomargin fa-times"></i></button>
 								</td>
 								<td>
-									<input class="form-control" type="date" name="ocorrencias" value="<%- item.ocorrencias[i] %>" />
+									<input class="form-control" type="datetime-local" name="ocorrencias" value="<%- item.ocorrencias[i] %>" />
 								</td>
 							</tr>
 						<% } } else { %>
@@ -124,7 +124,7 @@
 		if (!bodyOcorrencias.getElementsByTagName("input").length) {
 			$("#bodyOcorrencias").empty();
 		}
-		$("#bodyOcorrencias").append('<tr><td class="col-min"><button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerOcorrencia(this)"><i class="fa fa-nomargin fa-times"></i></button></td><td><input name="ocorrencias" class="form-control" type="date" /></td></tr>');
+		$("#bodyOcorrencias").append('<tr><td class="col-min"><button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerOcorrencia(this)"><i class="fa fa-nomargin fa-times"></i></button></td><td><input name="ocorrencias" class="form-control" type="datetime-local" /></td></tr>');
 	}
 
 	function removerOcorrencia(button) {
