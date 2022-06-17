@@ -149,6 +149,8 @@ INSERT INTO ficha_medica (idusuario, tipo_sanguineo, alergia, plano_saude, conta
 CREATE TABLE ponto (
   idponto int NOT NULL AUTO_INCREMENT,
   idusuario int NOT NULL,
+  online tinyint NOT NULL,
+  atraso tinyint NOT NULL,
   entrada datetime NOT NULL,
   saida datetime NULL,
   PRIMARY KEY (idponto),

@@ -2,8 +2,12 @@ import Sql = require("../infra/sql");
 import DataUtil = require("../utils/dataUtil");
 
 export = class Ponto {
+	public static readonly HorarioEntradaLimite = "14:00:59";
+
 	public idponto: number;
 	public idusuario: number;
+	public online: number;
+	public atraso: number;
 	public entrada: string;
 	public saida: string;
 
@@ -34,7 +38,7 @@ export = class Ponto {
 				where += " and u.id_departamento = ?";
 			}
 
-			lista = await sql.query("select p.idusuario, u.nome, d.desc_departamento, date_format(p.entrada, '%Y-%m-%d %H:%i') data from ponto p inner join usuario u on u.idusuario = p.idusuario inner join departamento d on d.id_departamento = u.id_departamento where p.entrada >= ? and p.entrada < ?" + where, params);
+			lista = await sql.query("select p.idusuario, p.online, p.atraso, u.nome, d.desc_departamento, date_format(p.entrada, '%Y-%m-%d %H:%i') data from ponto p inner join usuario u on u.idusuario = p.idusuario inner join departamento d on d.id_departamento = u.id_departamento where p.entrada >= ? and p.entrada < ?" + where, params);
 		});
 
 		return lista || [];
@@ -53,7 +57,9 @@ export = class Ponto {
 			}
 
 			const agora = DataUtil.horarioDeBrasiliaISOComHorario(),
-				hoje = DataUtil.removerHorarioISO(agora);
+				hoje = DataUtil.removerHorarioISO(agora),
+				horarioEntradaLimite = hoje + " " + Ponto.HorarioEntradaLimite,
+				atraso = (agora > horarioEntradaLimite);
 
 			const idponto = await sql.scalar("select idponto from ponto where date(entrada) = ? and idusuario = ?", [hoje, idusuario]) as number;
 			if (idponto) {
@@ -61,7 +67,7 @@ export = class Ponto {
 				return;
 			}
 
-			await sql.query("insert into ponto (idusuario, entrada) values (?, ?)", [idusuario, agora]);
+			await sql.query("insert into ponto (idusuario, online, atraso, entrada) values (?, ?, ?, ?)", [idusuario, online ? 1 : 0, atraso ? 1 : 0, agora]);
 		});
 
 		return res;

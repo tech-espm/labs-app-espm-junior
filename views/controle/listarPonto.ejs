@@ -128,6 +128,8 @@
 			columns: [
 				{ title: "Data", "class": "col-min", "type": "customdatetimeint", data: "dataptbr" },
 				{ title: "Entrada", "class": "col-min", data: "entrada" },
+				{ title: "Online", "class": "col-min", data: function (row, type, set, meta) { return (row.online ? "Online": ""); } },
+				{ title: "Atraso", "class": "col-min", data: function (row, type, set, meta) { return (row.atraso ? "Atraso": ""); } },
 				{ title: "Departamento", "class": "text-left", render: encode, data: "desc_departamento" },
 				{ title: "Nome", "class": "text-left", render: encode, data: "nome" },
 			],
@@ -146,6 +148,9 @@
 			ocorrencias[i].title = ocorrencias[i].nome;
 			ocorrencias[i].start = data;
 			ocorrencias[i].end = data;
+			ocorrencias[i].backgroundColor = (ocorrencias[i].atraso ? "#dd0000" : (ocorrencias[i].online ? "#00ee00" : "#0062cc"));
+			ocorrencias[i].borderColor = (ocorrencias[i].atraso ? "#dd0000" : (ocorrencias[i].online ? "#00ee00" : "#0062cc"));
+			ocorrencias[i].textColor = (ocorrencias[i].atraso ? "#ffffff" : (ocorrencias[i].online ? "#000000" : "#ffffff"));
 		}
 
 		criarTabela(ocorrencias);
@@ -168,8 +173,10 @@
 			dayMaxEvents: true,
 			events: ocorrencias,
 			eventClick: function(info) {
+				var online = info.event.extendedProps.online,
+					atraso = info.event.extendedProps.atraso;
 				info.jsEvent.preventDefault();
-				Notification.info("Entrada: " + format2(info.event.start.getHours()) + ":" + format2(info.event.start.getMinutes()), info.event.title);
+				Notification.info((online ? "Entrada online: " : "Entrada: ") + format2(info.event.start.getHours()) + ":" + format2(info.event.start.getMinutes()) + (atraso ? " (Atraso)" : ""), info.event.title);
 			}
 		};
 
