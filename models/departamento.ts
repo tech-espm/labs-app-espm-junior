@@ -5,7 +5,7 @@ export = class Departamento {
 	public id_departamento: number;
 	public desc_departamento: string;
 	
-	public static  validar(departamento: Departamento): string{
+	public static validar(departamento: Departamento): string{
 		if (!departamento)
 			return "Dados inválidos";
 

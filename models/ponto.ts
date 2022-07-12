@@ -57,7 +57,7 @@ export = class Ponto {
 			}
 
 			const agora = DataUtil.horarioDeBrasiliaISOComHorario(),
-				hoje = DataUtil.removerHorarioISO(agora),
+				hoje = DataUtil.removerHorario(agora),
 				horarioEntradaLimite = hoje + " " + Ponto.HorarioEntradaLimite,
 				atraso = (agora > horarioEntradaLimite);
 
@@ -86,7 +86,7 @@ export = class Ponto {
 			}
 
 			const agora = DataUtil.horarioDeBrasiliaISOComHorario(),
-				hoje = DataUtil.removerHorarioISO(agora);
+				hoje = DataUtil.removerHorario(agora);
 
 			const idponto = await sql.scalar("select idponto from ponto where date(entrada) = ? and idusuario = ?", [hoje, idusuario]) as number;
 			if (!idponto) {

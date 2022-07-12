@@ -7,9 +7,9 @@ export = class Evento {
 	public desc_evento: string;
 	public inicio_evento: string;
 	public termino_evento: string;
-	public id_departamento:number;
 	public id_sala:number;
 	public ocorrencias: string[];
+	public ids_departamento: number[];
 
 	public static async listarHoje(): Promise<Evento[]> {
 		let inicioDiaHoje = DataUtil.horarioDeBrasiliaISOInicioDoDia();
@@ -63,17 +63,33 @@ export = class Evento {
 		if (evento.inicio_evento > evento.termino_evento)
 			return "Data de Início deve ser anterior à Data de Término";
 
-		evento.id_departamento = parseInt(evento.id_departamento as any);
-		if (isNaN(evento.id_departamento)) {
-			return "departamento inválida";
+		if (!evento.ids_departamento) {
+			return "Departamentos inválidos";
+		} else {
+			if (!Array.isArray(evento.ids_departamento))
+				evento.ids_departamento = [ evento.ids_departamento as any ];
+
+			for (let i = evento.ids_departamento.length - 1; i >= 0; i--) {
+				if (!(evento.ids_departamento[i] = parseInt(evento.ids_departamento[i] as any)))
+					return "Departamento inválido";
+			}
+
+			evento.ids_departamento.sort();
+
+			for (let i = evento.ids_departamento.length - 1; i > 0; i--) {
+				if (evento.ids_departamento[i] === evento.ids_departamento[i - 1])
+					return "Departamento repetido";
+			}
 		}
+
 		evento.id_sala = parseInt(evento.id_sala as any);
 		if (isNaN(evento.id_sala)) {
 			return "Sala inválida";
 		}
+
 		if (!evento.ocorrencias) {
 			if (criacao)
-				evento.ocorrencias = [DataUtil.removerHorarioISO(evento.inicio_evento) + " 14:00:00"];
+				evento.ocorrencias = [DataUtil.removerHorario(evento.inicio_evento) + " 14:00:00"];
 			else
 				evento.ocorrencias = [];
 		} else {
@@ -101,16 +117,15 @@ export = class Evento {
 		return null;
 	}
 
-	public static async listar(id_departamento?: number, id_sala?: number, ano?: number, mes?: number, dia?: number): Promise<Evento[]>{
-		let lista: Evento[] = null;
-		await Sql.conectar(async (sql) => {
+	public static listar(id_departamento?: number, id_sala?: number, ano?: number, mes?: number, dia?: number): Promise<Evento[]>{
+		return Sql.conectar(async (sql) => {
 			let where = "";
 			let parametros: any[] = [];
 
 			if (id_departamento > 0) {
 				if (where)
 					where += " and ";
-				where += " et.id_departamento = ? ";
+				where += " exists (select 1 from evento_departamento ed where ed.id_evento = e.id_evento and ed.id_departamento = ?) ";
 				parametros.push(id_departamento);
 			}
 
@@ -148,29 +163,25 @@ export = class Evento {
 				parametros.push(fim, inicio);
 			}
 
-			lista = await sql.query(`select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%d/%m/%Y') inicio_evento, date_format(e.termino_evento, '%d/%m/%Y') termino_evento, et.id_departamento, t.desc_departamento, es.id_sala, s.desc_sala from evento e 
-			inner join evento_departamento et on et.id_evento = e.id_evento
-			inner join evento_sala es on es.id_evento = e.id_evento
-			inner join departamento t on t.id_departamento = et.id_departamento
-			inner join sala s on s.id_sala = es.id_sala ` +
-				(where ?
-					(" where " + where) :
-					""
-				), parametros);
+			return await sql.query(`select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%d/%m/%Y') inicio_evento, date_format(e.termino_evento, '%d/%m/%Y') termino_evento, group_concat(t.desc_departamento order by t.desc_departamento asc separator ', ') desc_departamento, s.desc_sala from evento e 
+				inner join evento_departamento et on et.id_evento = e.id_evento
+				inner join evento_sala es on es.id_evento = e.id_evento
+				inner join departamento t on t.id_departamento = et.id_departamento
+				inner join sala s on s.id_sala = es.id_sala ` +
+				(where ? (" where " + where) : "") + 
+				" group by e.id_evento, e.nome_evento, e.desc_evento, e.inicio_evento, e.termino_evento, s.desc_sala", parametros);
 		});
-		return lista;
 	}
 
-	public static async listarOcorrencias(id_departamento?: number, id_sala?: number, ano?: number, mes?: number, dia?: number): Promise<Evento[]>{
-		let lista: Evento[] = null;
-		await Sql.conectar(async (sql) => {
+	public static listarOcorrencias(id_departamento?: number, id_sala?: number, ano?: number, mes?: number, dia?: number): Promise<Evento[]>{
+		return Sql.conectar(async (sql) => {
 			let where = "";
 			let parametros: any[] = [];
 
 			if (id_departamento > 0) {
 				if (where)
 					where += " and ";
-				where += " et.id_departamento = ? ";
+				where += " exists (select 1 from evento_departamento ed where ed.id_evento = e.id_evento and ed.id_departamento = ?) ";
 				parametros.push(id_departamento);
 			}
 
@@ -208,18 +219,15 @@ export = class Evento {
 				parametros.push(inicio,fim);
 			}
 
-			lista = await sql.query(`select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%d/%m/%Y') inicio_evento, date_format(e.termino_evento, '%d/%m/%Y') termino_evento, date_format(eo.inicio_ocorrencia, '%d/%m/%Y %H:%i') inicio_ocorrencia, et.id_departamento, t.desc_departamento, es.id_sala, s.desc_sala from evento e 
-			inner join evento_departamento et on et.id_evento = e.id_evento
-			inner join evento_sala es on es.id_evento = e.id_evento
-			inner join departamento t on t.id_departamento = et.id_departamento
-			inner join sala s on s.id_sala = es.id_sala
-			inner join evento_ocorrencia eo on eo.id_evento = e.id_evento ` +
-				(where ?
-					(" where " + where) :
-					""
-				), parametros);
+			return await sql.query(`select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%d/%m/%Y') inicio_evento, date_format(e.termino_evento, '%d/%m/%Y') termino_evento, date_format(eo.inicio_ocorrencia, '%d/%m/%Y %H:%i') inicio_ocorrencia, group_concat(t.desc_departamento order by t.desc_departamento asc separator ', ') desc_departamento, s.desc_sala from evento e 
+				inner join evento_departamento et on et.id_evento = e.id_evento
+				inner join evento_sala es on es.id_evento = e.id_evento
+				inner join departamento t on t.id_departamento = et.id_departamento
+				inner join sala s on s.id_sala = es.id_sala
+				inner join evento_ocorrencia eo on eo.id_evento = e.id_evento ` +
+				(where ? (" where " + where) : "") +
+				" group by e.id_evento, e.nome_evento, e.desc_evento, e.inicio_evento, e.termino_evento, eo.inicio_ocorrencia, s.desc_sala", parametros);
 		});
-		return lista;
 	}
 
 	public static async criar(evento: Evento): Promise<string> {
@@ -235,9 +243,10 @@ export = class Evento {
 
 				const id_evento: number = await sql.scalar("select last_insert_id()");
 
-				await sql.query("insert into evento_departamento(id_departamento, id_evento) values (?, ?)", [evento.id_departamento, id_evento]);
+				for (let i = 0; i < evento.ids_departamento.length; i++)
+					await sql.query("insert into evento_departamento (id_evento, id_departamento) values (?, ?)", [id_evento, evento.ids_departamento[i]]);
 
-				await sql.query("insert into evento_sala(id_sala, id_evento) values (?, ?)", [evento.id_sala, id_evento]);
+				await sql.query("insert into evento_sala (id_evento, id_sala) values (?, ?)", [id_evento, evento.id_sala]);
 
 				for (let i = 0; i < evento.ocorrencias.length; i++)
 					await sql.query("insert into evento_ocorrencia (id_evento, inicio_ocorrencia) values (?, ?)", [id_evento, evento.ocorrencias[i]]);
@@ -286,7 +295,10 @@ export = class Evento {
 			if (!sql.linhasAfetadas)
 				return "Evento não encontrado";
 
-			await sql.query("update evento_departamento set id_departamento = ? where id_evento = ?", [evento.id_departamento, evento.id_evento]);
+			await sql.query("delete from evento_departamento where id_evento = ?", [evento.id_evento]);
+
+			for (let i = 0; i < evento.ids_departamento.length; i++)
+				await sql.query("insert into evento_departamento (id_evento, id_departamento) values (?, ?)", [evento.id_evento, evento.ids_departamento[i]]);
 
 			await sql.query("update evento_sala set id_sala = ? where id_evento = ?", [evento.id_sala, evento.id_evento]);
 

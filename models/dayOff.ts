@@ -169,8 +169,8 @@ export = class DayOff {
 			for (let i = adicionar.length - 1; i >= 0; i--) {
 				const data = adicionar[i];
 
-				const diaAnterior = DataUtil.removerHorarioISO((new Date(new Date(data).getTime() - (24 * 60 * 60 * 1000))).toISOString()),
-					diaSeguinte = DataUtil.removerHorarioISO((new Date(new Date(data).getTime() + (24 * 60 * 60 * 1000))).toISOString());
+				const diaAnterior = DataUtil.removerHorario((new Date(new Date(data).getTime() - (24 * 60 * 60 * 1000))).toISOString()),
+					diaSeguinte = DataUtil.removerHorario((new Date(new Date(data).getTime() + (24 * 60 * 60 * 1000))).toISOString());
 
 				if (datasUtilizadas[diaAnterior] || datasUtilizadas[diaSeguinte]) {
 					res = "Não é permitido tirar days off em dias consecutivos (" + DataUtil.converterDataISO(data, true) + ")";
@@ -318,7 +318,7 @@ export = class DayOff {
 
 				for (let j = adicionar.length - 1; j >= 0; j--) {
 					if (adicionar[j].data === data && adicionar[j].minutos === minutos) {
-						datasUtilizadas[DataUtil.removerHorarioISO(data)] = true;
+						datasUtilizadas[DataUtil.removerHorario(data)] = true;
 						minutosTotais += minutos;
 						antigos.splice(i, 1);
 						adicionar.splice(j, 1);
@@ -328,7 +328,7 @@ export = class DayOff {
 
 			for (let i = adicionar.length - 1; i >= 0; i--) {
 				const data = adicionar[i].data,
-					dataSemHorario = DataUtil.removerHorarioISO(data),
+					dataSemHorario = DataUtil.removerHorario(data),
 					minutos = adicionar[i].minutos;
 
 				if (datasUtilizadas[dataSemHorario]) {
@@ -352,7 +352,7 @@ export = class DayOff {
 					return;
 				}
 
-				if (DataUtil.removerHorarioISO(antigos[i].data) === hoje && horaAtual >= DayOff.HorarioLimiteAlteracoesHoje) {
+				if (DataUtil.removerHorario(antigos[i].data) === hoje && horaAtual >= DayOff.HorarioLimiteAlteracoesHoje) {
 					res = "Não é permitido editar ou excluir horas pessoais do próprio dia depois das " + DayOff.HorarioLimiteAlteracoesHoje + ":00";
 					return;
 				}
@@ -364,12 +364,12 @@ export = class DayOff {
 					return;
 				}
 
-				if (DataUtil.removerHorarioISO(adicionar[i].data) === hoje && horaAtual >= DayOff.HorarioLimiteAlteracoesHoje) {
+				if (DataUtil.removerHorario(adicionar[i].data) === hoje && horaAtual >= DayOff.HorarioLimiteAlteracoesHoje) {
 					res = "Não é permitido adicionar horas pessoais para o próprio dia depois das " + DayOff.HorarioLimiteAlteracoesHoje + ":00";
 					return;
 				}
 
-				if (await sql.scalar("select 1 from dayoff where idusuario = ? and data = ?", [idusuario, DataUtil.removerHorarioISO(adicionar[i].data)])) {
+				if (await sql.scalar("select 1 from dayoff where idusuario = ? and data = ?", [idusuario, DataUtil.removerHorario(adicionar[i].data)])) {
 					res = "Não é permitido adicionar horas pessoais na data " + DataUtil.converterDataISO(adicionar[i].data, true) + " porque já existe um day off nessa data";
 					return;
 				}

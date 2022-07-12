@@ -188,6 +188,7 @@ CREATE TABLE sala (
 CREATE TABLE evento_sala (
 	id_evento int NOT NULL,
   id_sala int NOT NULL,
+  KEY evento_departamento_id_sala_ix (id_sala),
   FOREIGN KEY(id_evento) REFERENCES evento(id_evento),
   FOREIGN KEY(id_sala) REFERENCES sala(id_sala),
   PRIMARY KEY (id_evento, id_sala)
@@ -196,6 +197,7 @@ CREATE TABLE evento_sala (
 CREATE TABLE evento_departamento (
 	id_evento int NOT NULL,
   id_departamento int NOT NULL,
+  KEY evento_departamento_id_departamento_ix (id_departamento),
   FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
   FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento),
   PRIMARY KEY (id_evento, id_departamento)
