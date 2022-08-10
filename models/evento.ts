@@ -10,6 +10,7 @@ export = class Evento {
 	public id_sala:number;
 	public ocorrencias: string[];
 	public ids_departamento: number[];
+	public ids_cargo: number[];
 
 	public static async listarHoje(): Promise<Evento[]> {
 		let inicioDiaHoje = DataUtil.horarioDeBrasiliaISOInicioDoDia();
@@ -82,6 +83,25 @@ export = class Evento {
 			}
 		}
 
+		if (!evento.ids_cargo) {
+			return "Cargos inválidos";
+		} else {
+			if (!Array.isArray(evento.ids_cargo))
+				evento.ids_cargo = [ evento.ids_cargo as any ];
+
+			for (let i = evento.ids_cargo.length - 1; i >= 0; i--) {
+				if (!(evento.ids_cargo[i] = parseInt(evento.ids_cargo[i] as any)))
+					return "Cargo inválido";
+			}
+
+			evento.ids_cargo.sort();
+
+			for (let i = evento.ids_cargo.length - 1; i > 0; i--) {
+				if (evento.ids_cargo[i] === evento.ids_cargo[i - 1])
+					return "Cargo repetido";
+			}
+		}
+
 		evento.id_sala = parseInt(evento.id_sala as any);
 		if (isNaN(evento.id_sala)) {
 			return "Sala inválida";
@@ -117,7 +137,7 @@ export = class Evento {
 		return null;
 	}
 
-	public static listar(id_departamento?: number, id_sala?: number, ano?: number, mes?: number, dia?: number): Promise<Evento[]>{
+	public static listar(id_departamento?: number, idcargo?: number, id_sala?: number, ano?: number, mes?: number, dia?: number): Promise<Evento[]> {
 		return Sql.conectar(async (sql) => {
 			let where = "";
 			let parametros: any[] = [];
@@ -125,8 +145,15 @@ export = class Evento {
 			if (id_departamento > 0) {
 				if (where)
 					where += " and ";
-				where += " exists (select 1 from evento_departamento ed where ed.id_evento = e.id_evento and ed.id_departamento = ?) ";
+				where += " exists (select 1 from evento_departamento ed where ed.id_evento = e.id_evento and ed.id_departamento = ? limit 1) ";
 				parametros.push(id_departamento);
+			}
+
+			if (idcargo > 0) {
+				if (where)
+					where += " and ";
+				where += " exists (select 1 from evento_cargo ec where ec.id_evento = e.id_evento and ec.idcargo = ? limit 1) ";
+				parametros.push(idcargo);
 			}
 
 			if (id_sala > 0) {
@@ -163,17 +190,29 @@ export = class Evento {
 				parametros.push(fim, inicio);
 			}
 
-			return await sql.query(`select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%d/%m/%Y') inicio_evento, date_format(e.termino_evento, '%d/%m/%Y') termino_evento, group_concat(t.desc_departamento order by t.desc_departamento asc separator ', ') desc_departamento, s.desc_sala from evento e 
-				inner join evento_departamento et on et.id_evento = e.id_evento
+			return await sql.query(`select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%d/%m/%Y') inicio_evento, date_format(e.termino_evento, '%d/%m/%Y') termino_evento,
+				(
+					select group_concat(t.desc_departamento order by t.desc_departamento asc separator ', ') desc_departamento
+					from evento_departamento et
+					inner join departamento t on t.id_departamento = et.id_departamento
+					where et.id_evento = e.id_evento
+				) desc_departamento,
+				(
+					select group_concat(c.nome order by c.nome asc separator ', ') nome_cargo
+					from evento_cargo ea
+					inner join cargo c on c.idcargo = ea.idcargo
+					where ea.id_evento = e.id_evento
+				) nome_cargo,
+				s.desc_sala
+				from evento e
 				inner join evento_sala es on es.id_evento = e.id_evento
-				inner join departamento t on t.id_departamento = et.id_departamento
-				inner join sala s on s.id_sala = es.id_sala ` +
-				(where ? (" where " + where) : "") + 
-				" group by e.id_evento, e.nome_evento, e.desc_evento, e.inicio_evento, e.termino_evento, s.desc_sala", parametros);
+				inner join sala s on s.id_sala = es.id_sala
+				` +
+				(where ? (" where " + where) : ""), parametros);
 		});
 	}
 
-	public static listarOcorrencias(id_departamento?: number, id_sala?: number, ano?: number, mes?: number, dia?: number): Promise<Evento[]>{
+	public static listarOcorrencias(id_departamento?: number, idcargo?: number, id_sala?: number, ano?: number, mes?: number, dia?: number): Promise<Evento[]> {
 		return Sql.conectar(async (sql) => {
 			let where = "";
 			let parametros: any[] = [];
@@ -181,8 +220,15 @@ export = class Evento {
 			if (id_departamento > 0) {
 				if (where)
 					where += " and ";
-				where += " exists (select 1 from evento_departamento ed where ed.id_evento = e.id_evento and ed.id_departamento = ?) ";
+				where += " exists (select 1 from evento_departamento ed where ed.id_evento = e.id_evento and ed.id_departamento = ? limit 1) ";
 				parametros.push(id_departamento);
+			}
+
+			if (idcargo > 0) {
+				if (where)
+					where += " and ";
+				where += " exists (select 1 from evento_cargo ec where ec.id_evento = e.id_evento and ec.idcargo = ? limit 1) ";
+				parametros.push(idcargo);
 			}
 
 			if (id_sala > 0) {
@@ -219,14 +265,26 @@ export = class Evento {
 				parametros.push(inicio,fim);
 			}
 
-			return await sql.query(`select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%d/%m/%Y') inicio_evento, date_format(e.termino_evento, '%d/%m/%Y') termino_evento, date_format(eo.inicio_ocorrencia, '%d/%m/%Y %H:%i') inicio_ocorrencia, group_concat(t.desc_departamento order by t.desc_departamento asc separator ', ') desc_departamento, s.desc_sala from evento e 
-				inner join evento_departamento et on et.id_evento = e.id_evento
+			return await sql.query(`select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%d/%m/%Y') inicio_evento, date_format(e.termino_evento, '%d/%m/%Y') termino_evento, date_format(eo.inicio_ocorrencia, '%d/%m/%Y %H:%i') inicio_ocorrencia,
+				(
+					select group_concat(t.desc_departamento order by t.desc_departamento asc separator ', ') desc_departamento
+					from evento_departamento et
+					inner join departamento t on t.id_departamento = et.id_departamento
+					where et.id_evento = e.id_evento
+				) desc_departamento,
+				(
+					select group_concat(c.nome order by c.nome asc separator ', ') nome_cargo
+					from evento_cargo ea
+					inner join cargo c on c.idcargo = ea.idcargo
+					where ea.id_evento = e.id_evento
+				) nome_cargo,
+				s.desc_sala
+				from evento e
 				inner join evento_sala es on es.id_evento = e.id_evento
-				inner join departamento t on t.id_departamento = et.id_departamento
 				inner join sala s on s.id_sala = es.id_sala
-				inner join evento_ocorrencia eo on eo.id_evento = e.id_evento ` +
-				(where ? (" where " + where) : "") +
-				" group by e.id_evento, e.nome_evento, e.desc_evento, e.inicio_evento, e.termino_evento, eo.inicio_ocorrencia, s.desc_sala", parametros);
+				inner join evento_ocorrencia eo on eo.id_evento = e.id_evento
+				` +
+				(where ? (" where " + where) : ""), parametros);
 		});
 	}
 
@@ -246,6 +304,9 @@ export = class Evento {
 				for (let i = 0; i < evento.ids_departamento.length; i++)
 					await sql.query("insert into evento_departamento (id_evento, id_departamento) values (?, ?)", [id_evento, evento.ids_departamento[i]]);
 
+				for (let i = 0; i < evento.ids_cargo.length; i++)
+					await sql.query("insert into evento_cargo (id_evento, idcargo) values (?, ?)", [id_evento, evento.ids_cargo[i]]);
+
 				await sql.query("insert into evento_sala (id_evento, id_sala) values (?, ?)", [id_evento, evento.id_sala]);
 
 				for (let i = 0; i < evento.ocorrencias.length; i++)
@@ -263,18 +324,28 @@ export = class Evento {
 		});
 	} 
 
-	public static obter(id_evento:number): Promise<Evento>{
+	public static obter(id_evento: number): Promise<Evento> {
 		return Sql.conectar(async (sql) => {
-			let lista: Evento[] = await sql.query("select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%Y-%m-%d') inicio_evento, date_format(e.termino_evento, '%Y-%m-%d') termino_evento, et.id_departamento, es.id_sala from evento e inner join evento_departamento et on et.id_evento = e.id_evento inner join evento_sala es on es.id_evento = e.id_evento where e.id_evento = ?",[id_evento]);
+			let lista: Evento[] = await sql.query("select e.id_evento, e.nome_evento, e.desc_evento, date_format(e.inicio_evento, '%Y-%m-%d') inicio_evento, date_format(e.termino_evento, '%Y-%m-%d') termino_evento, et.id_departamento, es.id_sala from evento e inner join evento_departamento et on et.id_evento = e.id_evento inner join evento_sala es on es.id_evento = e.id_evento where e.id_evento = ?", [id_evento]);
 		 
-			if (lista && lista.length){
+			if (lista && lista.length) {
 				const evento = lista[0];
 
-				let ocorrencias: { inicio_ocorrencia: string }[] = await sql.query("select date_format(inicio_ocorrencia, '%Y-%m-%dT%H:%i:%s') inicio_ocorrencia from evento_ocorrencia where id_evento = ?",[id_evento]);
+				const ocorrencias: { inicio_ocorrencia: string }[] = await sql.query("select date_format(inicio_ocorrencia, '%Y-%m-%dT%H:%i') inicio_ocorrencia from evento_ocorrencia where id_evento = ? order by inicio_ocorrencia asc", [id_evento]);
 				evento.ocorrencias = new Array(ocorrencias.length);
 				for (let i = ocorrencias.length - 1; i >= 0; i--)
 					evento.ocorrencias[i] = ocorrencias[i].inicio_ocorrencia;
-				evento.ocorrencias.sort();
+
+				const departamentos: { id_departamento: number }[] = await sql.query("select ed.id_departamento from evento_departamento ed inner join departamento d on d.id_departamento = ed.id_departamento where ed.id_evento = ? order by d.desc_departamento asc", [id_evento]);
+				evento.ids_departamento = new Array(departamentos.length);
+				for (let i = departamentos.length - 1; i >= 0; i--)
+					evento.ids_departamento[i] = departamentos[i].id_departamento;
+
+				const cargos: { idcargo: number }[] = await sql.query("select ec.idcargo from evento_cargo ec inner join cargo c on c.idcargo = ec.idcargo where ec.id_evento = ? order by c.nome asc", [id_evento]);
+				evento.ids_cargo = new Array(cargos.length);
+				for (let i = cargos.length - 1; i >= 0; i--)
+					evento.ids_cargo[i] = cargos[i].idcargo;
+
 				return evento;
 			}
 
@@ -282,7 +353,7 @@ export = class Evento {
 		});
 	}
 
-	public static async alterar(evento: Evento): Promise<string>{
+	public static async alterar(evento: Evento): Promise<string> {
 		let res: string;
 		if ((res = Evento.validar(evento, false)))
 			return res;
@@ -299,6 +370,11 @@ export = class Evento {
 
 			for (let i = 0; i < evento.ids_departamento.length; i++)
 				await sql.query("insert into evento_departamento (id_evento, id_departamento) values (?, ?)", [evento.id_evento, evento.ids_departamento[i]]);
+
+			await sql.query("delete from evento_cargo where id_evento = ?", [evento.id_evento]);
+
+			for (let i = 0; i < evento.ids_cargo.length; i++)
+				await sql.query("insert into evento_cargo (id_evento, idcargo) values (?, ?)", [evento.id_evento, evento.ids_cargo[i]]);
 
 			await sql.query("update evento_sala set id_sala = ? where id_evento = ?", [evento.id_sala, evento.id_evento]);
 
@@ -329,22 +405,12 @@ export = class Evento {
 		});
 	}
 
-	public static excluir(id_evento:number): Promise<string> {
+	public static excluir(id_evento: number): Promise<string> {
 		return Sql.conectar(async (sql) => {
-			await sql.beginTransaction();
-
-			await sql.query("delete from evento_departamento where id_evento = ?", [id_evento]);
-
-			await sql.query("delete from evento_sala where id_evento = ?", [id_evento]);
-
-			await sql.query("delete from evento_ocorrencia where id_evento = ?",[id_evento]);
-
-			let lista = await sql.query("delete from evento where id_evento = ?",[id_evento]);
+			await sql.query("delete from evento where id_evento = ?", [id_evento]);
 
 			if (!sql.linhasAfetadas)
 				return "Evento não encontrado";
-			
-			await sql.commit();
 
 			return null;
 		});

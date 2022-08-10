@@ -4,6 +4,7 @@ import multer = require("multer");
 import DayOff = require("../models/dayOff");
 import Evento = require("../models/evento");
 import Sala = require("../models/sala");
+import Cargo = require("../models/cargo");
 import Departamento = require("../models/departamento");
 import Usuario = require("../models/usuario");
 import appsettings = require("../appsettings");
@@ -20,6 +21,7 @@ router.all("/criar", wrap(async (req: express.Request, res: express.Response) =>
 			usuario: u,
 			salas: await Sala.listar(),
 			departamentos: await Departamento.listar(),
+			cargos: await Cargo.listar(),
 			item: null
 		});
 }));
@@ -39,6 +41,7 @@ router.all("/alterar", wrap(async (req: express.Request, res: express.Response) 
 				usuario: u,
 				salas: await Sala.listar(),
 				departamentos: await Departamento.listar(),
+				cargos: await Cargo.listar(),
 				item: item
 			});
 	}
@@ -56,8 +59,9 @@ router.get("/listar", wrap(async (req: express.Request, res: express.Response) =
 			usuario: u,
 			anoAtual: anoMesAtual.ano,
 			mesAtual: anoMesAtual.mes,
-			lista: JSON.stringify(await Evento.listar(0, 0, anoMesAtual.ano, anoMesAtual.mes)),
+			lista: JSON.stringify(await Evento.listar(0, 0, 0, anoMesAtual.ano, anoMesAtual.mes)),
 			departamentos: await Departamento.listar(),
+			cargos: await Cargo.listar(),
 			salas: await Sala.listar()
 		});
 	}
@@ -90,7 +94,7 @@ router.all("/download/:iddepartamento", wrap(async (req: express.Request, res: e
 			titulo: "Plano de Eventos",
 			usuario: u,
 			anoAtual: anoMesAtual.ano,
-			lista: await Evento.listarOcorrencias(parseInt(req.params["iddepartamento"]), 0, anoMesAtual.ano),
+			lista: await Evento.listarOcorrencias(parseInt(req.params["iddepartamento"]), 0, 0, anoMesAtual.ano),
 			departamentos: await Departamento.listar()
 		});	
 	}

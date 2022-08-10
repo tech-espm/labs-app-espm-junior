@@ -27,10 +27,11 @@ router.all("/", wrap(async (req: express.Request, res: express.Response) => {
 			usuario: u,
 			anoAtual,
 			mesAtual,
-			daysOff: await DayOff.listarDaysOffEHorasPorMes(anoAtual, mesAtual, 0, u.admin ? 0 : u.id_departamento),
-			lista: await Evento.listarOcorrencias(0, 0, anoAtual, mesAtual),
+			daysOff: await DayOff.listarDaysOffEHorasPorMes(anoAtual, mesAtual, 0, u.admin ? 0 : u.id_departamento, 0),
+			lista: await Evento.listarOcorrencias(0, 0, 0, anoAtual, mesAtual),
 			hoje: DataUtil.horarioDeBrasiliaISO(),
 			departamentos: await Departamento.listar(),
+			cargos: await Cargo.listar(),
 			salas: await Sala.listar()
 		};
 

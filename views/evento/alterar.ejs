@@ -30,43 +30,99 @@
 					</div>
 				</div>
 
-				<div class="row">
-					<div class="col-sm-6">
-						<div class="form-group">
-							<label for="id_sala">Sala</label>
-							<select size="1" id="id_sala" name="id_sala" class="form-control">
-								<option value="">Selecione...</option>
-								<% for (let i = 0; i < salas.length; i++) { %>
-									<option value="<%=salas[i].id_sala %>" <%=((item && item.id_sala == salas[i].id_sala) ? 'selected="selected"' : '')%>><%=salas[i].desc_sala %></option>
-								<% } %>
-							</select>
-							<script type="text/javascript">
-								//<![CDATA[
-								"use strict";
-								prepareCbSearch(document.getElementById("id_sala"));
-								//]]>
-							</script>
-						</div>
-					</div>
+				<div class="form-group">
+					<label for="id_sala">Sala</label>
+					<select size="1" id="id_sala" name="id_sala" class="form-control">
+						<option value="">Selecione...</option>
+						<% for (let i = 0; i < salas.length; i++) { %>
+							<option value="<%=salas[i].id_sala %>" <%=((item && item.id_sala == salas[i].id_sala) ? 'selected="selected"' : '')%>><%=salas[i].desc_sala %></option>
+						<% } %>
+					</select>
+					<script type="text/javascript">
+						//<![CDATA[
+						"use strict";
+						prepareCbSearch(document.getElementById("id_sala"));
+						//]]>
+					</script>
+				</div>
 
-					<div class="col-sm-6">
-						<div class="form-group">
-							<label for="id_departamento">Departamento</label>
-							<select size="1" id="id_departamento" name="id_departamento" class="form-control">
-								<option value="">Selecione...</option>
-								<% for (let i = 0; i < departamentos.length; i++) { %>
-									<option value="<%=departamentos[i].id_departamento %>" <%=((item && item.id_departamento == departamentos[i].id_departamento) ? 'selected="selected"' : '')%>><%=departamentos[i].desc_departamento %></option>
-								<% } %>
-							</select>
-							<script type="text/javascript">
-								//<![CDATA[
-								"use strict";
-								prepareCbSearch(document.getElementById("id_departamento"));
-								//]]>
-							</script>
-						</div>
+				<hr />
+
+				<div class="row">
+					<div class="col-xs-6">
+						<label style="height: 34px; line-height: 34px;">Departamentos</label>
+					</div>
+					<div class="col-xs-6 text-right mb-3">
+						<button class="btn btn-primary" type="button" onclick="adicionarDepartamento()"><i class="fa fa-plus"></i>Departamento</button>
 					</div>
 				</div>
+
+				<table class="table table-striped table-hover mb-0">
+					<tbody id="bodyDepartamentos">
+						<% if (item && item.ids_departamento && item.ids_departamento.length) { for (let i = 0; i < item.ids_departamento.length; i++) { %>
+							<tr>
+								<td class="col-min">
+									<button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerDepartamento(this)"><i class="fa fa-nomargin fa-times"></i></button>
+								</td>
+								<td>
+									<select size="1" id="ids_departamento<%- i %>" name="ids_departamento" class="form-control">
+										<option value="">Selecione...</option>
+										<% for (let j = 0; j < departamentos.length; j++) { %>
+											<option value="<%=departamentos[j].id_departamento %>" <%=((item && item.ids_departamento[i] == departamentos[j].id_departamento) ? 'selected="selected"' : '')%>><%=departamentos[j].desc_departamento %></option>
+										<% } %>
+									</select>
+									<script type="text/javascript">
+										//<![CDATA[
+										"use strict";
+										prepareCbSearch(document.getElementById("ids_departamento<%- i %>"));
+										//]]>
+									</script>
+								</td>
+							</tr>
+						<% } } else { %>
+							<tr><td class="text-center">Sem departamentos</td></tr>
+						<% } %>
+					</tbody>
+				</table>
+
+				<hr />
+
+				<div class="row">
+					<div class="col-xs-6">
+						<label style="height: 34px; line-height: 34px;">Cargos</label>
+					</div>
+					<div class="col-xs-6 text-right mb-3">
+						<button class="btn btn-primary" type="button" onclick="adicionarCargo()"><i class="fa fa-plus"></i>Cargo</button>
+					</div>
+				</div>
+
+				<table class="table table-striped table-hover mb-0">
+					<tbody id="bodyCargos">
+						<% if (item && item.ids_cargo && item.ids_cargo.length) { for (let i = 0; i < item.ids_cargo.length; i++) { %>
+							<tr>
+								<td class="col-min">
+									<button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerCargo(this)"><i class="fa fa-nomargin fa-times"></i></button>
+								</td>
+								<td>
+									<select size="1" id="ids_cargo<%- i %>" name="ids_cargo" class="form-control">
+										<option value="">Selecione...</option>
+										<% for (let j = 0; j < cargos.length; j++) { %>
+											<option value="<%=cargos[j].idcargo %>" <%=((item && item.ids_cargo[i] == cargos[j].idcargo) ? 'selected="selected"' : '')%>><%=cargos[j].nome %></option>
+										<% } %>
+									</select>
+									<script type="text/javascript">
+										//<![CDATA[
+										"use strict";
+										prepareCbSearch(document.getElementById("ids_cargo<%- i %>"));
+										//]]>
+									</script>
+								</td>
+							</tr>
+						<% } } else { %>
+							<tr><td class="text-center">Sem cargos</td></tr>
+						<% } %>
+					</tbody>
+				</table>
 
 				<hr />
 
@@ -119,6 +175,73 @@
 	//<![CDATA[
 	"use strict";
 
+	var proximoIdDepartamento = <%- ((item && item.ids_departamento && item.ids_departamento.length) || 0) %>;
+	var proximoIdCargo = <%- ((item && item.ids_cargo && item.ids_cargo.length) || 0) %>;
+
+	function adicionarDepartamento() {
+		var bodyDepartamentos = document.getElementById("bodyDepartamentos");
+		if (!bodyDepartamentos.getElementsByTagName("select").length) {
+			$("#bodyDepartamentos").empty();
+		}
+		$("#bodyDepartamentos").append(`<tr>
+			<td class="col-min">
+				<button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerDepartamento(this)"><i class="fa fa-nomargin fa-times"></i></button>
+			</td>
+			<td>
+				<select size="1" id="ids_departamento${proximoIdDepartamento}" name="ids_departamento" class="form-control">
+					<option value="">Selecione...</option>
+					<% for (let i = 0; i < departamentos.length; i++) { %>
+						<option value="<%=departamentos[i].id_departamento %>"><%=departamentos[i].desc_departamento.replaceAll("\u0060", "&#96;") %></option>
+					<% } %>
+				</select>
+			</td>
+		</tr>`);
+
+		prepareCbSearch(document.getElementById("ids_departamento" + proximoIdDepartamento));
+
+		proximoIdDepartamento++;
+	}
+
+	function removerDepartamento(button) {
+		var bodyDepartamentos = document.getElementById("bodyDepartamentos");
+		bodyDepartamentos.removeChild(button.parentNode.parentNode);
+		if (!bodyDepartamentos.getElementsByTagName("tr").length) {
+			bodyDepartamentos.innerHTML = '<tr><td class="text-center">Sem departamentos</td></tr>';
+		}
+	}
+
+	function adicionarCargo() {
+		var bodyCargos = document.getElementById("bodyCargos");
+		if (!bodyCargos.getElementsByTagName("select").length) {
+			$("#bodyCargos").empty();
+		}
+		$("#bodyCargos").append(`<tr>
+			<td class="col-min">
+				<button title="Excluir" class="btn btn-danger btn-outline" type="button" onclick="removerCargo(this)"><i class="fa fa-nomargin fa-times"></i></button>
+			</td>
+			<td>
+				<select size="1" id="ids_cargo${proximoIdCargo}" name="ids_cargo" class="form-control">
+					<option value="">Selecione...</option>
+					<% for (let i = 0; i < cargos.length; i++) { %>
+						<option value="<%=cargos[i].idcargo %>"><%=cargos[i].nome.replaceAll("\u0060", "&#96;") %></option>
+					<% } %>
+				</select>
+			</td>
+		</tr>`);
+
+		prepareCbSearch(document.getElementById("ids_cargo" + proximoIdCargo));
+
+		proximoIdCargo++;
+	}
+
+	function removerCargo(button) {
+		var bodyCargos = document.getElementById("bodyCargos");
+		bodyCargos.removeChild(button.parentNode.parentNode);
+		if (!bodyCargos.getElementsByTagName("tr").length) {
+			bodyCargos.innerHTML = '<tr><td class="text-center">Sem cargos</td></tr>';
+		}
+	}
+
 	function adicionarOcorrencia() {
 		var bodyOcorrencias = document.getElementById("bodyOcorrencias");
 		if (!bodyOcorrencias.getElementsByTagName("input").length) {
@@ -170,9 +293,11 @@
 			});
 
 			//<% } else { %>
-		
+
 			JsonWebApi.postFormData("<%- root %>/api/evento/criar", form, function (response) {
 				if (response.success) {
+					document.getElementById("bodyDepartamentos").innerHTML = '<tr><td class="text-center">Sem departamentos</td></tr>';
+					document.getElementById("bodyCargos").innerHTML = '<tr><td class="text-center">Sem cargos</td></tr>';
 					document.getElementById("bodyOcorrencias").innerHTML = '<tr><td class="text-center">Não há ocorrências cadastradas</td></tr>';
 					resetForm("#form");
 					Notification.success("Evento criado com sucesso! " + emoji.happy);

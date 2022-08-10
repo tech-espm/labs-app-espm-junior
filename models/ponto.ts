@@ -96,7 +96,7 @@ export = class Ponto {
 
 			await sql.query("update ponto set saida = ? where idponto = ? and saida is null", [agora, idponto]);
 
-			if (sql.linhasAfetadas === 0)
+			if (!sql.linhasAfetadas)
 				res = "Já foi marcada a saída para a data atual";
 		});
 

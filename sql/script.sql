@@ -181,26 +181,35 @@ CREATE TABLE evento_ocorrencia (
 );
 
 CREATE TABLE sala (
-	id_sala int PRIMARY KEY AUTO_INCREMENT,
+  id_sala int PRIMARY KEY AUTO_INCREMENT,
   desc_sala varchar(45)
 );
 
 CREATE TABLE evento_sala (
-	id_evento int NOT NULL,
+  id_evento int NOT NULL,
   id_sala int NOT NULL,
   KEY evento_departamento_id_sala_ix (id_sala),
-  FOREIGN KEY(id_evento) REFERENCES evento(id_evento),
-  FOREIGN KEY(id_sala) REFERENCES sala(id_sala),
+  FOREIGN KEY(id_evento) REFERENCES evento(id_evento) ON DELETE CASCADE ON UPDATE RESTRICT,
+  FOREIGN KEY(id_sala) REFERENCES sala(id_sala) ON DELETE RESTRICT ON UPDATE RESTRICT,
   PRIMARY KEY (id_evento, id_sala)
 );
 
 CREATE TABLE evento_departamento (
-	id_evento int NOT NULL,
+  id_evento int NOT NULL,
   id_departamento int NOT NULL,
   KEY evento_departamento_id_departamento_ix (id_departamento),
-  FOREIGN KEY (id_evento) REFERENCES evento(id_evento),
-  FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento),
+  FOREIGN KEY (id_evento) REFERENCES evento(id_evento) ON DELETE CASCADE ON UPDATE RESTRICT,
+  FOREIGN KEY (id_departamento) REFERENCES departamento(id_departamento) ON DELETE RESTRICT ON UPDATE RESTRICT,
   PRIMARY KEY (id_evento, id_departamento)
+);
+
+CREATE TABLE evento_cargo (
+  id_evento int NOT NULL,
+  idcargo int NOT NULL,
+  KEY evento_cargo_idcargo_ix (idcargo),
+  FOREIGN KEY (id_evento) REFERENCES evento(id_evento) ON DELETE CASCADE ON UPDATE RESTRICT,
+  FOREIGN KEY (idcargo) REFERENCES cargo(idcargo) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  PRIMARY KEY (id_evento, idcargo)
 );
 
 CREATE TABLE link (

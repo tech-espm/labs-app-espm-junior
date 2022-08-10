@@ -13,6 +13,7 @@ router.get("/listar", wrap(async (req: express.Request, res: express.Response) =
 		return;
 	res.json(await Evento.listar(
 		parseInt(req.query["id_departamento"] as string),
+		parseInt(req.query["idcargo"] as string),
 		parseInt(req.query["id_sala"] as string),
 		parseInt(req.query["ano"] as string),
 		parseInt(req.query["mes"] as string)
@@ -33,15 +34,17 @@ router.get("/listarOcorrenciasEDaysOff", wrap(async (req: express.Request, res: 
 	}
 
 	const id_departamento = parseInt(req.query["id_departamento"] as string);
+	const idcargo = parseInt(req.query["idcargo"] as string);
 
 	res.json({
 		ocorrencias: await Evento.listarOcorrencias(
 			id_departamento,
+			idcargo,
 			parseInt(req.query["id_sala"] as string),
 			ano,
 			mes),
 
-		daysOff: ((u.admin || !id_departamento || id_departamento === u.id_departamento) ? await DayOff.listarDaysOffEHorasPorMes(ano, mes, 0, u.admin ? id_departamento : u.id_departamento) : [])
+		daysOff: ((u.admin || !id_departamento || id_departamento === u.id_departamento) ? await DayOff.listarDaysOffEHorasPorMes(ano, mes, 0, u.admin ? id_departamento : u.id_departamento, idcargo) : [])
 	});
 }));
 

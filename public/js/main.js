@@ -48,7 +48,10 @@ window.parseQueryString = function () {
 	return assoc;
 };
 window.encode = (function () {
-	var amp = /\&/g, lt = /</g, gt = />/g;
+	var amp = /\&/g, lt = /</g, gt = />/g, quot = /\"/g, apos = /\'/g;
+	window.encodeValue = function (x) {
+		return (x ? x.replace(amp, "&amp;").replace(lt, "&lt;").replace(gt, "&gt;").replace(quot, "&quot;").replace(apos, "&apos;") : "");
+	};
 	return function (x) {
 		return (x ? x.replace(amp, "&amp;").replace(lt, "&lt;").replace(gt, "&gt;") : "");
 	};
@@ -1935,6 +1938,7 @@ window.BlobDownloader = {
 		groupdiv.style.top = "0";
 		groupdiv.style.pointerEvents = "none";
 		groupdiv.style.height = "34px";
+		groupdiv.style.width = "100%";
 		span.className = "input-group-btn";
 		span.style.height = "34px";
 		button.className = "btn btn-default btn-force-border";

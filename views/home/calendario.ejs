@@ -4,7 +4,7 @@
 			<div class="panel-body pb-0">
 				<h2 class="mt-0 mb-3 text-center"><i class="fa fa-filter"></i>Filtro</h2>
 				<div class="row">
-					<div class="col-sm-6">
+					<div class="col-sm-4">
 						<div class="form-group">
 							<label for="departamento">Departamento</label>
 							<select size="1" id="departamento" class="form-control" onchange="atualizar()">
@@ -15,7 +15,18 @@
 							</select>
 						</div>
 					</div>
-					<div class="col-sm-6">
+					<div class="col-sm-4">
+						<div class="form-group">
+							<label for="cargo">Cargo</label>
+							<select size="1" id="cargo" class="form-control" onchange="atualizar()">
+								<option value="0">Todos</option>
+								<% for (let i = 0; i < cargos.length; i++) { %>
+									<option value="<%- cargos[i].idcargo %>"><%= cargos[i].nome %></option>
+								<% } %>
+							</select>
+						</div>
+					</div>
+					<div class="col-sm-4">
 						<div class="form-group">
 							<label for="sala">Sala</label>
 							<select size="1" id="sala" class="form-control" onchange="atualizar()">
@@ -28,13 +39,13 @@
 					</div>
 				</div>
 				<div class="row">
-					<div class="col-sm-2">
+					<div class="col-md-2 col-md-offset-3 col-sm-4">
 						<div class="form-group">
 							<label for="ano">Ano</label>
 							<input id="ano" type="number" class="form-control" onchange="atualizar()" value="<%- anoAtual %>" />
 						</div>
 					</div>
-					<div class="col-sm-4">
+					<div class="col-md-4 col-sm-8">
 						<div class="form-group">
 							<label for="mes">Mês</label>
 							<select size="1" id="mes" class="form-control" onchange="atualizar()">
@@ -138,10 +149,11 @@
 	"use strict";
 
 	prepareCbSearch(document.getElementById("departamento"));
+	prepareCbSearch(document.getElementById("cargo"));
 	prepareCbSearch(document.getElementById("sala"));
 	prepareCbSearch(document.getElementById("mes"));
 
-	var departamentoAtual = 0, salaAtual = 0, mesAtual = <%- mesAtual %>, anoAtual = <%- anoAtual %>;
+	var departamentoAtual = 0, cargoAtual = 0, salaAtual = 0, mesAtual = <%- mesAtual %>, anoAtual = <%- anoAtual %>;
 
 	var ocorrencias = <%- JSON.stringify(lista) %>, daysOff = <%- JSON.stringify(daysOff) %>, calendario = null, regexp = /[\/\-\:\s]/g;
 
@@ -163,6 +175,7 @@
 				{ title: "Tipo", "class": "col-min", data: function (row, type, set, meta) { return ((row.url == "#dayOff") ? (row.minutos ? "Horas Pessoais" : "Day Off") : "Evento"); } },
 				{ title: "Horas", "class": "col-min", data: function (row, type, set, meta) { return ((row.url == "#dayOff" && row.minutos) ? (format2((row.minutos / 60) | 0) + ":" + format2(row.minutos % 60)) : ""); } },
 				{ title: "Departamento", "class": "text-left", render: encode, data: "desc_departamento" },
+				{ title: "Cargo", "class": "text-left", render: encode, data: "nome_cargo" },
 				{ title: "Nome", "class": "text-left", render: encode, data: "title" },
 				{ title: "Link / URL", "class": "text-left", data: function (row, type, set, meta) { return ((!row.url || row.url == "/" || row.url == "#dayOff") ? '' : ('<a target="_blank" href="' + row.url + '">' + row.url + '</a>')); } },
 			],
@@ -183,6 +196,7 @@
 			ocorrencias[i].textColor = "#fff";
 			ocorrencias[i].title = ocorrencias[i].nome_evento;
 			ocorrencias[i].desc_departamento = ocorrencias[i].desc_departamento;
+			ocorrencias[i].nome_cargo = ocorrencias[i].nome_cargo;
 			ocorrencias[i].url = ocorrencias[i].desc_evento || "/";
 			ocorrencias[i].start = data;
 			ocorrencias[i].end = data;
@@ -207,6 +221,7 @@
 					textColor: "#000",
 					title: daysOff[i].nome,
 					desc_departamento: daysOff[i].desc_departamento,
+					nome_cargo: daysOff[i].nome_cargo,
 					dataFormatada: DataUtil.converterDataISO(datastr, true),
 					inicio: daysOff[i].inicio,
 					minutos: daysOff[i].minutos,
@@ -252,14 +267,16 @@
 					Notification.info({
 						html: dataFormatada + '<br/><br/>' + encode(info.event.title) +
 							(minutos ? ('<br/><br/>Duração: ' + format2((minutos / 60) | 0) + ":" + format2(minutos % 60)) : "") +
-							"<br/><br/>Departamento: " + encode(info.event.extendedProps.desc_departamento)
+							"<br/><br/>Departamento: " + encode(info.event.extendedProps.desc_departamento) +
+							"<br/><br/>Cargo: " + encode(info.event.extendedProps.nome_cargo)
 					}, minutos ? "Horas Pessoais" : "Day Off");
 				} else {
 					var inicio_ocorrencia = info.event.extendedProps.inicio_ocorrencia;
 
 					Notification.info({
 						html: inicio_ocorrencia + '<br/><br/>' + ((info.event.url && info.event.url !== "/") ? ('<a target="_blank" href="' + info.event.url + '">' + info.event.url + '</a><br/><br/>') : '') +
-						'Departamento: ' + encode(info.event.extendedProps.desc_departamento)
+						'Departamento: ' + encode(info.event.extendedProps.desc_departamento) +
+						'<br/><br/>Cargo: ' + encode(info.event.extendedProps.nome_cargo)
 					}, info.event.title);
 				}
 			}
@@ -272,11 +289,12 @@
 
 	function atualizar() {
 		var departamento = parseInt($("#departamento").val());
+		var cargo = parseInt($("#cargo").val());
 		var sala = parseInt($("#sala").val());
 		var ano = (parseInt($("#ano").val()) || 0);
 		var mes = (parseInt($("#mes").val()) || 0);
 
-		if ((departamentoAtual === departamento && salaAtual === sala && ano === anoAtual && mes === mesAtual) || JsonWebApi.active)
+		if ((departamentoAtual === departamento && cargoAtual === cargo && salaAtual === sala && ano === anoAtual && mes === mesAtual) || JsonWebApi.active)
 			return;
 
 		Notification.wait();
@@ -285,6 +303,7 @@
 			if (response.success) {
 				Notification.hide();
 				departamentoAtual = departamento;
+				cargoAtual = cargo;
 				salaAtual = sala;
 				anoAtual = ano;
 				mesAtual = mes;
@@ -295,7 +314,7 @@
 			} else {
 				Notification.error(response.value + " " + emoji.sad, true);
 			}
-		}, "id_departamento", departamento, "id_sala", sala, "ano", ano, "mes", mes);
+		}, "id_departamento", departamento, "idcargo", cargo, "id_sala", sala, "ano", ano, "mes", mes);
 	}
 
 	desenharCalendario();

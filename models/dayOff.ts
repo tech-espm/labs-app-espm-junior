@@ -64,7 +64,7 @@ export = class DayOff {
 		});
 	}
 
-	public static async listarDaysOffEHorasPorMes(ano: number, mes: number, idusuario?: number, id_departamento?: number): Promise<ItemLista[]> {
+	public static async listarDaysOffEHorasPorMes(ano: number, mes: number, idusuario?: number, id_departamento?: number, idcargo?: number): Promise<ItemLista[]> {
 		let lista: ItemLista[] = null;
 		let lista2: ItemLista[] = null;
 
@@ -79,9 +79,42 @@ export = class DayOff {
 
 			const dataFinal = ano + "-" + ((mes < 10) ? ("0" + mes) : mes) + "-01";
 
-			lista = await sql.query("select u.nome, date_format(d.data, '%Y-%m-%d') data, u.id_departamento, dp.desc_departamento from dayoff d inner join usuario u on u.idusuario = d.idusuario inner join departamento dp on dp.id_departamento = u.id_departamento where d.data >= ? and d.data < ?" + (idusuario ? (" and d.idusuario = ? order by d.data asc") : (id_departamento ? " and u.id_departamento = ?" : "")), (idusuario || id_departamento) ? [dataInicial, dataFinal, idusuario || id_departamento] : [dataInicial, dataFinal]);
+			let where = "d.data >= ? and d.data < ?";
+			let parametros: any[] = [dataInicial, dataFinal];
 
-			lista2 = await sql.query("select u.nome, date_format(h.data, '%Y-%m-%d') data, date_format(h.data, '%H:%i') inicio, h.minutos, u.id_departamento, dp.desc_departamento from horapessoal h inner join usuario u on u.idusuario = h.idusuario inner join departamento dp on dp.id_departamento = u.id_departamento where h.data >= ? and h.data < ?" + (idusuario ? (" and h.idusuario = ? order by h.data asc") : (id_departamento ? " and u.id_departamento = ?" : "")), (idusuario || id_departamento) ? [dataInicial, dataFinal, idusuario || id_departamento] : [dataInicial, dataFinal]);
+			if (idusuario) {
+				where += " and d.idusuario = ? order by d.data asc";
+				parametros.push(idusuario);
+			} else {
+				if (id_departamento) {
+					where += " and u.id_departamento = ?";
+					parametros.push(id_departamento);
+				}
+				if (idcargo) {
+					where += " and u.idcargo = ?";
+					parametros.push(idcargo);
+				}
+			}
+
+			lista = await sql.query("select u.nome, date_format(d.data, '%Y-%m-%d') data, u.id_departamento, dp.desc_departamento, u.idcargo, c.nome nome_cargo from dayoff d inner join usuario u on u.idusuario = d.idusuario inner join departamento dp on dp.id_departamento = u.id_departamento inner join cargo c on c.idcargo = u.idcargo where " + where, parametros);
+
+			where = "h.data >= ? and h.data < ?";
+			parametros = [dataInicial, dataFinal];
+
+			if (idusuario) {
+				where += " and h.idusuario = ? order by h.data asc";
+				parametros.push(idusuario);
+			} else {
+				if (id_departamento) {
+					where += " and u.id_departamento = ?";
+					parametros.push(id_departamento);
+				}
+				if (idcargo) {
+					where += " and u.idcargo = ?";
+					parametros.push(idcargo);
+				}
+			}
+			lista2 = await sql.query("select u.nome, date_format(h.data, '%Y-%m-%d') data, date_format(h.data, '%H:%i') inicio, h.minutos, u.id_departamento, dp.desc_departamento, u.idcargo, c.nome nome_cargo from horapessoal h inner join usuario u on u.idusuario = h.idusuario inner join departamento dp on dp.id_departamento = u.id_departamento inner join cargo c on c.idcargo = u.idcargo where " + where, parametros);
 		});
 
 		if (!lista || !lista.length)

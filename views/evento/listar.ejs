@@ -5,7 +5,7 @@
 			<div class="panel-heading">Filtro de Eventos</div>
 			<div id="tabela_container" class="panel-body dataTable_wrapper">
 				<div class="row">
-					<div class="col-sm-6">
+					<div class="col-sm-4">
 						<div class="form-group">
 							<label for="departamento">Departamento</label>
 							<select size="1" id="departamento" class="form-control" onchange="atualizar()">
@@ -16,7 +16,18 @@
 							</select>
 						</div>
 					</div>
-					<div class="col-sm-6">
+					<div class="col-sm-4">
+						<div class="form-group">
+							<label for="cargo">Cargo</label>
+							<select size="1" id="cargo" class="form-control" onchange="atualizar()">
+								<option value="0">Todos</option>
+								<% for (let i = 0; i < cargos.length; i++) { %>
+									<option value="<%- cargos[i].idcargo %>"><%= cargos[i].nome %></option>
+								<% } %>
+							</select>
+						</div>
+					</div>
+					<div class="col-sm-4">
 						<div class="form-group">
 							<label for="sala">Sala</label>
 							<select size="1" id="sala" class="form-control" onchange="atualizar()">
@@ -29,13 +40,13 @@
 					</div>
 				</div>
 				<div class="row">
-					<div class="col-sm-2">
+					<div class="col-md-2 col-md-offset-3 col-sm-4">
 						<div class="form-group">
 							<label for="ano">Ano</label>
 							<input id="ano" type="number" class="form-control" onchange="atualizar()" value="<%- anoAtual %>" />
 						</div>
 					</div>
-					<div class="col-sm-4">
+					<div class="col-md-4 col-sm-8">
 						<div class="form-group">
 							<label for="mes">Mês</label>
 							<select size="1" id="mes" class="form-control" onchange="atualizar()">
@@ -68,10 +79,11 @@
 	"use strict";
 
 	prepareCbSearch(document.getElementById("departamento"));
+	prepareCbSearch(document.getElementById("cargo"));
 	prepareCbSearch(document.getElementById("sala"));
 	prepareCbSearch(document.getElementById("mes"));
 
-	var tabela, departamentoAtual = 0, salaAtual = 0, mesAtual = <%- mesAtual %>, anoAtual = <%- anoAtual %>;
+	var tabela, departamentoAtual = 0, cargoAtual = 0, salaAtual = 0, mesAtual = <%- mesAtual %>, anoAtual = <%- anoAtual %>;
 
 	function criarTabela(dados) {
 		$("#tabela_wrapper").remove();
@@ -85,6 +97,7 @@
 				{ title: "Nome", render: encode, data: "nome_evento" },
 				{ title: "Link / URL", render: encode, data: "desc_evento" },
 				{ title: "Departamento", render: encode, data: "desc_departamento" },
+				{ title: "Cargo", render: encode, data: "nome_cargo" },
 				{ title: "Sala", render: encode, data: "desc_sala" },
 				{ title: "Início", "class": "text-right", "type": "customdatetimeint", data: "inicio_evento" },
 				{ title: "Término", "class": "text-right", "type": "customdatetimeint", data: "termino_evento" }
@@ -125,11 +138,12 @@
 
 	function atualizar() {
 		var departamento = parseInt($("#departamento").val());
+		var cargo = parseInt($("#cargo").val());
 		var sala = parseInt($("#sala").val());
 		var ano = (parseInt($("#ano").val()) || 0);
 		var mes = (parseInt($("#mes").val()) || 0);
 
-		if ((departamentoAtual === departamento && salaAtual === sala && ano === anoAtual && mes === mesAtual) || JsonWebApi.active)
+		if ((departamentoAtual === departamento && cargoAtual === cargo && salaAtual === sala && ano === anoAtual && mes === mesAtual) || JsonWebApi.active)
 			return;
 
 		Notification.wait();
@@ -138,6 +152,7 @@
 			if (response.success) {
 				Notification.hide();
 				departamentoAtual = departamento;
+				cargoAtual = cargo;
 				salaAtual = sala;
 				anoAtual = ano;
 				mesAtual = mes;
@@ -145,10 +160,9 @@
 			} else {
 				Notification.error(response.value + " " + emoji.sad, true);
 			}
-		}, "id_departamento", departamento, "id_sala", sala, "ano", ano, "mes", mes);
+		}, "id_departamento", departamento, "idcargo", cargo, "id_sala", sala, "ano", ano, "mes", mes);
 	}
 
 	criarTabela(<%- lista %>);
 	//]]>
 </script>
-

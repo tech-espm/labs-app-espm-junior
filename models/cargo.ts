@@ -83,12 +83,12 @@ export = class Cargo {
 				await sql.query("delete from cargo where idcargo = ?", [idcargo]);
 				if (!sql.linhasAfetadas)
 					res = "Cargo não encontrado";
-				} catch (e) {
+			} catch (e) {
 				if (e.code) {
 					switch (e.code) {
 						case "ER_ROW_IS_REFERENCED":
 						case "ER_ROW_IS_REFERENCED_2":
-							res = "O cargo não pode ser excluído porque pertence a um ou mais usuários";
+							res = "O cargo não pode ser excluído porque pertence a um ou mais eventos ou usuários";
 							return;
 					}
 				}
