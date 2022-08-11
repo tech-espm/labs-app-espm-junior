@@ -2,7 +2,7 @@ import Sql = require("../infra/sql");
 import DataUtil = require("../utils/dataUtil");
 
 export = class Ponto {
-	public static readonly HorarioEntradaLimite = "14:00:59";
+	public static readonly HorarioEntradaLimite = "14:04:59";
 
 	public idponto: number;
 	public idusuario: number;

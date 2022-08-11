@@ -30,7 +30,7 @@ interface ItemLista {
 }
 
 export = class DayOff {
-	public static readonly HorarioLimiteAlteracoesHoje = 13;
+	public static readonly HorarioLimiteAlteracoesHoje = 14;
 
 	public iddayoff: number;
 	public idusuario: number;
