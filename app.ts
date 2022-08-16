@@ -48,7 +48,13 @@ ejs.cache = cache;
 const app = express();
 
 app.locals = {
-	root: appsettings.root
+	root: appsettings.root,
+	encodeValue: (function () {
+		const amp = /\&/g, lt = /</g, gt = />/g, quot = /\"/g, apos = /\'/g, grave = /\`/g;
+		return function (x: string): string {
+			return (x ? x.replace(amp, "&amp;").replace(lt, "&lt;").replace(gt, "&gt;").replace(quot, "&#34;").replace(apos, "&#39;").replace(grave, "&#96;") : "");
+		};
+	})()
 };
 
 // Não queremos o header X-Powered-By

@@ -1,7 +1,4 @@
-﻿<%
-	let exprCrase = /\`/g;
-%>
-<div class="row">
+﻿<div class="row">
 	<div class="col-md-8 col-md-offset-2 col-lg-6 col-lg-offset-3">
 		<form id="form" class="panel panel-default" action="#">
 			<div class="panel-heading">Informações do Evento</div>
@@ -194,7 +191,7 @@
 				<select size="1" id="ids_departamento${proximoIdDepartamento}" name="ids_departamento" class="form-control">
 					<option value="">Selecione...</option>
 					<% for (let i = 0; i < departamentos.length; i++) { %>
-						<option value="<%=departamentos[i].id_departamento %>"><%=departamentos[i].desc_departamento.replace(exprCrase, "&#96;") %></option>
+						<option value="<%=departamentos[i].id_departamento %>"><%- encodeValue(departamentos[i].desc_departamento) %></option>
 					<% } %>
 				</select>
 			</td>
@@ -226,7 +223,7 @@
 				<select size="1" id="ids_cargo${proximoIdCargo}" name="ids_cargo" class="form-control">
 					<option value="">Selecione...</option>
 					<% for (let i = 0; i < cargos.length; i++) { %>
-						<option value="<%=cargos[i].idcargo %>"><%=cargos[i].nome.replace(exprCrase, "&#96;") %></option>
+						<option value="<%=cargos[i].idcargo %>"><%- encodeValue(cargos[i].nome) %></option>
 					<% } %>
 				</select>
 			</td>
